@@ -1,5 +1,5 @@
 # main_app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import json
 import os
 import anthropic # For Claude API
@@ -140,34 +140,46 @@ def generate_guidance_with_llm(prompt_text: str, language: str = "th") -> str:
 #         return jsonify({"error": f"เกิดข้อผิดพลาดในการสร้างคำแนะนำ: {str(e)}"}), 500
 
 # --- API 3: Guidance Generation (Sentence Only) ---
-@app.route('/generate_guidance_sentence_only', methods=['POST'])
+# --- API 3: Guidance Generation (Sentence Only) ---
+@app.route('/generate_guidance_sentence_only', methods=['POST', 'OPTIONS']) # Added OPTIONS
 def api_generate_guidance_sentence_only():
-    """
-    API endpoint to generate emergency guidance using only the original sentence.
-    Uses the configured LLM (Claude).
-    """
+    if request.method == 'OPTIONS': # Handle preflight for this route
+        return _build_cors_preflight_response()
+    # Actual POST request handling
     try:
         data = request.get_json()
         if not data or 'sentence' not in data:
             return jsonify({"error": "ไม่พบข้อมูล 'sentence' ในคำขอ"}), 400
-
         thai_sentence = data['sentence']
         if not isinstance(thai_sentence, str) or not thai_sentence.strip():
             return jsonify({"error": "'sentence' ต้องเป็นสตริงที่ไม่ว่างเปล่า"}), 400
-
-        # Construct the prompt for Claude
         prompt = (
-            f"โปรดให้คำแนะนำการปฐมพยาบาลเบื้องต้นหรือวิธีกสรเอาตัวรอดเป็นภาษาไทยอย่างละเอียดและเป็นขั้นตอน "
+            f"โปรดให้คำแนะนำการปฐมพยาบาลเบื้องต้นเป็นภาษาไทยอย่างละเอียดและเป็นขั้นตอน "
             f"สำหรับสถานการณ์ฉุกเฉินที่อธิบายด้วยประโยคนี้: \"{thai_sentence}\". "
-            f"เน้นความปลอดภัยของผู้ช่วยเหลือและผู้ป่วย"
+            f"เน้นความปลอดภัยของผู้ช่วยเหลือและผู้ป่วย และแนะนำให้ติดต่อหน่วยแพทย์ฉุกเฉิน (1669) เมื่อจำเป็นอย่างยิ่ง"
         )
-        
         guidance_text = generate_guidance_with_llm(prompt)
-        return jsonify({"guidance": guidance_text}), 200
-
+        response = jsonify({"guidance": guidance_text})
+        return _corsify_actual_response(response) # Add CORS headers to actual response
     except Exception as e:
         print(f"Error in /generate_guidance_sentence_only: {e}")
         return jsonify({"error": f"เกิดข้อผิดพลาดในการสร้างคำแนะนำ: {str(e)}"}), 500
+
+# --- CORS Helper Functions (Alternative to Flask-CORS for manual control) ---
+# Using Flask-CORS is simpler, but these show manual header setting.
+# If Flask-CORS(app) is used, these manual functions are not strictly necessary
+# but can be kept if you need finer-grained control later and remove Flask-CORS(app).
+
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*") # Allow all origins
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization") # Allow specific headers
+    response.headers.add("Access-Control-Allow-Methods", "POST,GET,OPTIONS") # Allow specific methods
+    return response
+
+def _corsify_actual_response(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
     
 if __name__ == '__main__':
     # Initialize the Claude client when the Flask app starts.
