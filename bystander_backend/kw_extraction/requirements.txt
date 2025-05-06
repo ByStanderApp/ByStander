@@ -1,0 +1,7 @@
+Flask 
+pythainlp
+numpy
+transformers
+torch
+protobuf
+sentencepiece
