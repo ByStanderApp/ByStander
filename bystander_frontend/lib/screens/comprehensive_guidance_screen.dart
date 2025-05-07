@@ -44,6 +44,7 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     _scrollController.dispose();
     super.dispose();
   }
+  
 
   void _scrollToSection(int index) {
     GlobalKey key;
@@ -99,6 +100,14 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
 
+    void _readGuidanceAloud() {
+    if (guidanceSteps.isNotEmpty) {
+      String allSteps = guidanceSteps.join('. ');
+      // ttsService.speak(allSteps); // Uncomment and implement your TTS logic
+      print("Reading aloud: $allSteps"); // Placeholder for TTS functionality
+    }
+  }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ข้อมูลช่วยเหลือฉุกเฉิน'),
@@ -117,34 +126,63 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
             const SizedBox(height: 8),
             const Divider(),
             _buildSectionTitle('คำแนะนำตามลำดับขั้นตอน:', key: _guidanceKey, context: context),
-            if (guidanceSteps.isNotEmpty && guidanceSteps.length > 1)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: guidanceSteps.length,
-                itemBuilder: (context, index) {
-                  return Card( // CardTheme applied from main.dart
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: appColorScheme.primary,
-                        child: Text('${index + 1}', style: appTextTheme.labelLarge?.copyWith(color: appColorScheme.onPrimary, fontWeight: FontWeight.bold)),
+            if (guidanceSteps.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _readGuidanceAloud, // Your existing function for text-to-speech
+                      icon: const Icon(Icons.volume_up, color: Colors.red), // Megaphone-like icon
+                      label: const Text('Read Aloud'),
+                      style: ElevatedButton.styleFrom(
+                        // You can customize the button style further if needed
                       ),
-                      title: Text(guidanceSteps[index], style: appTextTheme.bodyLarge),
                     ),
-                  );
-                },
-              )
-            else
+                  ],
+                ),
+              ),
+
+            // Second part: Displaying guidance steps or fallback text
+            if (guidanceSteps.isNotEmpty) // Changed condition: now handles 1 or more steps
               Card(
+                // CardTheme from your main.dart will style this Card.
+                // You can add specific margin here if needed, e.g.:
+                // margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0), // Increased padding
+                  padding: const EdgeInsets.all(16.0), // Inner padding for the content within the card
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, // Align text to the start (left for LTR)
+                    mainAxisSize: MainAxisSize.min, // Ensure Column takes only necessary vertical space
+                    children: List.generate(guidanceSteps.length, (index) {
+                      return Padding(
+                        // Add some vertical spacing between the text of different steps
+                        padding: EdgeInsets.only(bottom: index < guidanceSteps.length - 1 ? 10.0 : 0.0),
+                        child: Text(
+                          guidanceSteps[index], // Display the guidance step text directly
+                          style: appTextTheme.bodyLarge, // Apply your desired text style
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              )
+            else // This else now correctly triggers only if guidanceSteps IS empty
+              Card(
+                // margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Optional margin
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0), // Padding for the fallback text
                   child: Text(
+                    // Using widget.guidanceText if guidanceSteps is empty,
+                    // or a default "not found" message if widget.guidanceText is also empty.
                     widget.guidanceText.isEmpty ? "ไม่พบคำแนะนำ" : widget.guidanceText,
                     style: appTextTheme.bodyLarge,
-                    textAlign: TextAlign.justify,
+                    textAlign: TextAlign.justify, // Justified text alignment for the fallback
                   ),
                 ),
               ),
+              
             const SizedBox(height: 16),
             const Divider(),
 
