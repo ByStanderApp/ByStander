@@ -1,0 +1,9 @@
+Flask 
+pythainlp
+numpy
+transformers
+torch
+protobuf
+sentencepiece
+anthropic
+python-dotenv
