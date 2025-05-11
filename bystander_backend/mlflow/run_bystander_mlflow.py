@@ -4,16 +4,17 @@ import json
 import importlib.util # To import script functions dynamically
 import anthropic
 from dotenv import load_dotenv
+import pandas as pd
 
 # --- Global Claude Client and API Key ---
-load_dotenv() # Load .env file once at the beginning
+load_dotenv() 
 CLAUDE_API_KEY = os.environ.get("CLAUDE_KEY")
-claude_client = None # Keep it global
+claude_client = None 
 
 # --- Configuration for each Version ---
 VERSIONS_CONFIG = {
     "V1_Baseline": {
-        "run_name": "ByStander_V1_Baseline_Direct_MultiScenario", # Updated run name
+        "run_name": "ByStander_V1_Baseline_Direct_MultiScenario", 
         "description": "Version 1: Direct query to Claude, raw output, tested on multiple scenarios.",
         "prompt_file": "prompts/generic_prompt_template_v1.txt",
         "preprocessing_script_path": "scripts/preprocess_minimal_v1.py",
@@ -21,10 +22,10 @@ VERSIONS_CONFIG = {
         "postprocessing_script_path": "scripts/postprocess_raw_v1.py",
         "postprocessing_function_name": "postprocess",
         "params": {"claude_model_id": "claude-3-haiku-20240307"},
-        "qualitative_metrics": {"overall_clarity": 3, "overall_actionability": 2, "overall_thai_relevance": 2} # For the version strategy
+        "qualitative_metrics": {"overall_clarity": 3, "overall_actionability": 2, "overall_thai_relevance": 2} 
     },
     "V2_Prompt_Engineer": {
-        "run_name": "ByStander_V2_Prompt_Engineered_MultiScenario", # Updated run name
+        "run_name": "ByStander_V2_Prompt_Engineered_MultiScenario",
         "description": "Version 2: Context-enhanced & role-specific prompting, tested on multiple scenarios.",
         "prompt_file": "prompts/guidance_prompt_template_v2.txt",
         "preprocessing_script_path": "scripts/preprocess_intent_detection_v2.py",
@@ -35,7 +36,7 @@ VERSIONS_CONFIG = {
         "qualitative_metrics": {"overall_clarity": 4, "overall_actionability": 4, "overall_thai_relevance": 4}
     },
     "V3_App_Integrator": {
-        "run_name": "ByStander_V3_Structured_IO_MultiScenario", # Updated run name
+        "run_name": "ByStander_V3_Structured_IO_MultiScenario",
         "description": "Version 3: Structured I/O & application-aware logic, tested on multiple scenarios.",
         "prompt_file": "prompts/dynamic_prompt_template_v3.txt",
         "preprocessing_script_path": "scripts/preprocess_entity_extraction_v3.py",
@@ -52,7 +53,6 @@ VERSIONS_CONFIG = {
 
 # --- Helper function to load module and function from script path ---
 def load_function_from_script(script_path, function_name):
-    # ... (your existing function, no changes needed)
     spec = importlib.util.spec_from_file_location(
         os.path.basename(script_path).replace(".py", ""), script_path
     )
@@ -82,7 +82,6 @@ def call_claude_api(prompt_text, version_name="Unknown", model_id="claude-3-haik
     if claude_client is None:
         error_message = "Claude client is not initialized. Cannot make API call."
         print(f"[API Call Error for {version_name}] {error_message}")
-        # No MLflow logging here, as it might be called outside an active run if not careful
         return f"Error: {error_message}", 0, 0
 
     print(f"\n[Real Claude API Call for {version_name}] Sending prompt to model '{model_id}':")
@@ -114,7 +113,6 @@ def call_claude_api(prompt_text, version_name="Unknown", model_id="claude-3-haik
         else:
             error_message = "Claude API response was empty or not in the expected format."
             print(f"[Real Claude API] Error: {error_message}")
-            # Consider how to signal this error upwards if logging directly to MLflow from here is avoided
             return f"Error: {error_message}", input_tokens, output_tokens
 
     except Exception as e:
@@ -122,7 +120,7 @@ def call_claude_api(prompt_text, version_name="Unknown", model_id="claude-3-haik
         print(error_message)
         # Log error artifact if an MLflow run is active (this function might be called during setup)
         if mlflow.active_run():
-            mlflow.log_param(f"{version_name}_api_error_details", error_message) # Log as param for visibility
+            mlflow.log_param(f"{version_name}_api_error_details", error_message)
             error_artifact_path = f"claude_api_error_{version_name}.txt"
             with open(error_artifact_path, "w") as f_err:
                 f_err.write(f"Prompt that caused error:\n{prompt_text}\n\nError:\n{str(e)}")
@@ -152,7 +150,7 @@ def run_bystander_experiment(version_key, config, list_of_user_queries): # Takes
             mlflow.log_artifact(config["postprocessing_script_path"], artifact_path="version_setup/scripts")
         mlflow.log_param("postprocessing_script", os.path.basename(config["postprocessing_script_path"]))
 
-        # --- Load processing functions once ---
+
         preprocess_fn = load_function_from_script(config["preprocessing_script_path"], config["preprocessing_function_name"])
         postprocess_fn = load_function_from_script(config["postprocessing_script_path"], config["postprocessing_function_name"])
         model_to_use = config.get("params", {}).get("claude_model_id", "claude-3-haiku-20240307")
@@ -197,7 +195,7 @@ def run_bystander_experiment(version_key, config, list_of_user_queries): # Takes
             # 3. Call Claude
             claude_response, in_tokens, out_tokens = call_claude_api(
                 prompt_text=actual_prompt,
-                version_name=f"{version_key}_{scenario_id}", # More specific for API call logging
+                version_name=f"{version_key}_{scenario_id}", 
                 model_id=model_to_use
             )
             scenario_data["claude_raw_response"] = claude_response
@@ -217,7 +215,8 @@ def run_bystander_experiment(version_key, config, list_of_user_queries): # Takes
 
         # Log the collected data for all scenarios as a table
         if all_scenarios_data:
-            mlflow.log_table(data=all_scenarios_data, artifact_file="scenario_results.json")
+            scenario_df = pd.DataFrame(all_scenarios_data)
+            mlflow.log_table(data=scenario_df, artifact_file="scenario_results.json") # Log the DataFrame
 
         # Log total token usage for the run
         mlflow.log_metric("total_input_tokens", total_input_tokens_for_run)
@@ -232,7 +231,7 @@ def run_bystander_experiment(version_key, config, list_of_user_queries): # Takes
 
 
 if __name__ == "__main__":
-    initialize_claude_client_globally() # Initialize Claude client once
+    initialize_claude_client_globally()
     if claude_client is None:
         print("Exiting script due to Claude client initialization failure.")
         exit()
@@ -243,7 +242,8 @@ if __name__ == "__main__":
         "ตึกถล่มที่สีลม ช่วยด้วย มีคนติดอยู่ข้างใน",
         "พบคนหมดสติ ไม่หายใจ แถวสยามสแควร์ ต้องทำยังไง",
         "ไฟไหม้บ้านที่คลองเตย มีควันเยอะมาก",
-        "Someone is having a seizure at Chatuchak Market. What should I do?"
+        "มีคนชักอยู่ในรถที่จอดอยู่ริมถนน",
+        "มีคนอาหารติดคออยู่ใกล้ฉัน"
     ]
 
     # Run experiments for all versions, each with all scenarios
