@@ -7,3 +7,4 @@ protobuf
 sentencepiece
 anthropic
 python-dotenv
+mlflow

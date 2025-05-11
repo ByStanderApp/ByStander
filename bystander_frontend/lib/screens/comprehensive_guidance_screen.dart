@@ -100,7 +100,7 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
 
-    void _readGuidanceAloud() {
+    void readGuidanceAloud() {
     if (guidanceSteps.isNotEmpty) {
       String allSteps = guidanceSteps.join('. ');
       // ttsService.speak(allSteps); // Uncomment and implement your TTS logic
@@ -133,7 +133,7 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: _readGuidanceAloud, // Your existing function for text-to-speech
+                      onPressed: readGuidanceAloud, // Your existing function for text-to-speech
                       icon: const Icon(Icons.volume_up, color: Colors.red), // Megaphone-like icon
                       label: const Text('Read Aloud'),
                       style: ElevatedButton.styleFrom(

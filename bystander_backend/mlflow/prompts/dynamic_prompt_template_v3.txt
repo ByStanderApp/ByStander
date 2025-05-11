@@ -1,0 +1,2 @@
+User in [location_context] reports emergency type [emergency_type] regarding: '[user_query]'. 
+Details: [extracted_entities]. Provide a step-by-step guidance in Thai language. Application context: ByStander app, Thailand.
