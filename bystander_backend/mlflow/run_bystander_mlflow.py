@@ -6,48 +6,62 @@ import anthropic
 from dotenv import load_dotenv
 import pandas as pd
 
-# --- Global Claude Client and API Key ---
 load_dotenv() 
 CLAUDE_API_KEY = os.environ.get("CLAUDE_KEY")
 claude_client = None 
 
-# --- Configuration for each Version ---
+# Versions config
 VERSIONS_CONFIG = {
     "V1_Baseline": {
-        "run_name": "ByStander_V1_Baseline_Direct_MultiScenario", 
-        "description": "Version 1: Direct query to Claude, raw output, tested on multiple scenarios.",
-        "prompt_file": "prompts/generic_prompt_template_v1.txt",
+        "run_name": "ByStander_V1_Baseline_ThaiCheckReasoning",
+        "description": "V1 Baseline MODIFIED: Assesses emergency, provides conditional Thai guidance & reasoning.",
+        "prompt_file": "prompts/generic_prompt_template_v1.txt", 
         "preprocessing_script_path": "scripts/preprocess_minimal_v1.py",
         "preprocessing_function_name": "preprocess",
-        "postprocessing_script_path": "scripts/postprocess_raw_v1.py",
+        "postprocessing_script_path": "scripts/postprocess_section_parser.py",
         "postprocessing_function_name": "postprocess",
-        "params": {"claude_model_id": "claude-3-haiku-20240307"},
-        "qualitative_metrics": {"overall_clarity": 3, "overall_actionability": 2, "overall_thai_relevance": 2} 
+        "params": {"claude_model_id": "claude-3-haiku-20240307"}, 
+        "qualitative_metrics": { 
+            "overall_emergency_detection_v1": 2, 
+            "overall_thai_guidance_quality_v1": 2,
+            "overall_reasoning_quality_v1": 1,
+            "overall_output_structure_adherence_v1": 3
+        }
     },
     "V2_Prompt_Engineer": {
-        "run_name": "ByStander_V2_Prompt_Engineered_MultiScenario",
-        "description": "Version 2: Context-enhanced & role-specific prompting, tested on multiple scenarios.",
-        "prompt_file": "prompts/guidance_prompt_template_v2.txt",
+        "run_name": "ByStander_V2_PromptEng_ThaiCheckReasoning", 
+        "description": "V2 Prompt Eng MODIFIED: Assesses emergency, provides conditional Thai guidance & reasoning.",
+        "prompt_file": "prompts/guidance_prompt_template_v2.txt", 
         "preprocessing_script_path": "scripts/preprocess_intent_detection_v2.py",
         "preprocessing_function_name": "preprocess",
-        "postprocessing_script_path": "scripts/postprocess_raw_v2.py",
+        "postprocessing_script_path": "scripts/postprocess_section_parser.py",
         "postprocessing_function_name": "postprocess",
-        "params": {"claude_model_id": "claude-3-haiku-20240307", "prompt_focus": "guidance_thai_context"},
-        "qualitative_metrics": {"overall_clarity": 4, "overall_actionability": 4, "overall_thai_relevance": 4}
+        "params": {"claude_model_id": "claude-3-haiku-20240307", "prompt_focus": "guidance_roleplay_thai_reasoning"},
+        "qualitative_metrics": { 
+            "overall_emergency_detection_v2": 4,
+            "overall_thai_guidance_quality_v2": 4,
+            "overall_reasoning_quality_v2": 3,
+            "overall_output_structure_adherence_v2": 4
+         }
     },
     "V3_App_Integrator": {
-        "run_name": "ByStander_V3_Structured_IO_MultiScenario",
-        "description": "Version 3: Structured I/O & application-aware logic, tested on multiple scenarios.",
-        "prompt_file": "prompts/dynamic_prompt_template_v3.txt",
+        "run_name": "ByStander_V3_StructuredIO_ThaiCheckReasoning", 
+        "description": "V3 Structured I/O MODIFIED: Assesses emergency, provides conditional Thai guidance & reasoning.",
+        "prompt_file": "prompts/dynamic_prompt_template_v3.txt", 
         "preprocessing_script_path": "scripts/preprocess_entity_extraction_v3.py",
         "preprocessing_function_name": "preprocess",
-        "postprocessing_script_path": "scripts/postprocess_structured_output_v3.py",
-        "postprocessing_function_name": "postprocess",
+        "postprocessing_script_path": "scripts/postprocess_section_parser.py", 
+        "postprocessing_function_name": "postprocess", 
         "params": {
-            "claude_model_id": "claude-3-haiku-20240307",
+            "claude_model_id": "claude-3-haiku-20240307", 
             "context": {"location_context": "Thailand", "app_name": "ByStander"}
         },
-        "qualitative_metrics": {"overall_clarity": 5, "overall_actionability": 5, "overall_thai_relevance": 5, "overall_ui_suitability": 4}
+        "qualitative_metrics": { 
+            "overall_emergency_detection_v3": 4,
+            "overall_thai_guidance_quality_v3": 4,
+            "overall_reasoning_quality_v3": 4,
+            "overall_output_structure_adherence_v3": 4
+        }
     }
 }
 
@@ -178,18 +192,37 @@ def run_bystander_experiment(version_key, config, list_of_user_queries): # Takes
             # 1. Pre-processing
             processed_input = preprocess_fn(user_query, params=config.get("params"))
             scenario_data["processed_input"] = json.dumps(processed_input, ensure_ascii=False) if isinstance(processed_input, dict) else str(processed_input)
+            current_timestamp_str = "Monday, May 12, 2025 at 5:23 PM +07" 
+            current_location_str = "Bangkok, Thailand" 
 
             # 2. Load and format prompt
             with open(config["prompt_file"], 'r', encoding='utf-8') as f:
                 prompt_template = f.read()
-            
-            actual_prompt = prompt_template.replace("[user_query]", str(user_query))
-            if isinstance(processed_input, dict): # For V3 style
-                if "raw_query" in processed_input:
-                     actual_prompt = prompt_template.replace("[user_query]", processed_input.get("raw_query", user_query))
-                actual_prompt = actual_prompt.replace("[extracted_entities]", json.dumps(processed_input.get("locations", []), ensure_ascii=False))
-                actual_prompt = actual_prompt.replace("[emergency_type]", processed_input.get("emergency_type", "not specified"))
-                actual_prompt = actual_prompt.replace("[location_context]", config.get("params", {}).get("context", {}).get("location_context", "Thailand"))
+
+            actual_prompt = prompt_template
+
+            actual_prompt = actual_prompt.replace("[user_query]", str(user_query)) 
+            actual_prompt = actual_prompt.replace("{current_time}", current_timestamp_str) 
+            actual_prompt = actual_prompt.replace("{current_location}", current_location_str)
+
+            processed_input = scenario_data.get("processed_input") 
+            processed_dict = {}
+            if isinstance(processed_input, str):
+                try:
+                    processed_dict = json.loads(processed_input) 
+                except json.JSONDecodeError:
+                    processed_dict = {"raw": processed_input} 
+            elif isinstance(processed_input, dict):
+                 processed_dict = processed_input
+
+            actual_prompt = actual_prompt.replace("{detected_intent}", str(processed_dict.get("detected_intent", "N/A"))) # For V2
+            actual_prompt = actual_prompt.replace("{extracted_entities}", json.dumps(processed_dict.get("locations", []), ensure_ascii=False)) # For V3
+            actual_prompt = actual_prompt.replace("{emergency_type}", str(processed_dict.get("emergency_type", "not specified"))) # For V3
+
+            app_context = config.get("params", {}).get("context", {})
+            actual_prompt = actual_prompt.replace("{app_name}", app_context.get("app_name", "ByStander")) # For V3
+
+
             scenario_data["actual_prompt_sent"] = actual_prompt
 
             # 3. Call Claude
@@ -238,11 +271,9 @@ if __name__ == "__main__":
 
     # Define your list of emergency scenarios (user queries)
     emergency_scenarios = [
-        "มีอุบัติเหตุรถชนกันใกล้ BTS อโศก มีคนเจ็บ ต้องการคำแนะนำด่วน",
-        "ตึกถล่มที่สีลม ช่วยด้วย มีคนติดอยู่ข้างใน",
         "พบคนหมดสติ ไม่หายใจ แถวสยามสแควร์ ต้องทำยังไง",
         "ไฟไหม้บ้านที่คลองเตย มีควันเยอะมาก",
-        "มีคนชักอยู่ในรถที่จอดอยู่ริมถนน",
+        "ชอบกินหมู",
         "มีคนอาหารติดคออยู่ใกล้ฉัน"
     ]
 
