@@ -56,16 +56,14 @@ def generate_guidance_with_llm(prompt_text: str, language: str = "th") -> str:
 
     if not claude_client:
         print("Claude client not initialized. Returning placeholder response.")
-        # Basic fallback if the Claude client failed to initialize
         error_message = "ขออภัย ระบบ AI หลัก (Claude) ไม่พร้อมใช้งานในขณะนี้เนื่องจากปัญหาการตั้งค่า "
-        if "อาหารติดคอ" in prompt_text: # Basic keyword check for fallback
+        if "อาหารติดคอ" in prompt_text:
             return error_message + "คำแนะนำเบื้องต้นสำหรับอาหารติดคอ: หากผู้ป่วยไอได้ ให้กระตุ้นให้ไอต่อ หากไอไม่ได้หรือไม่มีเสียง ให้ทำการรัดกระตุกหน้าท้อง (Heimlich) และโทร 1669 ทันที"
         return error_message + "โปรดติดต่อ 1669 เพื่อขอความช่วยเหลือทางการแพทย์ฉุกเฉินโดยตรง"
 
     try:
         print(f"--- Calling Claude LLM ({CLAUDE_MODEL_NAME}) ---")
         
-        # System prompt to guide the AI's behavior and output language
         system_prompt = "คุณเป็นผู้ช่วย AI ที่เชี่ยวชาญการให้คำแนะนำการปฐมพยาบาลเบื้องต้นเป็นภาษาไทย กรุณาตอบเป็นภาษาไทยเท่านั้น ให้ข้อมูลที่ชัดเจน เป็นขั้นตอน และเน้นความปลอดภัย"
 
         # Claude API call
@@ -103,43 +101,6 @@ def generate_guidance_with_llm(prompt_text: str, language: str = "th") -> str:
         print(f"Error during Claude guidance generation: {e}")
         return f"เกิดข้อผิดพลาดในการสื่อสารกับระบบ AI (Claude): {str(e)}. กรุณาลองใหม่อีกครั้งในภายหลังหรือติดต่อ 1669"
 
-
-# # --- API 2: Guidance Generation (with Keywords) ---
-# @app.route('/generate_guidance_with_keywords', methods=['POST'])
-# def api_generate_guidance_with_keywords():
-#     """
-#     API endpoint to generate emergency guidance using keywords and the original sentence.
-#     Uses the configured LLM (Claude).
-#     """
-#     try:
-#         data = request.get_json()
-#         if not data or 'keywords' not in data or 'original_sentence' not in data:
-#             return jsonify({"error": "ไม่พบข้อมูล 'keywords' หรือ 'original_sentence' ในคำขอ"}), 400
-
-#         keywords = data['keywords']
-#         original_sentence = data['original_sentence']
-
-#         if not isinstance(keywords, list) or not all(isinstance(kw, str) for kw in keywords):
-#             return jsonify({"error": "'keywords' ต้องเป็นรายการของสตริง"}), 400
-#         if not isinstance(original_sentence, str) or not original_sentence.strip():
-#             return jsonify({"error": "'original_sentence' ต้องเป็นสตริงที่ไม่ว่างเปล่า"}), 400
-
-#         # Construct the prompt for Claude
-#         prompt = (
-#             f"โปรดให้คำแนะนำการปฐมพยาบาลเบื้องต้นเป็นภาษาไทยอย่างละเอียดและเป็นขั้นตอน "
-#             f"สำหรับสถานการณ์ฉุกเฉินต่อไปนี้: \"{original_sentence}\". "
-#             f"คำสำคัญที่เกี่ยวข้องกับสถานการณ์นี้คือ: {', '.join(keywords)}. "
-#             f"เน้นความปลอดภัยของผู้ช่วยเหลือและผู้ป่วย และแนะนำให้ติดต่อหน่วยแพทย์ฉุกเฉิน (1669) เมื่อจำเป็นอย่างยิ่ง"
-#         )
-        
-#         guidance_text = generate_guidance_with_llm(prompt)
-#         return jsonify({"guidance": guidance_text}), 200
-
-#     except Exception as e:
-#         print(f"Error in /generate_guidance_with_keywords: {e}")
-#         return jsonify({"error": f"เกิดข้อผิดพลาดในการสร้างคำแนะนำ: {str(e)}"}), 500
-
-# --- API 3: Guidance Generation (Sentence Only) ---
 # --- API 3: Guidance Generation (Sentence Only) ---
 @app.route('/generate_guidance_sentence_only', methods=['POST', 'OPTIONS']) # Added OPTIONS
 def api_generate_guidance_sentence_only():
@@ -164,11 +125,7 @@ def api_generate_guidance_sentence_only():
     except Exception as e:
         print(f"Error in /generate_guidance_sentence_only: {e}")
         return jsonify({"error": f"เกิดข้อผิดพลาดในการสร้างคำแนะนำ: {str(e)}"}), 500
-
-# --- CORS Helper Functions (Alternative to Flask-CORS for manual control) ---
-# Using Flask-CORS is simpler, but these show manual header setting.
-# If Flask-CORS(app) is used, these manual functions are not strictly necessary
-# but can be kept if you need finer-grained control later and remove Flask-CORS(app).
+    
 
 def _build_cors_preflight_response():
     response = make_response()

@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/amyworawalan/ByStander/bystander_backend/mlflow/mlruns/0/c7e8e8d97cf24caf9f6fb71b0f3d1ad8/artifacts
+end_time: 1747047330394
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: c7e8e8d97cf24caf9f6fb71b0f3d1ad8
+run_name: ByStander_V1_Baseline_ThaiCheckReasoning
+run_uuid: c7e8e8d97cf24caf9f6fb71b0f3d1ad8
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747047326340
+status: 4
+tags: []
+user_id: amyworawalan

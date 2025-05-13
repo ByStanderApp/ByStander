@@ -1,0 +1,18 @@
+Background: Current time is {current_time} in {current_location}.
+User Query: '[user_query]'
+
+Instructions:
+1.  **Emergency Assessment:** Is this an urgent emergency situation based *only* on the query? Answer "YES" or "NO". Give 1 sentence reasoning in English. Output this starting with "===EMERGENCY ASSESSMENT===".
+2.  **Guidance (If Emergency):** If YES, give bystander guidance steps *in Thai*. Output this starting with "===GUIDANCE THAI===". If NO, output "N/A".
+3.  **Reasoning (If Emergency):** If YES, give brief reasoning for the guidance *in Thai*. Output this starting with "===REASONING THAI===". If NO, output "N/A".
+
+Follow the output format strictly.
+
+===EMERGENCY ASSESSMENT===
+[Your YES/NO decision and English reasoning here]
+
+===GUIDANCE THAI===
+[Your Thai guidance steps here, or N/A]
+
+===REASONING THAI===
+[Your Thai reasoning for guidance here, or N/A]
