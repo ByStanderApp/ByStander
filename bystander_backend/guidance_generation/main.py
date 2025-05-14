@@ -101,12 +101,12 @@ def generate_guidance_with_llm(prompt_text: str, language: str = "th") -> str:
         print(f"Error during Claude guidance generation: {e}")
         return f"เกิดข้อผิดพลาดในการสื่อสารกับระบบ AI (Claude): {str(e)}. กรุณาลองใหม่อีกครั้งในภายหลังหรือติดต่อ 1669"
 
-# --- API 3: Guidance Generation (Sentence Only) ---
+# --- API: Guidance Generation (Sentence Only) ---
 @app.route('/generate_guidance_sentence_only', methods=['POST', 'OPTIONS']) # Added OPTIONS
 def api_generate_guidance_sentence_only():
     if request.method == 'OPTIONS': # Handle preflight for this route
         return _build_cors_preflight_response()
-    # Actual POST request handling
+    
     try:
         data = request.get_json()
         if not data or 'sentence' not in data:
@@ -114,10 +114,11 @@ def api_generate_guidance_sentence_only():
         thai_sentence = data['sentence']
         if not isinstance(thai_sentence, str) or not thai_sentence.strip():
             return jsonify({"error": "'sentence' ต้องเป็นสตริงที่ไม่ว่างเปล่า"}), 400
-        prompt = (
-            f"โปรดให้คำแนะนำการปฐมพยาบาลเบื้องต้นเป็นภาษาไทยอย่างละเอียดและเป็นขั้นตอน "
-            f"สำหรับสถานการณ์ฉุกเฉินที่อธิบายด้วยประโยคนี้: \"{thai_sentence}\". "
-            f"เน้นความปลอดภัยของผู้ช่วยเหลือและผู้ป่วย และแนะนำให้ติดต่อหน่วยแพทย์ฉุกเฉิน (1669) เมื่อจำเป็นอย่างยิ่ง"
+
+        prompt = ( f"Based on this emergency situation: \"{thai_sentence}\"."
+                  f"is this an urgent emergency? Answer If it is an emergency, provide clear, numbered," 
+                  f"step-by-step guidance for a bystander *in Thai*"
+                  f" If it's not emergency, give response in Thai stating that is not emergency and suggest to contact a doctor or relevant agency."
         )
         guidance_text = generate_guidance_with_llm(prompt)
         response = jsonify({"guidance": guidance_text})
