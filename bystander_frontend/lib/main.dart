@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
             borderSide: const BorderSide(color: primaryColor, width: 2),
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 3,
           color: cardBackgroundColor, // Explicitly set card color
           shape: RoundedRectangleBorder(

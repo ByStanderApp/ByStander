@@ -23,7 +23,29 @@ def initialize_claude_client():
     global claude_client
     
     # Load environment variables from .env file
-    load_dotenv() 
+    # Handle encoding issues - try UTF-8 first, fallback to UTF-16 if needed
+    import pathlib
+    env_file = pathlib.Path(__file__).parent / '.env'
+    if env_file.exists():
+        try:
+            # Try loading as UTF-8 first
+            load_dotenv(dotenv_path=str(env_file), encoding='utf-8')
+        except UnicodeDecodeError:
+            # If UTF-8 fails, try UTF-16 (Windows sometimes saves as UTF-16)
+            try:
+                with open(env_file, 'r', encoding='utf-16') as f:
+                    content = f.read()
+                # Parse manually and set environment variable
+                for line in content.split('\n'):
+                    line = line.strip()
+                    if line and '=' in line and not line.startswith('#'):
+                        key, value = line.split('=', 1)
+                        os.environ[key.strip()] = value.strip()
+            except Exception as e:
+                print(f"Warning: Could not load .env file: {e}")
+    else:
+        # Fallback to default behavior
+        load_dotenv() 
     
     api_key = os.environ.get("CLAUDE_KEY")
     if not api_key:

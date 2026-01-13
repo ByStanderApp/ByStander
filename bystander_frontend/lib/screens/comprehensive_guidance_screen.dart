@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:bystander_frontend/services/tts_service.dart';
 
 // Data model for emergency services (can be moved to a models folder)
 class EmergencyService {
@@ -26,6 +27,8 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
 class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScreen> {
   final ScrollController _scrollController = ScrollController();
   int _currentSectionIndex = 0; // 0: Guidance, 1: Nearby, 2: Call Script
+  final TtsService _ttsService = TtsService();
+  bool _isSpeaking = false;
 
   // GlobalKeys to identify sections for scrolling
   final GlobalKey _guidanceKey = GlobalKey();
@@ -42,7 +45,14 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
   @override
   void dispose() {
     _scrollController.dispose();
+    _ttsService.stop();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _ttsService.initialize();
   }
   
 
@@ -100,11 +110,43 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
 
-    void readGuidanceAloud() {
+  Future<void> readGuidanceAloud() async {
+    if (_isSpeaking) {
+      // If already speaking, stop it
+      await _ttsService.stop();
+      setState(() {
+        _isSpeaking = false;
+      });
+      return;
+    }
+
     if (guidanceSteps.isNotEmpty) {
       String allSteps = guidanceSteps.join('. ');
-      // ttsService.speak(allSteps); // Uncomment and implement your TTS logic
-      print("Reading aloud: $allSteps"); // Placeholder for TTS functionality
+      setState(() {
+        _isSpeaking = true;
+      });
+      await _ttsService.speak(allSteps);
+      // Update state after a short delay to reflect speaking status
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          setState(() {
+            _isSpeaking = _ttsService.isSpeaking;
+          });
+        }
+      });
+    } else if (widget.guidanceText.isNotEmpty) {
+      // Fallback to full text if steps parsing failed
+      setState(() {
+        _isSpeaking = true;
+      });
+      await _ttsService.speak(widget.guidanceText);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          setState(() {
+            _isSpeaking = _ttsService.isSpeaking;
+          });
+        }
+      });
     }
   }
 
@@ -133,11 +175,16 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: readGuidanceAloud, // Your existing function for text-to-speech
-                      icon: const Icon(Icons.volume_up, color: Colors.red), // Megaphone-like icon
-                      label: const Text('Read Aloud'),
+                      onPressed: readGuidanceAloud,
+                      icon: Icon(
+                        _isSpeaking ? Icons.stop : Icons.volume_up,
+                        color: _isSpeaking ? Colors.white : Colors.red,
+                      ),
+                      label: Text(_isSpeaking ? 'หยุด' : 'อ่านออกเสียง'),
                       style: ElevatedButton.styleFrom(
-                        // You can customize the button style further if needed
+                        backgroundColor: _isSpeaking 
+                            ? appColorScheme.primary 
+                            : null,
                       ),
                     ),
                   ],
