@@ -17,9 +17,9 @@ def initialize_deepseek_client():
     Initializes the DeepSeek client using the OpenAI SDK.
     Loads API key from .env file.
     """
+    
     global deepseek_client
     load_dotenv() 
-    
     api_key = os.environ.get("DEEPSEEK_KEY")
     if not api_key:
         print("CRITICAL ERROR: DEEPSEEK_KEY not found in .env file.")
