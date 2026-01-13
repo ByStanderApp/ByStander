@@ -1,160 +1,115 @@
-# main_app.py
 from flask import Flask, request, jsonify, make_response
 import json
 import os
-import anthropic # For Claude API
+from openai import OpenAI  # DeepSeek uses the OpenAI SDK
 from dotenv import load_dotenv
-
 
 # Initialize Flask app
 app = Flask(__name__)
 
-# --- Global Variables for Claude LLM ---
-claude_client = None
-CLAUDE_MODEL_NAME = "claude-3-haiku-20240307" # Using the latest Haiku model
+# --- Global Variables for DeepSeek LLM ---
+deepseek_client = None
+DEEPSEEK_MODEL_NAME = "deepseek-chat" # DeepSeek's standard chat model
 
-# --- Function to Initialize Claude Client ---
-def initialize_claude_client():
+# --- Function to Initialize DeepSeek Client ---
+def initialize_deepseek_client():
     """
-    Initializes the Anthropic client.
-    Loads API key from .env file first.
-    This function should be called once when the Flask app starts.
+    Initializes the DeepSeek client using the OpenAI SDK.
+    Loads API key from .env file.
     """
-    global claude_client
     
-    # Load environment variables from .env file
-    # Handle encoding issues - try UTF-8 first, fallback to UTF-16 if needed
-    import pathlib
-    env_file = pathlib.Path(__file__).parent / '.env'
-    if env_file.exists():
-        try:
-            # Try loading as UTF-8 first
-            load_dotenv(dotenv_path=str(env_file), encoding='utf-8')
-        except UnicodeDecodeError:
-            # If UTF-8 fails, try UTF-16 (Windows sometimes saves as UTF-16)
-            try:
-                with open(env_file, 'r', encoding='utf-16') as f:
-                    content = f.read()
-                # Parse manually and set environment variable
-                for line in content.split('\n'):
-                    line = line.strip()
-                    if line and '=' in line and not line.startswith('#'):
-                        key, value = line.split('=', 1)
-                        os.environ[key.strip()] = value.strip()
-            except Exception as e:
-                print(f"Warning: Could not load .env file: {e}")
-    else:
-        # Fallback to default behavior
-        load_dotenv() 
-    
-    api_key = os.environ.get("CLAUDE_KEY")
+    global deepseek_client
+    load_dotenv() 
+    api_key = os.environ.get("DEEPSEEK_KEY")
     if not api_key:
-        print("CRITICAL ERROR: CLAUDE_KEY environment variable not found in environment or .env file.")
-        print("Claude LLM guidance generation will not be available.")
-        claude_client = None
+        print("CRITICAL ERROR: DEEPSEEK_KEY not found in .env file.")
+        deepseek_client = None
         return
 
     try:
-        claude_client = anthropic.Anthropic(api_key=api_key)
-        print(f"Anthropic client initialized successfully for model: {CLAUDE_MODEL_NAME}.")
+        # DeepSeek points to a specific base_url
+        deepseek_client = OpenAI(
+            api_key=api_key, 
+            base_url="https://api.deepseek.com"
+        )
+        print(f"DeepSeek client initialized successfully.")
     except Exception as e:
-        print(f"CRITICAL ERROR initializing Anthropic client: {e}")
-        claude_client = None
+        print(f"CRITICAL ERROR initializing DeepSeek client: {e}")
+        deepseek_client = None
 
 
-# --- Helper Function for LLM Guidance Generation (using Claude) ---
 def generate_guidance_with_llm(prompt_text: str, language: str = "th") -> str:
-    """
-    Generates emergency guidance using the configured Claude LLM.
+    global deepseek_client
 
-    Args:
-        prompt_text (str): The detailed prompt/instruction for the LLM.
-        language (str): Target language (primarily for consistency, Claude will be prompted for Thai).
-
-    Returns:
-        str: The LLM-generated guidance or an error message.
-    """
-    global claude_client
-
-    if not claude_client:
-        print("Claude client not initialized. Returning placeholder response.")
-        error_message = "ขออภัย ระบบ AI หลัก (Claude) ไม่พร้อมใช้งานในขณะนี้เนื่องจากปัญหาการตั้งค่า "
-        if "อาหารติดคอ" in prompt_text:
-            return error_message + "คำแนะนำเบื้องต้นสำหรับอาหารติดคอ: หากผู้ป่วยไอได้ ให้กระตุ้นให้ไอต่อ หากไอไม่ได้หรือไม่มีเสียง ให้ทำการรัดกระตุกหน้าท้อง (Heimlich) และโทร 1669 ทันที"
-        return error_message + "โปรดติดต่อ 1669 เพื่อขอความช่วยเหลือทางการแพทย์ฉุกเฉินโดยตรง"
+    if not deepseek_client:
+        return "ขออภัย ระบบไม่พร้อมใช้งานในขณะนี้ โปรดโทร 1669"
 
     try:
-        print(f"--- Calling Claude LLM ({CLAUDE_MODEL_NAME}) ---")
+        print(f"--- Calling DeepSeek LLM (Plain Text Mode) ---")
         
-        system_prompt = "คุณเป็นผู้ช่วย AI ที่เชี่ยวชาญการให้คำแนะนำการปฐมพยาบาลเบื้องต้นเป็นภาษาไทย กรุณาตอบเป็นภาษาไทยเท่านั้น ให้ข้อมูลที่ชัดเจน เป็นขั้นตอน และเน้นความปลอดภัย"
-
-        # Claude API call
-        response = claude_client.messages.create(
-            model=CLAUDE_MODEL_NAME,
-            max_tokens=1024,  # Max length of the generated response
-            temperature=0.6,  # Controls randomness. Lower is more deterministic.
-            system=system_prompt,
-            messages=[
-                {"role": "user", "content": prompt_text}
-            ]
+        # We explicitly tell the AI NOT to use asterisks or markdown
+        system_prompt = (
+            "คุณเป็นผู้ช่วยให้คำแนะนำการปฐมพยาบาลเบื้องต้น "
+            "ข้อกำหนดสำคัญ: ห้ามใช้เครื่องหมายดอกจัน (*) หรือ Markdown (เช่น **ตัวหนา**) โดยเด็ดขาด "
+            "ให้ตอบเป็นข้อความธรรมดา (Plain Text) เท่านั้น "
+            "ใช้ตัวเลข (1, 2, 3) สำหรับขั้นตอนหลัก และใช้เครื่องหมายยัติภังค์ (-) สำหรับขั้นตอนย่อย"
         )
 
-        # Extract the text content from the response
-        # Claude's response structure is a list of content blocks.
-        if response.content and len(response.content) > 0 and hasattr(response.content[0], 'text'):
-            guidance = response.content[0].text
-            print(f"Claude LLM Raw Response: {guidance}")
-            return guidance.strip()
+        response = deepseek_client.chat.completions.create(
+            model=DEEPSEEK_MODEL_NAME,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt_text}
+            ],
+            temperature=0.3, # Lower temperature makes the AI follow formatting rules better
+            stream=False
+        )
+
+        if response.choices:
+            guidance = response.choices[0].message.content
+            # Extra safety: strip out any asterisks if the AI accidentally includes them
+            clean_guidance = guidance.replace("*", "").strip()
+            return clean_guidance
         else:
-            print(f"Claude LLM returned an unexpected response structure: {response}")
-            return "ขออภัย ระบบ AI ไม่สามารถสร้างคำแนะนำได้ในขณะนี้ (โครงสร้างตอบกลับไม่ถูกต้อง)"
+            return "ไม่สามารถสร้างคำแนะนำได้ โปรดติดต่อ 1669"
 
-
-    except anthropic.APIConnectionError as e:
-        print(f"Claude API Connection Error: {e}")
-        return "ขออภัย เกิดปัญหาในการเชื่อมต่อกับระบบ AI กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองอีกครั้ง"
-    except anthropic.RateLimitError as e:
-        print(f"Claude API Rate Limit Error: {e}")
-        return "ขออภัย ขณะนี้มีการใช้งานระบบ AI หนาแน่นเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง"
-    except anthropic.APIStatusError as e:
-        print(f"Claude API Status Error (Code: {e.status_code}): {e.response}")
-        return f"ขออภัย ระบบ AI ตอบกลับมาพร้อมข้อผิดพลาด (สถานะ: {e.status_code}) กรุณาลองอีกครั้งในภายหลัง"
     except Exception as e:
-        print(f"Error during Claude guidance generation: {e}")
-        return f"เกิดข้อผิดพลาดในการสื่อสารกับระบบ AI (Claude): {str(e)}. กรุณาลองใหม่อีกครั้งในภายหลังหรือติดต่อ 1669"
+        print(f"Error: {e}")
+        return "เกิดข้อผิดพลาดในการสื่อสารกับ AI โปรดโทร 1669"
 
-# --- API: Guidance Generation (Sentence Only) ---
-@app.route('/generate_guidance_sentence_only', methods=['POST', 'OPTIONS']) # Added OPTIONS
+# --- API: Guidance Generation ---
+@app.route('/generate_guidance_sentence_only', methods=['POST', 'OPTIONS'])
 def api_generate_guidance_sentence_only():
-    if request.method == 'OPTIONS': # Handle preflight for this route
+    if request.method == 'OPTIONS':
         return _build_cors_preflight_response()
     
     try:
         data = request.get_json()
-        if not data or 'sentence' not in data:
-            return jsonify({"error": "ไม่พบข้อมูล 'sentence' ในคำขอ"}), 400
-        thai_sentence = data['sentence']
-        if not isinstance(thai_sentence, str) or not thai_sentence.strip():
-            return jsonify({"error": "'sentence' ต้องเป็นสตริงที่ไม่ว่างเปล่า"}), 400
+        thai_sentence = data.get('sentence', '')
 
-        prompt = ( f"Based on this emergency situation: \"{thai_sentence}\"."
-                  f"is this an urgent emergency? Answer If it is an emergency, provide clear, numbered," 
-                  f"step-by-step guidance for a bystander *in Thai*"
-                  f" If it's not emergency, give response in Thai stating that is not emergency and suggest to contact a doctor or relevant agency."
+        # Updated prompt to match the structure of your image
+        prompt = ( 
+            f"สถานการณ์: \"{thai_sentence}\" "
+            "หากเป็นเหตุฉุกเฉิน ให้ขึ้นต้นว่า สถานการณ์นี้เป็นเหตุฉุกเฉิน "
+            "จากนั้นให้คำแนะนำเป็นลำดับขั้นตอนดังนี้: "
+            "1. ประเมินความปลอดภัย "
+            "2. โทรขอความช่วยเหลือ (ระบุเบอร์ 1669) "
+            "3. การปฐมพยาบาลเบื้องต้นตามสถานการณ์ที่ได้รับแจ้ง "
+            "4. การรอความช่วยเหลือ "
+            "ย้ำ: ห้ามใส่เครื่องหมายดอกจัน (*) ในคำตอบ ให้ใช้เพียงข้อความธรรมดาเท่านั้น"
         )
+        
         guidance_text = generate_guidance_with_llm(prompt)
-        response = jsonify({"guidance": guidance_text})
-        return _corsify_actual_response(response) # Add CORS headers to actual response
+        return _corsify_actual_response(jsonify({"guidance": guidance_text}))
     except Exception as e:
-        print(f"Error in /generate_guidance_sentence_only: {e}")
-        return jsonify({"error": f"เกิดข้อผิดพลาดในการสร้างคำแนะนำ: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
     
 
 def _build_cors_preflight_response():
     response = make_response()
-    response.headers.add("Access-Control-Allow-Origin", "*") # Allow all origins
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization") # Allow specific headers
-    response.headers.add("Access-Control-Allow-Methods", "POST,GET,OPTIONS") # Allow specific methods
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "POST,GET,OPTIONS")
     return response
 
 def _corsify_actual_response(response):
@@ -162,14 +117,6 @@ def _corsify_actual_response(response):
     return response
     
 if __name__ == '__main__':
-    # Initialize the Claude client when the Flask app starts.
-    print("Starting Flask application... Initializing Claude Client.")
-    initialize_claude_client()
-    print("Claude Client initialization process complete (or attempted). Starting web server.")
-    
-    # Make sure your requirements.txt includes:
-    # Flask
-    # pythainlp
-    # anthropic
-    # (and any other dependencies pythainlp might have for its core functions)
+    print("Starting Flask application... Initializing DeepSeek Client.")
+    initialize_deepseek_client()
     app.run(debug=True, host='0.0.0.0', port=5001)
