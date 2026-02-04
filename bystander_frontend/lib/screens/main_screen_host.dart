@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bystander_frontend/screens/home_screen.dart';
 import 'package:bystander_frontend/screens/about_screen.dart';
+import 'package:bystander_frontend/screens/personal_info_screen.dart';
 
 class MainScreenHost extends StatelessWidget {
   const MainScreenHost({super.key});
@@ -26,6 +27,16 @@ class MainScreenHost extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: Colors.white),
+            tooltip: 'ข้อมูลส่วนตัว',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PersonalInfoScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white),
             tooltip: 'เกี่ยวกับแอปพลิเคชัน',
