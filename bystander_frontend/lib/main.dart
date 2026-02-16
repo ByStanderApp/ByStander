@@ -1,9 +1,27 @@
 // main.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:bystander_frontend/screens/main_screen_host.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // One-time test write so you can see the app is connected to your Firestore:
+  // Open Firebase Console → Firestore Database → Data → look for collection "connection_test"
+  FirebaseFirestore.instance
+      .collection('connection_test')
+      .doc('app_start')
+      .set({
+        'message': 'ByStander connected',
+        'at': FieldValue.serverTimestamp(),
+      })
+      .catchError((e) => null); // ignore errors (e.g. rules) so app still starts
+
   runApp(const MyApp());
 }
 
