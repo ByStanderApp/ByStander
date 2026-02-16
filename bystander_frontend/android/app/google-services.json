@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "870355236952",
+    "project_id": "bystander-e19c0",
+    "storage_bucket": "bystander-e19c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:870355236952:android:1e463491dbf8e4f910f22d",
+        "android_client_info": {
+          "package_name": "com.example.bystander_frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "870355236952-bu0r1q77mhg0alcef0jh0atrfch0kfgj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPFovWthk4n7jVTtrhAlXVK0zKOFzZJN8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "870355236952-bu0r1q77mhg0alcef0jh0atrfch0kfgj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

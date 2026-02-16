@@ -34,8 +34,13 @@ dependencies:
   speech_to_text: ^6.6.1 # Check for latest version
   permission_handler: ^11.3.1 # Check for latest version
   url_launcher: ^6.3.0 # Check for latest version
-  google_fonts: ^6.2.1 # For custom fonts like Prompt
+  google_fonts: ^8.0.1 # For custom fonts like Prompt (8.x fixes FontWeight const error on newer Flutter)
   flutter_tts: ^4.0.0 # Text-to-speech for Thai language
+
+  # Firebase (Auth + Firestore)
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.3.4
+  cloud_firestore: ^5.5.0
 
   cupertino_icons: ^1.0.6
 
