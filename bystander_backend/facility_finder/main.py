@@ -6,8 +6,12 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 
 # Load environment variables
-load_dotenv()
-GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+load_dotenv(dotenv_path=ENV_PATH, override=True)
+
+
+def _get_google_maps_api_key():
+    return os.environ.get("GOOGLE_MAPS_API_KEY")
 
 def _build_cors_preflight_response():
     """Build CORS preflight response"""
@@ -35,7 +39,8 @@ def search_nearby_facilities(latitude, longitude, facility_type, severity):
     Returns:
         List of up to 5 facilities with their details
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = _get_google_maps_api_key()
+    if not api_key:
         return {"error": "Google Maps API key not configured"}
     
     # Determine search type based on facility_type and severity
@@ -57,7 +62,7 @@ def search_nearby_facilities(latitude, longitude, facility_type, severity):
         "radius": radius,
         "type": search_type,
         "language": "th",
-        "key": GOOGLE_MAPS_API_KEY
+        "key": api_key
     }
     
     try:
@@ -65,9 +70,14 @@ def search_nearby_facilities(latitude, longitude, facility_type, severity):
         response.raise_for_status()
         data = response.json()
         
-        if data.get("status") != "OK":
-            print(f"Google Places API error: {data.get('status')} - {data.get('error_message', 'No error message')}")
-            return {"error": f"Unable to find facilities: {data.get('status')}"}
+        status = data.get("status")
+        if status not in ["OK", "ZERO_RESULTS"]:
+            error_message = data.get("error_message", "No error message")
+            print(f"Google Places API error: {status} - {error_message}")
+            return {"error": f"Unable to find facilities: {status}. {error_message}"}
+
+        if status == "ZERO_RESULTS":
+            return {"facilities": [], "total": 0}
         
         results = data.get("results", [])[:5]  # Get top 5 results
         
@@ -108,7 +118,8 @@ def get_place_details(place_id):
     Returns:
         Dictionary with place details
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = _get_google_maps_api_key()
+    if not api_key:
         return {}
     
     url = "https://maps.googleapis.com/maps/api/place/details/json"
@@ -117,7 +128,7 @@ def get_place_details(place_id):
         "place_id": place_id,
         "fields": "formatted_phone_number,website,opening_hours",
         "language": "th",
-        "key": GOOGLE_MAPS_API_KEY
+        "key": api_key
     }
     
     try:
@@ -206,7 +217,7 @@ def health_check():
 
 if __name__ == '__main__':
     print("Starting Facility Finder Flask application...")
-    if not GOOGLE_MAPS_API_KEY:
+    if not _get_google_maps_api_key():
         print("WARNING: GOOGLE_MAPS_API_KEY not found in environment variables")
         print("Please add it to your .env file")
     app.run(debug=True, host='0.0.0.0', port=5002)
