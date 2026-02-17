@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:bystander_frontend/services/tts_service.dart';
+import 'package:bystander_frontend/services/api_service.dart';
+import 'package:bystander_frontend/screens/facility_finder_screen.dart';
+import 'package:geolocator/geolocator.dart';
 
 // Data model for emergency services (can be moved to a models folder)
 class EmergencyService {
@@ -13,11 +16,15 @@ class EmergencyService {
 class ComprehensiveGuidanceScreen extends StatefulWidget {
   final String guidanceText;
   final String originalQuery;
+  final String severity;
+  final String facilityType;
 
   const ComprehensiveGuidanceScreen({
     super.key,
     required this.guidanceText,
     required this.originalQuery,
+    required this.severity,
+    required this.facilityType,
   });
 
   @override
@@ -28,7 +35,9 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
   final ScrollController _scrollController = ScrollController();
   int _currentSectionIndex = 0; // 0: Guidance, 1: Nearby, 2: Call Script
   final TtsService _ttsService = TtsService();
+  final ApiService _apiService = ApiService();
   bool _isSpeaking = false;
+  bool _isLoadingFacilities = false;
 
   // GlobalKeys to identify sections for scrolling
   final GlobalKey _guidanceKey = GlobalKey();
@@ -53,6 +62,175 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
   void initState() {
     super.initState();
     _ttsService.initialize();
+  }
+
+  Future<Position?> _getUserLocation() async {
+    try {
+      // Check for location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('กรุณาอนุญาตการเข้าถึงตำแหน่งในเบราว์เซอร์'),
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+          return null;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ไม่สามารถใช้ตำแหน่งได้ กรุณาเปิดในการตั้งค่าเบราว์เซอร์'),
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+        return null;
+      }
+
+      // Get the current position with web-friendly settings
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 15),
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw Exception('การรับตำแหน่งใช้เวลานานเกินไป');
+        },
+      );
+
+      return position;
+    } on PermissionDeniedException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('กรุณาให้สิทธิ์การเข้าถึงตำแหน่งในเบราว์เซอร์'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+      return null;
+    } on LocationServiceDisabledException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('กรุณาเปิดใช้งานบริการตำแหน่งของอุปกรณ์'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+      return null;
+    } catch (e) {
+      if (mounted) {
+        // Show more helpful error message with option to use default location
+        final useDefault = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('ไม่สามารถรับตำแหน่งได้'),
+            content: Text(
+              'เกิดข้อผิดพลาด: ${e.toString()}\n\n'
+              'ในเบราว์เซอร์ Chrome:\n'
+              '1. คลิกไอคอน 🔒 ด้านซ้ายของ URL\n'
+              '2. เปิดการอนุญาต "Location"\n'
+              '3. รีเฟรชหน้าและลองอีกครั้ง\n\n'
+              'หรือใช้ตำแหน่งกรุงเทพฯ เป็นค่าเริ่มต้น?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('ยกเลิก'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('ใช้ตำแหน่งกรุงเทพฯ'),
+              ),
+            ],
+          ),
+        );
+
+        if (useDefault == true) {
+          // Return a default location (Bangkok, Thailand)
+          return Position(
+            latitude: 13.7563,
+            longitude: 100.5018,
+            timestamp: DateTime.now(),
+            accuracy: 0,
+            altitude: 0,
+            altitudeAccuracy: 0,
+            heading: 0,
+            headingAccuracy: 0,
+            speed: 0,
+            speedAccuracy: 0,
+          );
+        }
+      }
+      return null;
+    }
+  }
+
+  Future<void> _findNearbyFacilities() async {
+    setState(() {
+      _isLoadingFacilities = true;
+    });
+
+    try {
+      // Get user location
+      final position = await _getUserLocation();
+      if (position == null) {
+        setState(() {
+          _isLoadingFacilities = false;
+        });
+        return;
+      }
+
+      // Call API to find facilities
+      final response = await _apiService.findNearbyFacilities(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        facilityType: widget.facilityType,
+        severity: widget.severity,
+      );
+
+      if (mounted) {
+        // Convert response to Facility objects
+        final facilities = response.facilities
+            .map((json) => Facility.fromJson(json))
+            .toList();
+
+        // Navigate to facility finder screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FacilityFinderScreen(
+              facilities: facilities,
+              userLatitude: position.latitude,
+              userLongitude: position.longitude,
+              facilityType: widget.facilityType,
+              severity: widget.severity,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาด: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingFacilities = false;
+        });
+      }
+    }
   }
   
 
@@ -234,6 +412,25 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
             const Divider(),
 
             _buildSectionTitle('สถานบริการฉุกเฉิน (ตัวอย่าง)', key: _nearbyServicesKey, context: context),
+            // Find Nearby Facilities Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: ElevatedButton.icon(
+                onPressed: _isLoadingFacilities ? null : _findNearbyFacilities,
+                icon: _isLoadingFacilities
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.map),
+                label: Text(_isLoadingFacilities ? 'กำลังค้นหา...' : 'ค้นหาสถานพยาบาลใกล้เคียง'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             _buildNearbyServicesSection(context),
             const SizedBox(height: 16),
             const Divider(),

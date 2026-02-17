@@ -10,3 +10,10 @@ python-dotenv
 mlflow
 pandas
 openai
+datasets
+peft
+trl
+bitsandbytes
+huggingface_hub
+requests
+llama-cpp-python
