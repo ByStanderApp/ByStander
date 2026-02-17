@@ -1,48 +1,45 @@
 from flask import Flask, request, jsonify, make_response
 import json
 import os
-from llama_cpp import Llama
+from openai import OpenAI  # DeepSeek uses the OpenAI SDK
 from dotenv import load_dotenv
 
 # Initialize Flask app
 app = Flask(__name__)
 
-# --- Global Variables for Local Llama LLM ---
-llm = None
-DEFAULT_MODEL_PATH = os.getenv("LLAMA_MODEL_PATH")
+# --- Global Variables for DeepSeek LLM ---
+deepseek_client = None
+DEEPSEEK_MODEL_NAME = "deepseek-chat" # DeepSeek's standard chat model
 
-# --- Function to Initialize Local Llama Model ---
-def initialize_llama_model():
+# --- Function to Initialize DeepSeek Client ---
+def initialize_deepseek_client():
     """
-    Initializes llama.cpp local model (M1-optimized settings from otg_llama.py).
-    Loads optional model path from .env file using LLAMA_MODEL_PATH.
+    Initializes the DeepSeek client using the OpenAI SDK.
+    Loads API key from .env file.
     """
-
-    global llm
-    load_dotenv()
-    model_path = os.environ.get("LLAMA_MODEL_PATH", DEFAULT_MODEL_PATH)
-
-    if not os.path.exists(model_path):
-        print(f"CRITICAL ERROR: Model file not found at: {model_path}")
-        llm = None
+    
+    global deepseek_client
+    load_dotenv() 
+    api_key = os.environ.get("DEEPSEEK_KEY")
+    if not api_key:
+        print("CRITICAL ERROR: DEEPSEEK_KEY not found in .env file.")
+        deepseek_client = None
         return
 
     try:
-        llm = Llama(
-            model_path=model_path,
-            n_gpu_layers=-1,
-            n_ctx=4096,
-            f16_kv=True,
-            verbose=True,
+        # DeepSeek points to a specific base_url
+        deepseek_client = OpenAI(
+            api_key=api_key, 
+            base_url="https://api.deepseek.com"
         )
-        print(f"Llama model initialized successfully from: {model_path}")
+        print(f"DeepSeek client initialized successfully.")
     except Exception as e:
-        print(f"CRITICAL ERROR initializing Llama model: {e}")
-        llm = None
+        print(f"CRITICAL ERROR initializing DeepSeek client: {e}")
+        deepseek_client = None
 
-def generate_guidance_with_llm(prompt_text: str) -> dict:
-    global llm
-    if not llm:
+def generate_guidance_with_llm(prompt_text: str) -> str:
+    global deepseek_client
+    if not deepseek_client:
         return {"error": "ระบบไม่พร้อมใช้งาน โปรดโทร 1669"}
 
     try:
@@ -72,23 +69,24 @@ def generate_guidance_with_llm(prompt_text: str) -> dict:
             "ห้ามใส่เครื่องหมายดอกจัน (*) ในคำตอบ. ห้ามใส่คำอธิบายอื่นๆ นอกเหนือจาก JSON."
         )
 
-        print(f"Sending prompt to local Llama: {user_prompt}")
+        print(f"Sending prompt to DeepSeek: {user_prompt}")
 
-        response = llm.create_chat_completion(
+        response = deepseek_client.chat.completions.create(
+            model=DEEPSEEK_MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3,
-            max_tokens=1024
+            temperature=0.0,
+            max_tokens=512
         )
 
-        print(f"Received response from local Llama: {response}")
+        print(f"Received response from DeepSeek : {response}")
 
-        if not isinstance(response, dict) or not response.get("choices"):
+        if not getattr(response, 'choices', None):
             return {"error": "ไม่สามารถสร้างคำแนะนำได้ โปรดติดต่อ 1669"}
 
-        content = response["choices"][0]["message"]["content"].strip()
+        content = response.choices[0].message.content.strip()
 
         # Try to parse JSON directly, otherwise try to extract JSON substring.
         import json
@@ -160,6 +158,6 @@ def _corsify_actual_response(response):
     return response
     
 if __name__ == '__main__':
-    print("Starting Flask application... Initializing local Llama model.")
-    initialize_llama_model()
+    print("Starting Flask application... Initializing OpenThaiGPT client.")
+    initialize_deepseek_client()
     app.run(debug=True, host='0.0.0.0', port=5001)
