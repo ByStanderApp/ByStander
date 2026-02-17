@@ -52,7 +52,7 @@ class PersonalInfoScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Profile picture placeholder
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
               backgroundColor: Colors.black,
               child: Icon(Icons.person, size: 60, color: Colors.white),

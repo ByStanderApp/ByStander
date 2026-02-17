@@ -113,14 +113,16 @@ class _HomeScreenState extends State<HomeScreen> {
     FocusScope.of(context).unfocus();
 
     try {
-      final guidance = await _apiService.getGuidanceFromSentence(sentence);
+      final guidanceResponse = await _apiService.getGuidanceFromSentence(sentence);
       if (mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ComprehensiveGuidanceScreen(
-              guidanceText: guidance,
+              guidanceText: guidanceResponse.guidance,
               originalQuery: sentence,
+              severity: guidanceResponse.severity,
+              facilityType: guidanceResponse.facilityType,
             ),
           ),
         ).then((_) {
