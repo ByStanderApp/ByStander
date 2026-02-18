@@ -3,9 +3,13 @@ import json
 import os
 from llama_cpp import Llama
 from dotenv import load_dotenv
+import requests
 
 # Initialize Flask app
 app = Flask(__name__)
+
+ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 # --- Global Variables for Local Llama LLM ---
 llm = None
@@ -113,6 +117,43 @@ def generate_guidance_with_llm(prompt_text: str) -> dict:
         print(f"Error: {e}")
         return {"error": "เกิดข้อผิดพลาดในการสื่อสารกับ AI โปรดโทร 1669"}
 
+
+def synthesize_speech_with_google(text: str) -> dict:
+    api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+    if not api_key:
+        return {"error": "Google API key not configured"}
+
+    url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={api_key}"
+    payload = {
+        "input": {"text": text},
+        "voice": {
+            "languageCode": "th-TH",
+            "name": "th-TH-Standard-A",
+            "ssmlGender": "FEMALE"
+        },
+        "audioConfig": {
+            "audioEncoding": "MP3",
+            "speakingRate": 1.0,
+            "pitch": 0.0
+        }
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        audio_content = data.get("audioContent")
+        if not audio_content:
+            return {"error": "ไม่สามารถสร้างเสียงได้"}
+        return {"audioContent": audio_content}
+    except requests.RequestException as e:
+        try:
+            error_data = response.json() if 'response' in locals() else {}
+            message = error_data.get("error", {}).get("message", str(e))
+        except Exception:
+            message = str(e)
+        return {"error": f"Google TTS error: {message}"}
+
 # --- API: Guidance Generation ---
 @app.route('/generate_guidance_sentence_only', methods=['POST', 'OPTIONS'])
 def api_generate_guidance_sentence_only():
@@ -144,6 +185,27 @@ def api_generate_guidance_sentence_only():
             "severity": severity,
             "facility_type": facility_type
         }))
+    except Exception as e:
+        return _corsify_actual_response(jsonify({"error": str(e)})), 500
+
+
+@app.route('/synthesize_speech', methods=['POST', 'OPTIONS'])
+def api_synthesize_speech():
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
+
+    try:
+        data = request.get_json() or {}
+        text = data.get('text', '').strip()
+
+        if not text:
+            return _corsify_actual_response(jsonify({"error": "text is required"})), 400
+
+        result = synthesize_speech_with_google(text)
+        if result.get("error"):
+            return _corsify_actual_response(jsonify(result)), 503
+
+        return _corsify_actual_response(jsonify(result))
     except Exception as e:
         return _corsify_actual_response(jsonify({"error": str(e)})), 500
     

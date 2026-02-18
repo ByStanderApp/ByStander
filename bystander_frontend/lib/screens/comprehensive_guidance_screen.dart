@@ -298,13 +298,21 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
       return;
     }
 
-    if (guidanceSteps.isNotEmpty) {
-      String allSteps = guidanceSteps.join('. ');
-      setState(() {
-        _isSpeaking = true;
-      });
-      await _ttsService.speak(allSteps);
-      // Update state after a short delay to reflect speaking status
+    try {
+      if (guidanceSteps.isNotEmpty) {
+        String allSteps = guidanceSteps.join('. ');
+        setState(() {
+          _isSpeaking = true;
+        });
+        await _ttsService.speak(allSteps);
+      } else if (widget.guidanceText.isNotEmpty) {
+        // Fallback to full text if steps parsing failed
+        setState(() {
+          _isSpeaking = true;
+        });
+        await _ttsService.speak(widget.guidanceText);
+      }
+
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
           setState(() {
@@ -312,18 +320,14 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
           });
         }
       });
-    } else if (widget.guidanceText.isNotEmpty) {
-      // Fallback to full text if steps parsing failed
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ไม่สามารถอ่านออกเสียงได้: ${e.toString()}')),
+        );
+      }
       setState(() {
-        _isSpeaking = true;
-      });
-      await _ttsService.speak(widget.guidanceText);
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          setState(() {
-            _isSpeaking = _ttsService.isSpeaking;
-          });
-        }
+        _isSpeaking = false;
       });
     }
   }
