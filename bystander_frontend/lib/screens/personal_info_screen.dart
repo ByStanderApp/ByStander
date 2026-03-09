@@ -112,16 +112,30 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     _bloodTypeController.clear();
     _selectedDateOfBirth = null;
     _phoneController.clear();
-    for (final c in _conditionControllers) c.dispose();
-    for (final c in _allergyControllers) c.dispose();
-    for (final c in _immunizationControllers) c.dispose();
+    for (final c in _conditionControllers) {
+      c.dispose();
+    }
+    for (final c in _allergyControllers) {
+      c.dispose();
+    }
+    for (final c in _immunizationControllers) {
+      c.dispose();
+    }
     _conditionControllers.clear();
     _allergyControllers.clear();
     _immunizationControllers.clear();
-    for (final c in _relFirstControllers) c.dispose();
-    for (final c in _relLastControllers) c.dispose();
-    for (final c in _relTelControllers) c.dispose();
-    for (final c in _relOtherControllers) c.dispose();
+    for (final c in _relFirstControllers) {
+      c.dispose();
+    }
+    for (final c in _relLastControllers) {
+      c.dispose();
+    }
+    for (final c in _relTelControllers) {
+      c.dispose();
+    }
+    for (final c in _relOtherControllers) {
+      c.dispose();
+    }
     _relFirstControllers.clear();
     _relLastControllers.clear();
     _relTelControllers.clear();
@@ -197,13 +211,27 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     _genderController.dispose();
     _bloodTypeController.dispose();
     _phoneController.dispose();
-    for (final c in _conditionControllers) c.dispose();
-    for (final c in _allergyControllers) c.dispose();
-    for (final c in _immunizationControllers) c.dispose();
-    for (final c in _relFirstControllers) c.dispose();
-    for (final c in _relLastControllers) c.dispose();
-    for (final c in _relTelControllers) c.dispose();
-    for (final c in _relOtherControllers) c.dispose();
+    for (final c in _conditionControllers) {
+      c.dispose();
+    }
+    for (final c in _allergyControllers) {
+      c.dispose();
+    }
+    for (final c in _immunizationControllers) {
+      c.dispose();
+    }
+    for (final c in _relFirstControllers) {
+      c.dispose();
+    }
+    for (final c in _relLastControllers) {
+      c.dispose();
+    }
+    for (final c in _relTelControllers) {
+      c.dispose();
+    }
+    for (final c in _relOtherControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -295,9 +323,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
         final medRef = firestore.collection('users').doc(uid).collection('medical_histories').doc('current');
         final medDoc = await medRef.get();
-        for (final c in _conditionControllers) c.dispose();
+        for (final c in _conditionControllers) {
+          c.dispose();
+        }
         _conditionControllers.clear();
-        for (final c in _allergyControllers) c.dispose();
+        for (final c in _allergyControllers) {
+          c.dispose();
+        }
         _allergyControllers.clear();
         if (medDoc.exists && medDoc.data() != null) {
           final m = medDoc.data()!;
@@ -311,14 +343,18 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             _allergyControllers.add(TextEditingController(text: x.toString().trim()));
           }
           final immunList = m['immunizations'] as List<dynamic>?;
-          for (final c in _immunizationControllers) c.dispose();
+          for (final c in _immunizationControllers) {
+            c.dispose();
+          }
           _immunizationControllers.clear();
           for (final x in immunList ?? []) {
             _immunizationControllers.add(TextEditingController(text: x.toString().trim()));
           }
         } else {
           _bloodTypeController.text = '';
-          for (final c in _immunizationControllers) c.dispose();
+          for (final c in _immunizationControllers) {
+            c.dispose();
+          }
           _immunizationControllers.clear();
         }
         final relSnap = await firestore.collection('users').doc(uid).collection('relatives').get();
@@ -345,19 +381,25 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           _genderController.text = d['gender'] as String? ?? '';
           _bloodTypeController.text = d['bloodType'] as String? ?? '';
           _selectedDateOfBirth = _parseBirthdate(d['dateOfBirth'] as String?);
-          if (_selectedDateOfBirth == null) _selectedDateOfBirth = _parseBirthdate(d['birthdate'] as String?);
+          _selectedDateOfBirth ??= _parseBirthdate(d['birthdate'] as String?);
           _phoneController.text = d['phone'] as String? ?? '';
-          for (final c in _conditionControllers) c.dispose();
+          for (final c in _conditionControllers) {
+            c.dispose();
+          }
           _conditionControllers.clear();
           for (final s in _textToList(d['underlyingDiseases'] as String?)) {
             _conditionControllers.add(TextEditingController(text: s));
           }
-          for (final c in _allergyControllers) c.dispose();
+          for (final c in _allergyControllers) {
+            c.dispose();
+          }
           _allergyControllers.clear();
           for (final s in _textToList(d['drugAllergies'] as String?)) {
             _allergyControllers.add(TextEditingController(text: s));
           }
-          for (final c in _immunizationControllers) c.dispose();
+          for (final c in _immunizationControllers) {
+            c.dispose();
+          }
           _immunizationControllers.clear();
           _consentAccepted = d['consentAccepted'] as bool? ?? false;
           _profileExists = true;
@@ -517,7 +559,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     } catch (_) { /* subcollection doc may not exist */ }
     try {
       final relSnap = await firestore.collection('users').doc(uid).collection('relatives').get();
-      for (final doc in relSnap.docs) await doc.reference.delete();
+      for (final doc in relSnap.docs) {
+        await doc.reference.delete();
+      }
     } catch (_) { /* optional */ }
     try {
       await firestore.collection('users').doc(uid).delete();
@@ -539,16 +583,30 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     _bloodTypeController.clear();
     _selectedDateOfBirth = null;
     _phoneController.clear();
-    for (final c in _conditionControllers) c.dispose();
-    for (final c in _allergyControllers) c.dispose();
-    for (final c in _immunizationControllers) c.dispose();
+    for (final c in _conditionControllers) {
+      c.dispose();
+    }
+    for (final c in _allergyControllers) {
+      c.dispose();
+    }
+    for (final c in _immunizationControllers) {
+      c.dispose();
+    }
     _conditionControllers.clear();
     _allergyControllers.clear();
     _immunizationControllers.clear();
-    for (final c in _relFirstControllers) c.dispose();
-    for (final c in _relLastControllers) c.dispose();
-    for (final c in _relTelControllers) c.dispose();
-    for (final c in _relOtherControllers) c.dispose();
+    for (final c in _relFirstControllers) {
+      c.dispose();
+    }
+    for (final c in _relLastControllers) {
+      c.dispose();
+    }
+    for (final c in _relTelControllers) {
+      c.dispose();
+    }
+    for (final c in _relOtherControllers) {
+      c.dispose();
+    }
     _relFirstControllers.clear();
     _relLastControllers.clear();
     _relTelControllers.clear();
