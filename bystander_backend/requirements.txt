@@ -17,3 +17,9 @@ bitsandbytes
 huggingface_hub
 requests
 llama-cpp-python
+chromadb
+sentence-transformers
+langchain-community
+google-genai
+unsloth
+xformers
