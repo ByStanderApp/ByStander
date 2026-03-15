@@ -103,3 +103,5 @@ flutter:
   
   assets:
     - images/bystander_logo.png
+    - assets/general_first_aid_catalog.json
+    - assets/video_instructions.json

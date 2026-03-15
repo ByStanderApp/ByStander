@@ -71,6 +71,19 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
   int? _selectedFacilityIndex;
   final Set<Marker> _markers = {};
 
+  List<Facility> _humanFacilities() {
+    bool isVet(Facility f) {
+      final name = f.name.toLowerCase();
+      final types = f.types.map((e) => e.toLowerCase()).toList();
+      return name.contains('vet') ||
+          name.contains('veterinary') ||
+          name.contains('สัตว') ||
+          types.contains('veterinary_care');
+    }
+
+    return widget.facilities.where((f) => !isVet(f)).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +97,7 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
   }
 
   void _createMarkers() {
+    final facilities = _humanFacilities();
     // Add user location marker
     _markers.add(
       Marker(
@@ -95,8 +109,8 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
     );
 
     // Add facility markers
-    for (int i = 0; i < widget.facilities.length; i++) {
-      final facility = widget.facilities[i];
+    for (int i = 0; i < facilities.length; i++) {
+      final facility = facilities[i];
       _markers.add(
         Marker(
           markerId: MarkerId(facility.placeId),
@@ -193,11 +207,14 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
   Widget build(BuildContext context) {
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
+    final facilities = _humanFacilities();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.facilityType == 'hospital' ? 'โรงพยาบาลใกล้เคียง' : 'คลินิกใกล้เคียง',
+          widget.facilityType == 'hospital'
+              ? 'โรงพยาบาลใกล้เคียง'
+              : 'คลินิกใกล้เคียง',
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -232,7 +249,7 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
           // Map view
           Expanded(
             flex: 2,
-            child: widget.facilities.isEmpty
+            child: facilities.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -268,7 +285,7 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
           // Facility list
           Expanded(
             flex: 3,
-            child: widget.facilities.isEmpty
+            child: facilities.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -283,9 +300,9 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(8),
-                    itemCount: widget.facilities.length,
+                    itemCount: facilities.length,
                     itemBuilder: (context, index) {
-                      final facility = widget.facilities[index];
+                      final facility = facilities[index];
                       final isSelected = _selectedFacilityIndex == index;
 
                       return Card(
@@ -294,9 +311,8 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                           vertical: 6,
                           horizontal: 8,
                         ),
-                        color: isSelected
-                            ? appColorScheme.primaryContainer
-                            : null,
+                        color:
+                            isSelected ? appColorScheme.primaryContainer : null,
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: widget.severity == 'critical'
@@ -327,7 +343,8 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                               if (facility.phoneNumber.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 InkWell(
-                                  onTap: () => _makePhoneCall(facility.phoneNumber),
+                                  onTap: () =>
+                                      _makePhoneCall(facility.phoneNumber),
                                   child: Row(
                                     children: [
                                       Icon(
@@ -339,9 +356,11 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                                       Expanded(
                                         child: Text(
                                           facility.phoneNumber,
-                                          style: appTextTheme.bodySmall?.copyWith(
+                                          style:
+                                              appTextTheme.bodySmall?.copyWith(
                                             color: appColorScheme.primary,
-                                            decoration: TextDecoration.underline,
+                                            decoration:
+                                                TextDecoration.underline,
                                           ),
                                         ),
                                       ),
