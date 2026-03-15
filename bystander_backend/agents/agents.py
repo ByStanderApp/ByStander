@@ -5,7 +5,11 @@ from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 
-from facility_finder.main import search_nearby_facilities
+try:
+    from facility_finder.main import search_nearby_facilities
+except Exception:
+    def search_nearby_facilities(*args, **kwargs):
+        return {"error": "facility finder unavailable"}
 
 from .llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
 

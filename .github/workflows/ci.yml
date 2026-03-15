@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - "feature/**"
+      - "codex/**"
+
+jobs:
+  backend-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flask requests python-dotenv google-cloud-aiplatform
+
+      - name: Run backend tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/bystander_backend
+        run: |
+          python -m unittest discover -s bystander_backend/tests -p "test_*.py" -v
+
+  frontend-tests:
+    name: Frontend Flutter Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bystander_frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Run Flutter tests
+        run: flutter test
