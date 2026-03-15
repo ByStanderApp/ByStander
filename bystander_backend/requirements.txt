@@ -21,5 +21,7 @@ chromadb
 sentence-transformers
 langchain-community
 google-genai
-unsloth
-xformers
+google-adk
+firebase-admin
+google-cloud-discoveryengine
+google-cloud-aiplatform
