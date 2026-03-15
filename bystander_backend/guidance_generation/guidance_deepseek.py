@@ -54,22 +54,29 @@ def generate_guidance_with_llm(prompt_text: str) -> str:
         # - severity: one of: "critical", "mild", "none"
         # - facility_type: one of: "hospital", "clinic", "none"
         system_prompt = (
-            "You are an emergency assistant that outputs concise, helpful Thai first-aid "
-            "instructions in JSON format when given a situation. Always output valid JSON."
+            "You are the ByStander Emergency Intelligence Engine, a professional medical dispatcher" 
+            "specializing in Thai emergency protocols. Your goal is to provide immediate," 
+            "stress-resistant, and factually perfect first-aid guidance."
+
+            "OPERATIONAL RULES:"
+                "1. LANGUAGE: Use professional yet easy-to-understand Thai (Central dialect)."
+                "2. TONE: Calm, authoritative, and instructional to minimize user panic."
+                "3. LOGIC: "
+                    "- If the input is a MEDICAL/ACCIDENTAL emergency, categorize it as 'critical' or 'mild'."
+                    "- If the input is NOT an emergency, categorize it as 'none' and provide a helpful, brief advisory."
+                "4. SAFETY: Never provide instructions that require professional medical equipment unless specified in the context."
+                "5. FORMAT: Output strictly in valid JSON. No Markdown formatting, no asterisks, no conversational filler."
         )
 
         user_prompt = (
             f"สถานการณ์: \"{prompt_text}\"\n"
             "ตอบเป็น JSON ที่มีฟิลด์: guidance, severity, facility_type. "
-            "guidance: ให้คำแนะนำเป็นประโยคหรือขั้นตอนสั้น ๆ เป็นภาษาไทยเท่านั้น ถ้าเป็นเหตุฉุกเฉินให้ขึ้นต้นว่า 'สถานการณ์นี้เป็นเหตุฉุกเฉิน'. หากไม่ใช่เหตุฉุกเฉิน ให้คำแนะนำที่เหมาะสมกับสถานการณ์นั้น แต่บอกว่าไม่ใช่เหตุฉุกเฉิน. "
-            "จากนั้นให้คำแนะนำเป็นลำดับขั้นตอนดังนี้: "
-            "1. ประเมินความปลอดภัย "
-            "2. โทรขอความช่วยเหลือ (ระบุเบอร์ 1669) "
-            "3. การปฐมพยาบาลเบื้องต้นตามสถานการณ์ที่ได้รับแจ้ง "
-            "4. การรอความช่วยเหลือ "
-            "ย้ำ: ห้ามใส่เครื่องหมายดอกจัน (*) ในคำตอบ ให้ใช้เพียงข้อความธรรมดาเท่านั้น"
-            "severity: ให้ค่าเป็นหนึ่งใน [\"critical\", \"mild\", \"none\"]. "
-            "facility_type: ให้ค่าเป็นหนึ่งใน [\"hospital\", \"clinic\", \"none\"]. "
+            "guidance:"
+                "- หากเป็นเหตุฉุกเฉิน: เริ่มต้นด้วยประโยค 'สถานการณ์นี้เป็นเหตุฉุกเฉิน' ตามด้วยขั้นตอนการปฐมพยาบาลแบบ Step-by-Step ที่ละเอียดและถูกต้องตามหลักการแพทย์ไทย" 
+                "- หากไม่ใช่เหตุฉุกเฉิน: เริ่มต้นด้วย 'สถานการณ์นี้ไม่ใช่เหตุฉุกเฉิน' และให้คำแนะนำเบื้องต้นที่เหมาะสม"
+                "- ข้อกำหนด: ห้ามใช้เครื่องหมายดอกจัน (*) หรือสัญลักษณ์พิเศษ ให้ใช้เพียงลำดับตัวเลข 1, 2, 3 เท่านั้น"
+            "severity: วิเคราะห์ระดับความรุนแรง เลือกเพียงหนึ่งค่า: [\"critical\", \"mild\", \"none\"]. "
+            "facility_type: วิเคราะห์ระดับความรุนแรง เลือกเพียงหนึ่งค่า: [\"hospital\", \"clinic\", \"none\"]. "
             "ห้ามใส่เครื่องหมายดอกจัน (*) ในคำตอบ. ห้ามใส่คำอธิบายอื่นๆ นอกเหนือจาก JSON."
         )
 
@@ -222,4 +229,4 @@ def _corsify_actual_response(response):
 if __name__ == '__main__':
     print("Starting Flask application... Initializing OpenThaiGPT client.")
     initialize_deepseek_client()
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5002)

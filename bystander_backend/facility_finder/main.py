@@ -13,6 +13,17 @@ load_dotenv(dotenv_path=ENV_PATH, override=True)
 def _get_google_maps_api_key():
     return os.environ.get("GOOGLE_MAPS_API_KEY")
 
+
+def _is_veterinary_place(place: dict) -> bool:
+    name = (place.get("name") or "").lower()
+    types = [str(t).lower() for t in place.get("types", [])]
+    return (
+        "veterinary_care" in types
+        or "vet" in name
+        or "veterinary" in name
+        or "สัตว" in name
+    )
+
 def _build_cors_preflight_response():
     """Build CORS preflight response"""
     response = make_response()
@@ -79,7 +90,10 @@ def search_nearby_facilities(latitude, longitude, facility_type, severity):
         if status == "ZERO_RESULTS":
             return {"facilities": [], "total": 0}
         
-        results = data.get("results", [])[:5]  # Get top 5 results
+        raw_results = data.get("results", [])
+        # Keep only human medical facilities.
+        filtered_results = [p for p in raw_results if not _is_veterinary_place(p)]
+        results = filtered_results[:5]  # Get top 5 results
         
         facilities = []
         for place in results:
