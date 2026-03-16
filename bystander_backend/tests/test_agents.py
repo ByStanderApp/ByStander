@@ -77,7 +77,7 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch("bystander_backend.agents.agents.search_nearby_facilities", return_value=fake_result):
+        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
             out = agent.run(
                 scenario="critical",
                 severity="critical",
@@ -111,7 +111,7 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch("bystander_backend.agents.agents.search_nearby_facilities", return_value=fake_result):
+        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
             out = agent.run(
                 scenario="moderate",
                 severity="moderate",

@@ -25,9 +25,25 @@ class _StubRetriever:
 class _StubWorkflow:
     def __init__(self):
         self.retriever = _StubRetriever()
+        self.map_agent = self
 
     def run(self, data):
         return {"route": "general_info", "is_emergency": False}
+
+    def search_nearby_facilities(self, latitude, longitude, facility_type, severity, scenario=""):
+        return {
+            "facilities": [
+                {
+                    "name": "Test Hospital",
+                    "address": "Bangkok",
+                    "phone_number": "02-000-0000",
+                    "rating": 4.5,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                }
+            ],
+            "total": 1,
+        }
 
 
 class AgentAppTests(unittest.TestCase):
@@ -49,6 +65,21 @@ class AgentAppTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.get_json()
         self.assertEqual(data["source"], "vertex")
+
+    def test_find_facilities_endpoint(self):
+        resp = self.client.post(
+            "/find_facilities",
+            json={
+                "latitude": 13.75,
+                "longitude": 100.50,
+                "facility_type": "hospital",
+                "severity": "critical",
+                "scenario": "คนหมดสติไม่หายใจ",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["total"], 1)
 
 
 if __name__ == "__main__":
