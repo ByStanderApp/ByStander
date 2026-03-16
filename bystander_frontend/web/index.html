@@ -36,8 +36,49 @@
   <title>bystander_frontend</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Google Maps JavaScript API - Required for google_maps_flutter on web -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1kYVBoELUxliE6_tToQU4D008WqfclI8"></script>
+  <script>
+    // Try online assets first. If unreachable, app will use fallback libraries.
+    window.__bystanderOnlineMaps = false;
+    window.__bystanderOnlineFonts = false;
+    window.__bystanderOnlineAssetsReady = false;
+
+    function loadGoogleMapsScript() {
+      return new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD1kYVBoELUxliE6_tToQU4D008WqfclI8';
+        s.async = true;
+        s.defer = true;
+        s.onload = () => resolve(true);
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+      });
+    }
+
+    function loadGoogleFontsStylesheet() {
+      return new Promise((resolve) => {
+        const l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap';
+        l.onload = () => resolve(true);
+        l.onerror = () => resolve(false);
+        document.head.appendChild(l);
+      });
+    }
+
+    Promise.all([loadGoogleMapsScript(), loadGoogleFontsStylesheet()])
+      .then((results) => {
+        window.__bystanderOnlineMaps = Boolean(results[0]);
+        window.__bystanderOnlineFonts = Boolean(results[1]);
+      })
+      .catch(() => {
+        window.__bystanderOnlineMaps = false;
+        window.__bystanderOnlineFonts = false;
+      })
+      .finally(() => {
+        window.__bystanderOnlineAssetsReady = true;
+        window.dispatchEvent(new Event('bystander-assets-ready'));
+      });
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

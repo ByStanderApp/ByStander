@@ -192,6 +192,8 @@ class _HomeScreenState extends State<HomeScreen> {
               facilityType: workflowResponse.facilityType,
               facilities: workflowResponse.facilities,
               callScript: workflowResponse.callScript,
+              userLatitude: latitude,
+              userLongitude: longitude,
             ),
           ),
         ).then((_) {

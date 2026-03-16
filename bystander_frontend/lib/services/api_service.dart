@@ -132,8 +132,8 @@ class ApiService {
   // - iOS Simulator: usually 'http://localhost:5000' or 'http://127.0.0.1:5000'
   // If testing on a physical device, use your computer's network IP address:
   // e.g., 'http://192.168.1.100:5000'
-  static const String _facilityBaseUrl = 'http://localhost:5002';
   static const String _agentWorkflowBaseUrl = 'http://localhost:5003';
+  static const String _facilityBaseUrl = _agentWorkflowBaseUrl;
 
   Future<AgentWorkflowResponse> runAgentWorkflow({
     required String scenario,

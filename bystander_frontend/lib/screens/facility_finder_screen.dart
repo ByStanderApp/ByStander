@@ -1,5 +1,9 @@
+import 'package:bystander_frontend/services/offline_facility_service.dart';
+import 'package:bystander_frontend/services/runtime_asset_mode.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmap;
+import 'package:latlong2/latlong.dart' as latlng;
 import 'package:url_launcher/url_launcher.dart';
 
 class Facility {
@@ -14,6 +18,7 @@ class Facility {
   final String phoneNumber;
   final String website;
   final List<String> types;
+  final double? distanceKm;
 
   Facility({
     required this.placeId,
@@ -27,6 +32,7 @@ class Facility {
     required this.phoneNumber,
     required this.website,
     required this.types,
+    this.distanceKm,
   });
 
   factory Facility.fromJson(Map<String, dynamic> json) {
@@ -42,6 +48,9 @@ class Facility {
       phoneNumber: json['phone_number'] ?? '',
       website: json['website'] ?? '',
       types: List<String>.from(json['types'] ?? []),
+      distanceKm: (json['distance_km'] is num)
+          ? (json['distance_km'] as num).toDouble()
+          : null,
     );
   }
 }
@@ -67,11 +76,21 @@ class FacilityFinderScreen extends StatefulWidget {
 }
 
 class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
+  gmap.GoogleMapController? _googleMapController;
   int? _selectedFacilityIndex;
-  final Set<Marker> _markers = {};
+  bool _loadingOffline = false;
+  bool _usedOfflineFallback = false;
+  String _offlineError = '';
+  List<Facility> _facilities = const [];
 
-  List<Facility> _humanFacilities() {
+  @override
+  void dispose() {
+    _googleMapController?.dispose();
+    super.dispose();
+  }
+
+  List<Facility> _filterHumanFacilities(List<Facility> input) {
     bool isVet(Facility f) {
       final name = f.name.toLowerCase();
       final types = f.types.map((e) => e.toLowerCase()).toList();
@@ -81,62 +100,82 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
           types.contains('veterinary_care');
     }
 
-    return widget.facilities.where((f) => !isVet(f)).toList();
+    return input.where((f) => !isVet(f)).toList();
   }
 
   @override
   void initState() {
     super.initState();
-    _createMarkers();
+    _initializeFacilities();
   }
 
-  @override
-  void dispose() {
-    _mapController?.dispose();
-    super.dispose();
+  Future<void> _initializeFacilities() async {
+    final onlineFacilities = _filterHumanFacilities(widget.facilities);
+    if (onlineFacilities.isNotEmpty) {
+      setState(() {
+        _facilities = onlineFacilities;
+      });
+      return;
+    }
+
+    await _loadOfflineFacilities();
   }
 
-  void _createMarkers() {
-    final facilities = _humanFacilities();
-    // Add user location marker
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('user_location'),
-        position: LatLng(widget.userLatitude, widget.userLongitude),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: const InfoWindow(title: 'ตำแหน่งของคุณ'),
-      ),
-    );
+  Future<void> _loadOfflineFacilities() async {
+    setState(() {
+      _loadingOffline = true;
+      _offlineError = '';
+    });
 
-    // Add facility markers
-    for (int i = 0; i < facilities.length; i++) {
-      final facility = facilities[i];
-      _markers.add(
-        Marker(
-          markerId: MarkerId(facility.placeId),
-          position: LatLng(facility.latitude, facility.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            widget.severity == 'critical'
-                ? BitmapDescriptor.hueRed
-                : BitmapDescriptor.hueGreen,
-          ),
-          infoWindow: InfoWindow(
-            title: facility.name,
-            snippet: facility.address,
-          ),
-          onTap: () {
-            setState(() {
-              _selectedFacilityIndex = i;
-            });
-          },
-        ),
+    try {
+      final nearest =
+          await OfflineFacilityService.instance.findNearestHospitals(
+        userLatitude: widget.userLatitude,
+        userLongitude: widget.userLongitude,
+        limit: 30,
       );
+
+      final converted = nearest
+          .map(
+            (h) => Facility(
+              placeId: 'offline_${h.id}',
+              name: h.name,
+              address: h.address,
+              latitude: h.latitude,
+              longitude: h.longitude,
+              rating: 0,
+              userRatingsTotal: 0,
+              openNow: null,
+              phoneNumber: '',
+              website: '',
+              types: const ['hospital', 'offline_dataset'],
+              distanceKm: h.distanceKm,
+            ),
+          )
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _facilities = converted;
+        _usedOfflineFallback = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _offlineError = 'โหลดข้อมูลโรงพยาบาลออฟไลน์ไม่สำเร็จ';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingOffline = false;
+        });
+      }
     }
   }
 
   Future<void> _openInMaps(Facility facility) async {
     final Uri googleMapsUrl = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=${facility.latitude},${facility.longitude}&query_place_id=${facility.placeId}',
+      'https://www.google.com/maps/search/?api=1&query=${facility.latitude},${facility.longitude}',
     );
 
     if (await canLaunchUrl(googleMapsUrl)) {
@@ -195,26 +234,110 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
   }
 
   void _moveCameraToFacility(Facility facility) {
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(facility.latitude, facility.longitude),
-        15,
+    _googleMapController?.animateCamera(
+      gmap.CameraUpdate.newLatLngZoom(
+        gmap.LatLng(facility.latitude, facility.longitude),
+        14,
       ),
     );
+    _mapController.move(
+      latlng.LatLng(facility.latitude, facility.longitude),
+      14,
+    );
+  }
+
+  List<Marker> _buildMarkers() {
+    final markers = <Marker>[
+      Marker(
+        point: latlng.LatLng(widget.userLatitude, widget.userLongitude),
+        width: 42,
+        height: 42,
+        child: const Icon(Icons.my_location, color: Colors.blue, size: 30),
+      ),
+    ];
+
+    for (int i = 0; i < _facilities.length; i++) {
+      final facility = _facilities[i];
+      final bool isSelected = _selectedFacilityIndex == i;
+      markers.add(
+        Marker(
+          point: latlng.LatLng(facility.latitude, facility.longitude),
+          width: 46,
+          height: 46,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedFacilityIndex = i;
+              });
+            },
+            child: Icon(
+              Icons.local_hospital,
+              color: isSelected
+                  ? Colors.deepOrange
+                  : (widget.severity == 'critical'
+                      ? Colors.red.shade700
+                      : Colors.green.shade700),
+              size: isSelected ? 34 : 28,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return markers;
+  }
+
+  Set<gmap.Marker> _buildGoogleMarkers() {
+    final markers = <gmap.Marker>{
+      gmap.Marker(
+        markerId: const gmap.MarkerId('user_location'),
+        position: gmap.LatLng(widget.userLatitude, widget.userLongitude),
+        icon: gmap.BitmapDescriptor.defaultMarkerWithHue(
+          gmap.BitmapDescriptor.hueBlue,
+        ),
+        infoWindow: const gmap.InfoWindow(title: 'ตำแหน่งของคุณ'),
+      ),
+    };
+
+    for (int i = 0; i < _facilities.length; i++) {
+      final facility = _facilities[i];
+      markers.add(
+        gmap.Marker(
+          markerId: gmap.MarkerId(facility.placeId),
+          position: gmap.LatLng(facility.latitude, facility.longitude),
+          icon: gmap.BitmapDescriptor.defaultMarkerWithHue(
+            widget.severity == 'critical'
+                ? gmap.BitmapDescriptor.hueRed
+                : gmap.BitmapDescriptor.hueGreen,
+          ),
+          infoWindow: gmap.InfoWindow(
+            title: facility.name,
+            snippet: facility.address,
+          ),
+          onTap: () {
+            setState(() {
+              _selectedFacilityIndex = i;
+            });
+          },
+        ),
+      );
+    }
+    return markers;
   }
 
   @override
   Widget build(BuildContext context) {
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
-    final facilities = _humanFacilities();
+    final facilities = _facilities;
+    final bool useOnlineMaps = RuntimeAssetMode.useOnlineMaps;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           widget.facilityType == 'hospital'
-              ? 'โรงพยาบาลใกล้เคียง'
-              : 'คลินิกใกล้เคียง',
+              ? 'โรงพยาบาลใกล้ที่สุด'
+              : 'คลินิก/โรงพยาบาลใกล้ที่สุด',
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -223,7 +346,17 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
       ),
       body: Column(
         children: [
-          // Severity indicator
+          if (_usedOfflineFallback)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              color: Colors.blueGrey.shade50,
+              child: Text(
+                'กำลังใช้ข้อมูลโรงพยาบาลออฟไลน์จากไฟล์ในเครื่อง',
+                style: appTextTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ),
           if (widget.severity == 'critical')
             Container(
               width: double.infinity,
@@ -245,44 +378,68 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                 ],
               ),
             ),
-
-          // Map view
           Expanded(
             flex: 2,
-            child: facilities.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.location_off,
-                          size: 64,
-                          color: appColorScheme.primary.withOpacity(0.5),
+            child: _loadingOffline
+                ? const Center(child: CircularProgressIndicator())
+                : facilities.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.location_off,
+                              size: 64,
+                              color:
+                                  appColorScheme.primary.withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _offlineError.isNotEmpty
+                                  ? _offlineError
+                                  : 'ไม่พบข้อมูลโรงพยาบาลใกล้เคียง',
+                              style: appTextTheme.bodyLarge,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'ไม่พบสถานพยาบาลในบริเวณใกล้เคียง',
-                          style: appTextTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  )
-                : GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.userLatitude, widget.userLongitude),
-                      zoom: 12,
-                    ),
-                    markers: _markers,
-                    onMapCreated: (GoogleMapController controller) {
-                      _mapController = controller;
-                    },
-                    myLocationButtonEnabled: true,
-                    zoomControlsEnabled: true,
-                    mapToolbarEnabled: false,
-                  ),
+                      )
+                    : (useOnlineMaps
+                        ? gmap.GoogleMap(
+                            initialCameraPosition: gmap.CameraPosition(
+                              target: gmap.LatLng(
+                                widget.userLatitude,
+                                widget.userLongitude,
+                              ),
+                              zoom: 11,
+                            ),
+                            onMapCreated:
+                                (gmap.GoogleMapController controller) {
+                              _googleMapController = controller;
+                            },
+                            markers: _buildGoogleMarkers(),
+                            myLocationButtonEnabled: true,
+                            zoomControlsEnabled: true,
+                            mapToolbarEnabled: false,
+                          )
+                        : FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              initialCenter: latlng.LatLng(
+                                widget.userLatitude,
+                                widget.userLongitude,
+                              ),
+                              initialZoom: 11,
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.bystander.frontend',
+                              ),
+                              MarkerLayer(markers: _buildMarkers()),
+                            ],
+                          )),
           ),
-
-          // Facility list
           Expanded(
             flex: 3,
             child: facilities.isEmpty
@@ -340,6 +497,16 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                                 facility.address,
                                 style: appTextTheme.bodySmall,
                               ),
+                              if (facility.distanceKm != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'ระยะทางประมาณ ${facility.distanceKm!.toStringAsFixed(1)} กม.',
+                                  style: appTextTheme.bodySmall?.copyWith(
+                                    color: Colors.blueGrey.shade700,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                               if (facility.phoneNumber.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 InkWell(
@@ -368,48 +535,6 @@ class _FacilityFinderScreenState extends State<FacilityFinderScreen> {
                                   ),
                                 ),
                               ],
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  if (facility.rating > 0) ...[
-                                    Icon(
-                                      Icons.star,
-                                      size: 16,
-                                      color: Colors.amber.shade700,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${facility.rating.toStringAsFixed(1)} (${facility.userRatingsTotal})',
-                                      style: appTextTheme.bodySmall,
-                                    ),
-                                    const SizedBox(width: 12),
-                                  ],
-                                  if (facility.openNow != null)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: facility.openNow!
-                                            ? Colors.green.shade100
-                                            : Colors.red.shade100,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        facility.openNow!
-                                            ? 'เปิดอยู่'
-                                            : 'ปิดแล้ว',
-                                        style: appTextTheme.bodySmall?.copyWith(
-                                          color: facility.openNow!
-                                              ? Colors.green.shade900
-                                              : Colors.red.shade900,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
                             ],
                           ),
                           trailing: PopupMenuButton<String>(

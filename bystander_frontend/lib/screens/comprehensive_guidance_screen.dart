@@ -23,6 +23,8 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
   final String facilityType;
   final List<AgentFacility> facilities;
   final String callScript;
+  final double? userLatitude;
+  final double? userLongitude;
 
   const ComprehensiveGuidanceScreen({
     super.key,
@@ -32,6 +34,8 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
     required this.facilityType,
     this.facilities = const [],
     this.callScript = '',
+    this.userLatitude,
+    this.userLongitude,
   });
 
   @override
@@ -216,16 +220,21 @@ class _ComprehensiveGuidanceScreenState
         .where((f) => f.latitude != 0 || f.longitude != 0)
         .toList();
 
-    if (mapped.isEmpty) {
+    final hasUserLocation =
+        widget.userLatitude != null && widget.userLongitude != null;
+
+    if (mapped.isEmpty && !hasUserLocation) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ไม่พบข้อมูลสถานพยาบาลใกล้เคียงในขณะนี้')),
+        const SnackBar(
+          content: Text('ไม่พบข้อมูลสถานพยาบาลและไม่มีพิกัดตำแหน่งผู้ใช้'),
+        ),
       );
       return;
     }
 
-    final centerLat = mapped.first.latitude;
-    final centerLon = mapped.first.longitude;
+    final centerLat = widget.userLatitude ?? mapped.first.latitude;
+    final centerLon = widget.userLongitude ?? mapped.first.longitude;
 
     if (!mounted) return;
     Navigator.push(
