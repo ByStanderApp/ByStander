@@ -1,17 +1,35 @@
 import csv
+import json
 import math
 import os
+import re
+import sys
+import types
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 
 try:
-    from facility_finder.main import search_nearby_facilities
-except Exception:
-    def search_nearby_facilities(*args, **kwargs):
-        return {"error": "facility finder unavailable"}
+    import requests
+except Exception:  # pragma: no cover
+    requests = types.SimpleNamespace()  # type: ignore[assignment]
 
-from .llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
+    class _RequestException(Exception):
+        pass
+
+    def _missing_requests(*args, **kwargs):
+        raise _RequestException("requests is unavailable")
+
+    requests.RequestException = _RequestException  # type: ignore[attr-defined]
+    requests.get = _missing_requests  # type: ignore[attr-defined]
+
+if __package__:
+    from .llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
+else:  # pragma: no cover
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    if current_dir not in sys.path:
+        sys.path.insert(0, current_dir)
+    from llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
 
 try:
     from google.adk.agents import LlmAgent  # type: ignore # noqa: F401
@@ -46,6 +64,20 @@ def _safe_float(value: Any) -> Optional[float]:
         return float(value)
     except Exception:
         return None
+
+
+def _extract_json_block(text: str) -> Optional[str]:
+    raw = _normalize_text(text)
+    if not raw:
+        return None
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.IGNORECASE)
+        raw = re.sub(r"\s*```$", "", raw)
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    return raw[start : end + 1]
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -471,6 +503,479 @@ class ProtocolRetriever:
 
 
 class MapAgent:
+    def __init__(self) -> None:
+        self.validator_llm = GeminiJSONAgent()
+        self.validator_model = _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or "gemini-2.0-flash-lite"
+
+    def _get_google_maps_api_key(self) -> Optional[str]:
+        return _normalize_text(os.getenv("GOOGLE_MAPS_API_KEY")) or None
+
+    @staticmethod
+    def _is_veterinary_place(place: Dict[str, Any]) -> bool:
+        name = _normalize_text(place.get("name")).lower()
+        types_list = [str(t).lower() for t in place.get("types", [])]
+        vet_tokens = {"veterinary_care", "veterinary", "vet", "animal hospital", "สัตว"}
+        if any(t in vet_tokens for t in types_list):
+            return True
+        return any(tok in name for tok in vet_tokens)
+
+    @staticmethod
+    def _is_human_medical_signal(place: Dict[str, Any]) -> bool:
+        name = _normalize_text(place.get("name")).lower()
+        types_list = [str(t).lower() for t in place.get("types", [])]
+        name_tokens = {
+            "hospital",
+            "clinic",
+            "medical",
+            "emergency",
+            "urgent care",
+            "โรงพยาบาล",
+            "คลินิก",
+            "สถานพยาบาล",
+            "ศูนย์การแพทย์",
+            "การแพทย์",
+        }
+        type_signals = {"hospital", "doctor", "health"}
+        return any(t in types_list for t in type_signals) or any(tok in name for tok in name_tokens)
+
+    @staticmethod
+    def _is_non_treatment_business(place: Dict[str, Any]) -> bool:
+        name = _normalize_text(place.get("name")).lower()
+        types_list = [str(t).lower() for t in place.get("types", [])]
+        bad_types = {
+            "veterinary_care",
+            "pet_store",
+            "pharmacy",
+            "drugstore",
+            "insurance_agency",
+            "car_repair",
+        }
+        if any(t in bad_types for t in types_list):
+            return True
+        bad_name_tokens = {
+            "vet",
+            "veterinary",
+            "สัตว",
+            "medical supply",
+            "medical device",
+            "insurance",
+            "co., ltd",
+            "corporation",
+            "head office",
+            "สำนักงานใหญ่",
+            "บริษัท",
+        }
+        return any(tok in name for tok in bad_name_tokens)
+
+    def _build_query_plan(self, facility_type: str, severity: str) -> List[Dict[str, Any]]:
+        fac = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        if fac == "hospital" or severity == "critical":
+            return [
+                {
+                    "radius": 7000,
+                    "type": "hospital",
+                    "keyword": "hospital โรงพยาบาล emergency",
+                }
+            ]
+        return [
+            {
+                "radius": 5000,
+                "type": "doctor",
+                "keyword": "clinic คลินิก primary care",
+            },
+            {
+                "radius": 5000,
+                "type": "hospital",
+                "keyword": "clinic คลินิก outpatient",
+            },
+        ]
+
+    def _nearby_search(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: int,
+        place_type: str,
+        keyword: str,
+    ) -> Dict[str, Any]:
+        api_key = self._get_google_maps_api_key()
+        if not api_key:
+            return {"error": "Google Maps API key not configured"}
+
+        params = {
+            "location": f"{latitude},{longitude}",
+            "radius": radius,
+            "type": place_type,
+            "language": "th",
+            "key": api_key,
+        }
+        if keyword:
+            params["keyword"] = keyword
+
+        try:
+            response = requests.get(
+                "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
+                params=params,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            status = _normalize_text(data.get("status"))
+            if status in {"OK", "ZERO_RESULTS"}:
+                return {"results": data.get("results", [])}
+            return {
+                "error": (
+                    f"Nearby Search failed: {status} "
+                    f"{_normalize_text(data.get('error_message'))}"
+                ).strip()
+            }
+        except requests.RequestException as exc:
+            return {"error": f"Nearby Search request failed: {exc}"}
+
+    def _get_place_details(self, place_id: str) -> Dict[str, Any]:
+        api_key = self._get_google_maps_api_key()
+        if not api_key:
+            return {}
+        params = {
+            "place_id": place_id,
+            "fields": "formatted_phone_number,website,opening_hours",
+            "language": "th",
+            "key": api_key,
+        }
+        try:
+            response = requests.get(
+                "https://maps.googleapis.com/maps/api/place/details/json",
+                params=params,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if _normalize_text(data.get("status")) != "OK":
+                return {}
+            result = data.get("result", {}) or {}
+            return {
+                "phone_number": result.get("formatted_phone_number", ""),
+                "website": result.get("website", ""),
+                "opening_hours": result.get("opening_hours", {}),
+            }
+        except requests.RequestException:
+            return {}
+
+    def _reverse_geocode(self, latitude: float, longitude: float) -> str:
+        api_key = self._get_google_maps_api_key()
+        if not api_key:
+            return ""
+        params = {
+            "latlng": f"{latitude},{longitude}",
+            "language": "th",
+            "key": api_key,
+        }
+        try:
+            response = requests.get(
+                "https://maps.googleapis.com/maps/api/geocode/json",
+                params=params,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if _normalize_text(data.get("status")) != "OK":
+                return ""
+            results = data.get("results", []) or []
+            if not results:
+                return ""
+            return _normalize_text(results[0].get("formatted_address"))
+        except requests.RequestException:
+            return ""
+
+    def _nearby_landmarks(self, latitude: float, longitude: float) -> List[str]:
+        all_places: List[Dict[str, Any]] = []
+        queries = [
+            {"radius": 800, "type": "point_of_interest", "keyword": ""},
+            {"radius": 1200, "type": "transit_station", "keyword": ""},
+        ]
+        for query in queries:
+            result = self._nearby_search(
+                latitude=latitude,
+                longitude=longitude,
+                radius=int(query["radius"]),
+                place_type=str(query["type"]),
+                keyword=str(query["keyword"]),
+            )
+            if "error" in result:
+                continue
+            all_places.extend(result.get("results", []))
+
+        seen = set()
+        names: List[str] = []
+        for place in all_places:
+            name = _normalize_text(place.get("name"))
+            if not name:
+                continue
+            key = name.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            names.append(name)
+            if len(names) >= 5:
+                break
+        return names
+
+    def build_location_context(
+        self,
+        latitude: Optional[float],
+        longitude: Optional[float],
+        facilities: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
+        if latitude is None or longitude is None:
+            return ""
+
+        parts: List[str] = [
+            f"พิกัดโดยประมาณ: {latitude:.6f}, {longitude:.6f}",
+        ]
+        address = self._reverse_geocode(latitude, longitude)
+        if address:
+            parts.append(f"ที่อยู่จากแผนที่: {address}")
+
+        landmarks = self._nearby_landmarks(latitude, longitude)
+        if landmarks:
+            parts.append(f"จุดสังเกตใกล้เคียง: {', '.join(landmarks[:3])}")
+
+        if facilities:
+            nearby_refs: List[str] = []
+            for facility in facilities[:2]:
+                name = _normalize_text(facility.get("name"))
+                dist = _safe_float(facility.get("distance_km"))
+                if not name:
+                    continue
+                if dist is None:
+                    nearby_refs.append(name)
+                else:
+                    nearby_refs.append(f"{name} (~{dist:.1f} กม.)")
+            if nearby_refs:
+                parts.append(f"สถานพยาบาลใกล้เคียง: {', '.join(nearby_refs)}")
+        return "\n".join(parts)
+
+    def _strict_filter(self, place: Dict[str, Any], requested_facility_type: str) -> str:
+        if self._is_veterinary_place(place):
+            return "reject"
+        if self._is_non_treatment_business(place):
+            return "reject"
+
+        types_list = {str(t).lower() for t in place.get("types", [])}
+        if requested_facility_type == "hospital":
+            if "hospital" in types_list and self._is_human_medical_signal(place):
+                return "accept"
+            if "doctor" in types_list and self._is_human_medical_signal(place):
+                return "ambiguous"
+            return "reject"
+
+        if "doctor" in types_list and self._is_human_medical_signal(place):
+            return "accept"
+        if "hospital" in types_list and self._is_human_medical_signal(place):
+            return "accept"
+        if self._is_human_medical_signal(place):
+            return "ambiguous"
+        return "reject"
+
+    def _parse_llm_validation(self, raw: Any) -> Dict[str, Dict[str, Any]]:
+        if isinstance(raw, dict):
+            payload = raw
+        else:
+            text = _normalize_text(raw)
+            block = _extract_json_block(text)
+            if not block:
+                return {}
+            try:
+                payload = json.loads(block)
+            except Exception:
+                return {}
+        items = payload.get("items", [])
+        if not isinstance(items, list):
+            return {}
+        parsed: Dict[str, Dict[str, Any]] = {}
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            pid = _normalize_text(item.get("place_id"))
+            if not pid:
+                continue
+            parsed[pid] = {
+                "is_valid": bool(item.get("is_valid", False)),
+                "facility_type": _normalize_text(item.get("facility_type")).lower(),
+                "reason": _normalize_text(item.get("reason")),
+            }
+        return parsed
+
+    def _llm_validate_candidates(
+        self,
+        scenario: str,
+        requested_facility_type: str,
+        severity: str,
+        candidates: List[Dict[str, Any]],
+    ) -> Dict[str, Dict[str, Any]]:
+        if not candidates:
+            return {}
+
+        def rule_fallback() -> Dict[str, Dict[str, Any]]:
+            out: Dict[str, Dict[str, Any]] = {}
+            for place in candidates:
+                pid = _normalize_text(place.get("place_id"))
+                if not pid:
+                    continue
+                out[pid] = {
+                    "is_valid": (
+                        self._is_human_medical_signal(place)
+                        and not self._is_non_treatment_business(place)
+                        and not self._is_veterinary_place(place)
+                    ),
+                    "facility_type": requested_facility_type,
+                    "reason": "rule_fallback",
+                }
+            return out
+
+        serialized_places: List[Dict[str, Any]] = []
+        for place in candidates:
+            serialized_places.append(
+                {
+                    "place_id": _normalize_text(place.get("place_id")),
+                    "name": _normalize_text(place.get("name")),
+                    "address": _normalize_text(place.get("vicinity")),
+                    "types": [str(t).lower() for t in place.get("types", [])],
+                    "rating": place.get("rating", 0),
+                }
+            )
+
+        default = {
+            "items": [
+                {
+                    "place_id": p.get("place_id", ""),
+                    "is_valid": False,
+                    "facility_type": "other",
+                    "reason": "default_reject",
+                }
+                for p in serialized_places
+            ]
+        }
+        system_prompt = (
+            "You are MapAgent validation model for an emergency app. "
+            "Classify ONLY true human treatment facilities. "
+            "Reject veterinary clinics/hospitals, pharmacies, medical companies, and offices. "
+            "Return strict JSON only."
+        )
+        user_prompt = (
+            f"Scenario: {scenario}\n"
+            f"Requested facility type: {requested_facility_type}\n"
+            f"Severity: {severity}\n\n"
+            "For requested type hospital, only hospitals are valid.\n"
+            "For requested type clinic, hospitals and doctor/clinic facilities are valid.\n"
+            "Return JSON schema exactly: "
+            "{\"items\":[{\"place_id\":\"...\",\"is_valid\":true|false,"
+            "\"facility_type\":\"hospital|clinic|other\",\"reason\":\"short\"}]}\n\n"
+            f"Candidates:\n{json.dumps(serialized_places, ensure_ascii=False)}"
+        )
+
+        out = self.validator_llm.generate_json(
+            model_name=self.validator_model,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            default=default,
+            temperature=0.0,
+        )
+        parsed = self._parse_llm_validation(out)
+        if parsed:
+            return parsed
+        return rule_fallback()
+
+    def search_nearby_facilities(
+        self,
+        latitude: float,
+        longitude: float,
+        facility_type: str,
+        severity: str,
+        scenario: str = "",
+    ) -> Dict[str, Any]:
+        requested = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        map_severity = severity if severity in {"critical", "moderate", "mild", "none"} else "none"
+
+        all_candidates: List[Dict[str, Any]] = []
+        errors: List[str] = []
+        for q in self._build_query_plan(requested, map_severity):
+            result = self._nearby_search(
+                latitude=latitude,
+                longitude=longitude,
+                radius=int(q["radius"]),
+                place_type=str(q["type"]),
+                keyword=str(q["keyword"]),
+            )
+            if "error" in result:
+                errors.append(_normalize_text(result["error"]))
+                continue
+            all_candidates.extend(result.get("results", []))
+
+        if not all_candidates:
+            if errors:
+                return {"error": errors[0]}
+            return {"facilities": [], "total": 0}
+
+        dedup: Dict[str, Dict[str, Any]] = {}
+        for place in all_candidates:
+            pid = _normalize_text(place.get("place_id"))
+            if not pid:
+                continue
+            if pid not in dedup:
+                dedup[pid] = place
+
+        strict_accept: List[Dict[str, Any]] = []
+        ambiguous: List[Dict[str, Any]] = []
+        for place in dedup.values():
+            decision = self._strict_filter(place, requested_facility_type=requested)
+            if decision == "accept":
+                strict_accept.append(place)
+            elif decision == "ambiguous":
+                ambiguous.append(place)
+
+        validated: List[Dict[str, Any]] = []
+        if ambiguous:
+            llm_map = self._llm_validate_candidates(
+                scenario=scenario,
+                requested_facility_type=requested,
+                severity=map_severity,
+                candidates=ambiguous,
+            )
+            for place in ambiguous:
+                pid = _normalize_text(place.get("place_id"))
+                if llm_map.get(pid, {}).get("is_valid") is True:
+                    validated.append(place)
+
+        selected = strict_accept + validated
+        if not selected:
+            return {"facilities": [], "total": 0}
+
+        facilities: List[Dict[str, Any]] = []
+        for place in selected:
+            location = (place.get("geometry") or {}).get("location") or {}
+            f_lat = _safe_float(location.get("lat"))
+            f_lon = _safe_float(location.get("lng"))
+            if f_lat is None or f_lon is None:
+                continue
+            details = self._get_place_details(_normalize_text(place.get("place_id")))
+            facilities.append(
+                {
+                    "place_id": _normalize_text(place.get("place_id")),
+                    "name": _normalize_text(place.get("name")),
+                    "address": _normalize_text(place.get("vicinity")),
+                    "phone_number": _normalize_text(details.get("phone_number")),
+                    "website": _normalize_text(details.get("website")),
+                    "rating": float(place.get("rating", 0) or 0),
+                    "user_ratings_total": int(place.get("user_ratings_total", 0) or 0),
+                    "open_now": (place.get("opening_hours") or {}).get("open_now", None),
+                    "latitude": f_lat,
+                    "longitude": f_lon,
+                    "types": place.get("types", []),
+                }
+            )
+        return {"facilities": facilities, "total": len(facilities)}
+
     def run(
         self,
         scenario: str,
@@ -484,11 +989,12 @@ class MapAgent:
 
         map_severity = "critical" if severity == "critical" else "mild"
         fac_type = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
-        result = search_nearby_facilities(
+        result = self.search_nearby_facilities(
             latitude=latitude,
             longitude=longitude,
             facility_type=fac_type,
             severity=map_severity,
+            scenario=scenario,
         )
         if not isinstance(result, dict) or "error" in result:
             return []
@@ -673,10 +1179,18 @@ class ByStanderWorkflow:
 
         user_id = _normalize_text(payload.get("user_id"))
         user_profile = self.profile_service.get_user_profile(user_id=user_id) if user_id else {}
+        location_context = self.map_agent.build_location_context(
+            latitude=latitude,
+            longitude=longitude,
+            facilities=facilities,
+        )
         call_script = self.script_agent.run(
             scenario=scenario,
             guidance=guidance_text,
             user_profile=user_profile,
+            location_context=location_context,
+            latitude=latitude,
+            longitude=longitude,
         )
 
         return {
@@ -688,6 +1202,7 @@ class ByStanderWorkflow:
             "guidance": guidance_text,
             "general_info": "",
             "call_script": call_script,
+            "location_context": location_context,
             "facilities": facilities,
             "triage_reason": triage.get("reason_th", ""),
         }

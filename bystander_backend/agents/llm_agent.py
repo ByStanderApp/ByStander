@@ -185,7 +185,15 @@ class ScriptAgent:
         self.llm = llm
         self.model_name = _normalize_text(os.getenv("SCRIPT_MODEL")) or "gemini-2.5-flash"
 
-    def run(self, scenario: str, guidance: str, user_profile: Dict[str, Any]) -> str:
+    def run(
+        self,
+        scenario: str,
+        guidance: str,
+        user_profile: Dict[str, Any],
+        location_context: str = "",
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+    ) -> str:
         default = {
             "call_script": (
                 "สวัสดีค่ะ/ครับ ต้องการแจ้งเหตุฉุกเฉิน\n"
@@ -198,13 +206,22 @@ class ScriptAgent:
         }
         system_prompt = (
             "You are ScriptAgent for emergency operator call assistance in Thai. "
-            "Generate concise speaking script. Output JSON only with key: call_script."
+            "Generate concise speaking script. "
+            "If location context is provided, include exact location cues (address/nearby landmarks) clearly. "
+            "Output JSON only with key: call_script."
         )
         user_prompt = (
             f"Scenario: {scenario}\n"
             f"Guidance: {guidance}\n"
             f"User medical profile: {json.dumps(user_profile, ensure_ascii=False)}\n\n"
-            "Build a Thai phone script the user can read to emergency operator."
+            f"Latitude: {latitude}\n"
+            f"Longitude: {longitude}\n"
+            f"Location context from maps:\n{location_context}\n\n"
+            "Build a Thai phone script the user can read to emergency operator.\n"
+            "Requirements:\n"
+            "- Include a direct sentence the user can say about location.\n"
+            "- If location context exists, mention at least 1-2 nearby landmarks/place names.\n"
+            "- Keep it short, urgent, and easy to read out loud."
         )
         out = self.llm.generate_json(
             model_name=self.model_name,

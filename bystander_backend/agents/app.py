@@ -1,8 +1,14 @@
+import os
+import sys
+
 from flask import Flask, jsonify, make_response, request
 
-try:
+if __package__:
     from .agents import ByStanderWorkflow
-except ImportError:  # pragma: no cover
+else:  # pragma: no cover
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    if current_dir not in sys.path:
+        sys.path.insert(0, current_dir)
     from agents import ByStanderWorkflow
 
 
@@ -23,6 +29,15 @@ def _corsify_actual_response(response):
     return response
 
 
+def _safe_float(value):
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except Exception:
+        return None
+
+
 @app.route("/agent_workflow", methods=["POST", "OPTIONS"])
 def agent_workflow():
     if request.method == "OPTIONS":
@@ -37,6 +52,43 @@ def agent_workflow():
     except Exception as exc:
         return _corsify_actual_response(
             jsonify({"error": "agent workflow failed", "detail": str(exc)})
+        ), 500
+
+
+@app.route("/find_facilities", methods=["POST", "OPTIONS"])
+def find_facilities():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+
+    try:
+        data = request.get_json() or {}
+        latitude = _safe_float(data.get("latitude"))
+        longitude = _safe_float(data.get("longitude"))
+        if latitude is None or longitude is None:
+            return _corsify_actual_response(
+                jsonify({"error": "latitude and longitude are required"})
+            ), 400
+
+        if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+            return _corsify_actual_response(
+                jsonify({"error": "Invalid latitude or longitude values"})
+            ), 400
+
+        facility_type = str(data.get("facility_type") or "hospital").strip().lower()
+        severity = str(data.get("severity") or "none").strip().lower()
+        scenario = str(data.get("scenario") or "").strip()
+        result = workflow.map_agent.search_nearby_facilities(
+            latitude=latitude,
+            longitude=longitude,
+            facility_type=facility_type,
+            severity=severity,
+            scenario=scenario,
+        )
+        status = 503 if isinstance(result, dict) and "error" in result else 200
+        return _corsify_actual_response(jsonify(result)), status
+    except Exception as exc:
+        return _corsify_actual_response(
+            jsonify({"error": "find facilities failed", "detail": str(exc)})
         ), 500
 
 
