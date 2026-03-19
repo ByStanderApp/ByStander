@@ -5,14 +5,17 @@ from flask import Flask, jsonify, make_response, request
 
 if __package__:
     from .agents import ByStanderWorkflow
+    from .observability import init_observability
 else:  # pragma: no cover
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
     from agents import ByStanderWorkflow
+    from observability import init_observability
 
 
 app = Flask(__name__)
+OBSERVABILITY_STATUS = init_observability(service_name="bystander-agent-workflow")
 workflow = ByStanderWorkflow()
 
 
@@ -182,7 +185,13 @@ def debug_vertex_resources():
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "service": "bystander_agent_workflow"})
+    return jsonify(
+        {
+            "status": "ok",
+            "service": "bystander_agent_workflow",
+            "observability": OBSERVABILITY_STATUS,
+        }
+    )
 
 
 if __name__ == "__main__":

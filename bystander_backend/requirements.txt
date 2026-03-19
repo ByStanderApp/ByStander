@@ -25,3 +25,7 @@ google-adk
 firebase-admin
 google-cloud-discoveryengine
 google-cloud-aiplatform
+langfuse
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+openinference-instrumentation-vertexai

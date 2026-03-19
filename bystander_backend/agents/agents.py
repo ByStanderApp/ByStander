@@ -25,11 +25,13 @@ except Exception:  # pragma: no cover
 
 if __package__:
     from .llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
+    from .observability import observe, record_exception
 else:  # pragma: no cover
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
     from llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
+    from observability import observe, record_exception
 
 try:
     from google.adk.agents import LlmAgent  # type: ignore # noqa: F401
@@ -363,6 +365,7 @@ class ProtocolRetriever:
         result = self.retrieve_with_meta(query=query, severity=severity, top_k=top_k)
         return result["context"]
 
+    @observe()
     def retrieve_with_meta(self, query: str, severity: str, top_k: int = 3) -> Dict[str, Any]:
         # Primary: Vertex AI RAG Engine retrieval (if configured and available).
         vertex_docs = self._search_vertex(query=query, severity=severity, top_k=top_k)
@@ -886,6 +889,7 @@ class MapAgent:
             return parsed
         return rule_fallback()
 
+    @observe()
     def search_nearby_facilities(
         self,
         latitude: float,
@@ -1127,12 +1131,22 @@ class ByStanderWorkflow:
         self.retriever = ProtocolRetriever()
         self.profile_service = FirebaseProfileService()
 
+    @observe()
     def run(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         scenario = _normalize_text(payload.get("scenario") or payload.get("sentence"))
         if not scenario:
             raise ValueError("scenario is required")
 
-        triage = self.triage_agent.run(scenario)
+        try:
+            triage = self.triage_agent.run(scenario)
+        except Exception as exc:
+            record_exception(exc)
+            triage = {
+                "is_emergency": True,
+                "severity": "moderate",
+                "facility_type": "clinic",
+                "reason_th": "ระบบวิเคราะห์ฉุกเฉินขัดข้องชั่วคราว ใช้ค่าเริ่มต้นเพื่อความปลอดภัย",
+            }
         is_emergency = bool(triage.get("is_emergency"))
         severity = _normalize_text(triage.get("severity", "none")).lower()
         if severity not in {"critical", "moderate", "none"}:
@@ -1156,12 +1170,31 @@ class ByStanderWorkflow:
                 "triage_reason": triage.get("reason_th", ""),
             }
 
-        rag_context = self.retriever.retrieve(query=scenario, severity=severity)
-        guidance_result = self.guidance_agent.run(
-            scenario=scenario,
-            severity=severity,
-            rag_context=rag_context,
-        )
+        try:
+            rag_context = self.retriever.retrieve(query=scenario, severity=severity)
+        except Exception as exc:
+            record_exception(exc)
+            rag_context = (
+                "ไม่มีบริบทจาก RAG ชั่วคราว ให้ยึดหลักความปลอดภัย ประเมินพื้นที่ และโทร 1669 เมื่อเป็นเหตุฉุกเฉิน"
+            )
+        try:
+            guidance_result = self.guidance_agent.run(
+                scenario=scenario,
+                severity=severity,
+                rag_context=rag_context,
+            )
+        except Exception as exc:
+            record_exception(exc)
+            guidance_result = {
+                "guidance": (
+                    "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
+                    "1. ประเมินความปลอดภัยของพื้นที่\n"
+                    "2. โทร 1669 ทันที\n"
+                    "3. ปฐมพยาบาลตามอาการเท่าที่ปลอดภัย\n"
+                    "4. เฝ้าระวังอาการจนกว่าทีมแพทย์มาถึง"
+                ),
+                "facility_type": "hospital" if severity == "critical" else "clinic",
+            }
         guidance_text = _normalize_text(guidance_result.get("guidance"))
         facility_type = _normalize_text(guidance_result.get("facility_type")).lower()
         if facility_type not in {"hospital", "clinic", "none"}:
@@ -1184,14 +1217,22 @@ class ByStanderWorkflow:
             longitude=longitude,
             facilities=facilities,
         )
-        call_script = self.script_agent.run(
-            scenario=scenario,
-            guidance=guidance_text,
-            user_profile=user_profile,
-            location_context=location_context,
-            latitude=latitude,
-            longitude=longitude,
-        )
+        try:
+            call_script = self.script_agent.run(
+                scenario=scenario,
+                guidance=guidance_text,
+                user_profile=user_profile,
+                location_context=location_context,
+                latitude=latitude,
+                longitude=longitude,
+            )
+        except Exception as exc:
+            record_exception(exc)
+            call_script = (
+                "สวัสดีค่ะ/ครับ แจ้งเหตุฉุกเฉิน มีผู้ป่วยต้องการความช่วยเหลือด่วน\n"
+                "จุดเกิดเหตุ: โปรดระบุที่อยู่หรือจุดสังเกตใกล้เคียง\n"
+                "ขอรถพยาบาลด่วนครับ/ค่ะ"
+            )
 
         return {
             "route": "emergency_guidance",
