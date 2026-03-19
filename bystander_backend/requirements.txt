@@ -17,3 +17,15 @@ bitsandbytes
 huggingface_hub
 requests
 llama-cpp-python
+chromadb
+sentence-transformers
+langchain-community
+google-genai
+google-adk
+firebase-admin
+google-cloud-discoveryengine
+google-cloud-aiplatform
+langfuse
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+openinference-instrumentation-vertexai

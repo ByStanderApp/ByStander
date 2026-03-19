@@ -46,6 +46,9 @@ dependencies:
 
   cupertino_icons: ^1.0.6
   google_maps_flutter: ^2.14.0
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  csv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -103,3 +106,6 @@ flutter:
   
   assets:
     - images/bystander_logo.png
+    - assets/general_first_aid_catalog.json
+    - assets/video_instructions.json
+    - assets/facilities.csv

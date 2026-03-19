@@ -1,16 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:bystander_frontend/screens/facility_finder_screen.dart';
 import 'package:bystander_frontend/services/tts_service.dart';
 import 'package:bystander_frontend/services/api_service.dart';
-import 'package:bystander_frontend/screens/facility_finder_screen.dart';
-import 'package:geolocator/geolocator.dart';
 
 // Data model for emergency services (can be moved to a models folder)
 class EmergencyService {
   final String name;
   final String phone;
   final IconData icon;
-  EmergencyService({required this.name, required this.phone, required this.icon});
+  EmergencyService(
+      {required this.name, required this.phone, required this.icon});
 }
 
 class ComprehensiveGuidanceScreen extends StatefulWidget {
@@ -18,6 +21,10 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
   final String originalQuery;
   final String severity;
   final String facilityType;
+  final List<AgentFacility> facilities;
+  final String callScript;
+  final double? userLatitude;
+  final double? userLongitude;
 
   const ComprehensiveGuidanceScreen({
     super.key,
@@ -25,19 +32,26 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
     required this.originalQuery,
     required this.severity,
     required this.facilityType,
+    this.facilities = const [],
+    this.callScript = '',
+    this.userLatitude,
+    this.userLongitude,
   });
 
   @override
-  State<ComprehensiveGuidanceScreen> createState() => _ComprehensiveGuidanceScreenState();
+  State<ComprehensiveGuidanceScreen> createState() =>
+      _ComprehensiveGuidanceScreenState();
 }
 
-class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScreen> {
+class _ComprehensiveGuidanceScreenState
+    extends State<ComprehensiveGuidanceScreen> {
   final ScrollController _scrollController = ScrollController();
   int _currentSectionIndex = 0; // 0: Guidance, 1: Nearby, 2: Call Script
   final TtsService _ttsService = TtsService();
-  final ApiService _apiService = ApiService();
   bool _isSpeaking = false;
-  bool _isLoadingFacilities = false;
+  List<Map<String, dynamic>> _videoRules = [];
+  String? _matchedVideoUrl;
+  String? _matchedVideoKeyword;
 
   // GlobalKeys to identify sections for scrolling
   final GlobalKey _guidanceKey = GlobalKey();
@@ -45,10 +59,22 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
   final GlobalKey _callScriptKey = GlobalKey();
 
   final List<EmergencyService> _emergencyServices = [
-    EmergencyService(name: 'สถาบันการแพทย์ฉุกเฉินแห่งชาติ', phone: '1669', icon: Icons.emergency_outlined),
-    EmergencyService(name: 'เหตุด่วนเหตุร้าย (ตำรวจ)', phone: '191', icon: Icons.local_police_outlined),
-    EmergencyService(name: 'ดับเพลิงและกู้ภัย', phone: '199', icon: Icons.fire_truck_outlined),
-    EmergencyService(name: 'โรงพยาบาลตำรวจ (ตัวอย่าง)', phone: '022076000', icon: Icons.local_hospital_outlined),
+    EmergencyService(
+        name: 'สถาบันการแพทย์ฉุกเฉินแห่งชาติ',
+        phone: '1669',
+        icon: Icons.emergency_outlined),
+    EmergencyService(
+        name: 'เหตุด่วนเหตุร้าย (ตำรวจ)',
+        phone: '191',
+        icon: Icons.local_police_outlined),
+    EmergencyService(
+        name: 'ดับเพลิงและกู้ภัย',
+        phone: '199',
+        icon: Icons.fire_truck_outlined),
+    EmergencyService(
+        name: 'โรงพยาบาลตำรวจ (ตัวอย่าง)',
+        phone: '022076000',
+        icon: Icons.local_hospital_outlined),
   ];
 
   @override
@@ -62,177 +88,56 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
   void initState() {
     super.initState();
     _ttsService.initialize();
+    _loadVideoRules();
   }
 
-  Future<Position?> _getUserLocation() async {
+  Future<void> _loadVideoRules() async {
     try {
-      // Check for location permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('กรุณาอนุญาตการเข้าถึงตำแหน่งในเบราว์เซอร์'),
-                duration: Duration(seconds: 5),
-              ),
-            );
-          }
-          return null;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('ไม่สามารถใช้ตำแหน่งได้ กรุณาเปิดในการตั้งค่าเบราว์เซอร์'),
-              duration: Duration(seconds: 5),
-            ),
-          );
-        }
-        return null;
-      }
-
-      // Get the current position with web-friendly settings
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 15),
-      ).timeout(
-        const Duration(seconds: 20),
-        onTimeout: () {
-          throw Exception('การรับตำแหน่งใช้เวลานานเกินไป');
-        },
-      );
-
-      return position;
-    } on PermissionDeniedException {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('กรุณาให้สิทธิ์การเข้าถึงตำแหน่งในเบราว์เซอร์'),
-            duration: Duration(seconds: 5),
-          ),
-        );
-      }
-      return null;
-    } on LocationServiceDisabledException {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('กรุณาเปิดใช้งานบริการตำแหน่งของอุปกรณ์'),
-            duration: Duration(seconds: 5),
-          ),
-        );
-      }
-      return null;
-    } catch (e) {
-      if (mounted) {
-        // Show more helpful error message with option to use default location
-        final useDefault = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('ไม่สามารถรับตำแหน่งได้'),
-            content: Text(
-              'เกิดข้อผิดพลาด: ${e.toString()}\n\n'
-              'ในเบราว์เซอร์ Chrome:\n'
-              '1. คลิกไอคอน 🔒 ด้านซ้ายของ URL\n'
-              '2. เปิดการอนุญาต "Location"\n'
-              '3. รีเฟรชหน้าและลองอีกครั้ง\n\n'
-              'หรือใช้ตำแหน่งกรุงเทพฯ เป็นค่าเริ่มต้น?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('ยกเลิก'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('ใช้ตำแหน่งกรุงเทพฯ'),
-              ),
-            ],
-          ),
-        );
-
-        if (useDefault == true) {
-          // Return a default location (Bangkok, Thailand)
-          return Position(
-            latitude: 13.7563,
-            longitude: 100.5018,
-            timestamp: DateTime.now(),
-            accuracy: 0,
-            altitude: 0,
-            altitudeAccuracy: 0,
-            heading: 0,
-            headingAccuracy: 0,
-            speed: 0,
-            speedAccuracy: 0,
-          );
-        }
-      }
-      return null;
+      final raw = await rootBundle.loadString('assets/video_instructions.json');
+      final payload = jsonDecode(raw);
+      final items = (payload['items'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _videoRules = items;
+      });
+      _matchVideoFromGuidance();
+    } catch (_) {
+      // Optional feature: fail silently if asset missing.
     }
   }
 
-  Future<void> _findNearbyFacilities() async {
-    setState(() {
-      _isLoadingFacilities = true;
-    });
-
-    try {
-      // Get user location
-      final position = await _getUserLocation();
-      if (position == null) {
-        setState(() {
-          _isLoadingFacilities = false;
-        });
-        return;
-      }
-
-      // Call API to find facilities
-      final response = await _apiService.findNearbyFacilities(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        facilityType: widget.facilityType,
-        severity: widget.severity,
-      );
-
-      if (mounted) {
-        // Convert response to Facility objects
-        final facilities = response.facilities
-            .map((json) => Facility.fromJson(json))
-            .toList();
-
-        // Navigate to facility finder screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FacilityFinderScreen(
-              facilities: facilities,
-              userLatitude: position.latitude,
-              userLongitude: position.longitude,
-              facilityType: widget.facilityType,
-              severity: widget.severity,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('เกิดข้อผิดพลาด: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingFacilities = false;
-        });
+  void _matchVideoFromGuidance() {
+    final guidanceLower = widget.guidanceText.toLowerCase();
+    for (final row in _videoRules) {
+      final keywords = (row['keywords'] as List<dynamic>? ?? [])
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      final video = (row['video'] ?? '').toString().trim();
+      if (video.isEmpty) continue;
+      for (final kw in keywords) {
+        if (guidanceLower.contains(kw.toLowerCase())) {
+          if (!mounted) return;
+          setState(() {
+            _matchedVideoUrl = video;
+            _matchedVideoKeyword = kw;
+          });
+          return;
+        }
       }
     }
   }
-  
+
+  Future<void> _openVideoInstruction() async {
+    final url = _matchedVideoUrl;
+    if (url == null || url.trim().isEmpty) return;
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   void _scrollToSection(int index) {
     GlobalKey key;
@@ -263,9 +168,87 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     }
   }
 
-  List<String> _parseSteps(String text) {
-    final lines = text.split(RegExp(r'\n(?=\d+\.\s)|(?<=\.)\n-|(?<=\.)\s*\n\s*(?=[A-Za-z])'));
-    return lines.map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
+  String _extractGuidanceIntro(String text) {
+    final normalized = text.replaceAll('\r', '').trim();
+    final firstStepMatch = RegExp(r'\d+[\.\)]\s+').firstMatch(normalized);
+    if (firstStepMatch == null || firstStepMatch.start == 0) {
+      return '';
+    }
+    return normalized.substring(0, firstStepMatch.start).trim();
+  }
+
+  List<String> _parseGuidanceSteps(String text) {
+    final normalized = text.replaceAll('\r', ' ').replaceAll('\n', ' ').trim();
+    if (normalized.isEmpty) return [];
+
+    final hasNumberedSteps = RegExp(r'\d+[\.\)]\s+').hasMatch(normalized);
+    if (!hasNumberedSteps) {
+      return normalized
+          .split(RegExp(r'[•\-]\s+|\.\s+(?=[ก-๙A-Za-z])'))
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+
+    final parts = normalized
+        .split(RegExp(r'(?=\d+[\.\)]\s+)'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .map((e) => e.replaceFirst(RegExp(r'^\d+[\.\)]\s*'), '').trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    return parts;
+  }
+
+  Future<void> _openNearbyFacilitiesMap() async {
+    final mapped = widget.facilities
+        .map(
+          (f) => Facility(
+            placeId: '${f.latitude ?? 0}_${f.longitude ?? 0}_${f.name}',
+            name: f.name,
+            address: f.address,
+            latitude: f.latitude ?? 0,
+            longitude: f.longitude ?? 0,
+            rating: f.rating,
+            userRatingsTotal: 0,
+            openNow: null,
+            phoneNumber: f.phoneNumber,
+            website: '',
+            types: const [],
+          ),
+        )
+        .where((f) => f.latitude != 0 || f.longitude != 0)
+        .toList();
+
+    final hasUserLocation =
+        widget.userLatitude != null && widget.userLongitude != null;
+
+    if (mapped.isEmpty && !hasUserLocation) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ไม่พบข้อมูลสถานพยาบาลและไม่มีพิกัดตำแหน่งผู้ใช้'),
+        ),
+      );
+      return;
+    }
+
+    final centerLat = widget.userLatitude ?? mapped.first.latitude;
+    final centerLon = widget.userLongitude ?? mapped.first.longitude;
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FacilityFinderScreen(
+          facilities: mapped,
+          userLatitude: centerLat,
+          userLongitude: centerLon,
+          facilityType: widget.facilityType,
+          severity: widget.severity,
+        ),
+      ),
+    );
   }
 
   Future<void> _makePhoneCall(String phoneNumber) async {
@@ -273,7 +256,7 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
     } else {
-      print('Could not launch $phoneNumber');
+      debugPrint('Could not launch $phoneNumber');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('ไม่สามารถโทรออกไปยัง $phoneNumber ได้')),
@@ -284,75 +267,132 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
 
   @override
   Widget build(BuildContext context) {
-    final List<String> guidanceSteps = _parseSteps(widget.guidanceText);
+    final String guidanceIntro = _extractGuidanceIntro(widget.guidanceText);
+    final List<String> guidanceSteps = _parseGuidanceSteps(widget.guidanceText);
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
+    final bool isCritical = widget.severity.toLowerCase() == 'critical';
+    final Color urgencyColor =
+        isCritical ? const Color(0xFFB42318) : const Color(0xFF1E6A52);
 
-  Future<void> readGuidanceAloud() async {
-    if (_isSpeaking) {
-      // If already speaking, stop it
-      await _ttsService.stop();
-      setState(() {
-        _isSpeaking = false;
-      });
-      return;
-    }
-
-    try {
-      if (guidanceSteps.isNotEmpty) {
-        String allSteps = guidanceSteps.join('. ');
+    Future<void> readGuidanceAloud() async {
+      if (_isSpeaking) {
+        // If already speaking, stop it
+        await _ttsService.stop();
         setState(() {
-          _isSpeaking = true;
+          _isSpeaking = false;
         });
-        await _ttsService.speak(allSteps);
-      } else if (widget.guidanceText.isNotEmpty) {
-        // Fallback to full text if steps parsing failed
-        setState(() {
-          _isSpeaking = true;
-        });
-        await _ttsService.speak(widget.guidanceText);
+        return;
       }
 
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
+      try {
+        if (guidanceSteps.isNotEmpty) {
+          String allSteps = guidanceSteps.join('. ');
           setState(() {
-            _isSpeaking = _ttsService.isSpeaking;
+            _isSpeaking = true;
           });
+          await _ttsService.speak(allSteps);
+        } else if (widget.guidanceText.isNotEmpty) {
+          // Fallback to full text if steps parsing failed
+          setState(() {
+            _isSpeaking = true;
+          });
+          await _ttsService.speak(widget.guidanceText);
         }
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            setState(() {
+              _isSpeaking = _ttsService.isSpeaking;
+            });
+          }
+        });
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(this.context).showSnackBar(
           SnackBar(content: Text('ไม่สามารถอ่านออกเสียงได้: ${e.toString()}')),
         );
+        setState(() {
+          _isSpeaking = false;
+        });
       }
-      setState(() {
-        _isSpeaking = false;
-      });
     }
-  }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('ข้อมูลช่วยเหลือฉุกเฉิน'),
-        leading: IconButton( 
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SingleChildScrollView(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal:16.0, vertical: 8.0), // Adjusted padding
+        padding: const EdgeInsets.symmetric(
+            horizontal: 16.0, vertical: 8.0), // Adjusted padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildSectionTitle('สถานการณ์: ${widget.originalQuery}', key: null, isQuery: true, context: context), 
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 6, bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isCritical
+                    ? const Color(0xFFFDECEA)
+                    : const Color(0xFFEAF7F1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: urgencyColor.withValues(alpha: 0.45)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        isCritical
+                            ? Icons.warning_amber_rounded
+                            : Icons.verified_user_outlined,
+                        color: urgencyColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isCritical
+                              ? 'เคสวิกฤต: ให้โทร 1669 และทำตามขั้นตอนทันที'
+                              : 'เคสเร่งด่วนปานกลาง: ทำตามขั้นตอนและติดตามอาการ',
+                          style: appTextTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: urgencyColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: () => _makePhoneCall('1669'),
+                    icon: const Icon(Icons.call),
+                    label: const Text('โทร 1669 ตอนนี้'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      backgroundColor: urgencyColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _buildSectionTitle('สถานการณ์: ${widget.originalQuery}',
+                key: null, isQuery: true, context: context),
             const SizedBox(height: 8),
             const Divider(),
-            _buildSectionTitle('คำแนะนำตามลำดับขั้นตอน:', key: _guidanceKey, context: context),
-            if (guidanceSteps.isNotEmpty)
+            _buildSectionTitle('คำแนะนำตามลำดับขั้นตอน:',
+                key: _guidanceKey, context: context),
+            if (widget.guidanceText.trim().isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -364,111 +404,163 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
                       ),
                       label: Text(_isSpeaking ? 'หยุด' : 'อ่านออกเสียง'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isSpeaking 
-                            ? appColorScheme.primary 
-                            : null,
+                        backgroundColor:
+                            _isSpeaking ? appColorScheme.primary : null,
                       ),
                     ),
                   ],
                 ),
               ),
-
-            // Second part: Displaying guidance steps or fallback text
-            if (guidanceSteps.isNotEmpty) // Changed condition: now handles 1 or more steps
+            if (guidanceIntro.isNotEmpty)
               Card(
-                // CardTheme from your main.dart will style this Card.
-                // You can add specific margin here if needed, e.g.:
-                // margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0), // Inner padding for the content within the card
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, // Align text to the start (left for LTR)
-                    mainAxisSize: MainAxisSize.min, // Ensure Column takes only necessary vertical space
-                    children: List.generate(guidanceSteps.length, (index) {
-                      return Padding(
-                        // Add some vertical spacing between the text of different steps
-                        padding: EdgeInsets.only(bottom: index < guidanceSteps.length - 1 ? 10.0 : 0.0),
-                        child: Text(
-                          guidanceSteps[index], // Display the guidance step text directly
-                          style: appTextTheme.bodyLarge, // Apply your desired text style
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              )
-            else // This else now correctly triggers only if guidanceSteps IS empty
-              Card(
-                // margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Optional margin
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0), // Padding for the fallback text
+                  padding: const EdgeInsets.all(16),
                   child: Text(
-                    // Using widget.guidanceText if guidanceSteps is empty,
-                    // or a default "not found" message if widget.guidanceText is also empty.
-                    widget.guidanceText.isEmpty ? "ไม่พบคำแนะนำ" : widget.guidanceText,
-                    style: appTextTheme.bodyLarge,
-                    textAlign: TextAlign.justify, // Justified text alignment for the fallback
+                    guidanceIntro,
+                    style: appTextTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
-              
+            if (guidanceSteps.isNotEmpty)
+              ...List.generate(guidanceSteps.length, (index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: appColorScheme.primary.withValues(alpha: 0.15),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: appColorScheme.primary,
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              guidanceSteps[index],
+                              style: appTextTheme.titleMedium?.copyWith(
+                                height: 1.45,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              })
+            else
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    widget.guidanceText.isEmpty
+                        ? 'ไม่พบคำแนะนำ'
+                        : widget.guidanceText,
+                    style: appTextTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            if (_matchedVideoUrl != null) ...[
+              const SizedBox(height: 8),
+              Card(
+                child: ListTile(
+                  leading:
+                      Icon(Icons.smart_display, color: appColorScheme.primary),
+                  title: const Text('วิดีโอสาธิตการปฐมพยาบาล'),
+                  subtitle: Text(
+                    _matchedVideoKeyword == null
+                        ? 'กดเพื่อเปิดวิดีโอ'
+                        : 'พบคำแนะนำเกี่ยวกับ: $_matchedVideoKeyword',
+                  ),
+                  trailing: const Icon(Icons.open_in_new),
+                  onTap: _openVideoInstruction,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             const Divider(),
-
-            _buildSectionTitle('สถานบริการฉุกเฉิน (ตัวอย่าง)', key: _nearbyServicesKey, context: context),
-            // Find Nearby Facilities Button
+            _buildSectionTitle('เบอร์ฉุกเฉินและสถานพยาบาล',
+                key: _nearbyServicesKey, context: context),
+            _buildNearbyServicesSection(context),
+            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: ElevatedButton.icon(
-                onPressed: _isLoadingFacilities ? null : _findNearbyFacilities,
-                icon: _isLoadingFacilities
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.map),
-                label: Text(_isLoadingFacilities ? 'กำลังค้นหา...' : 'ค้นหาสถานพยาบาลใกล้เคียง'),
+                onPressed: _openNearbyFacilitiesMap,
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('ค้นหาสถานพยาบาลใกล้เคียงบนแผนที่'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            _buildNearbyServicesSection(context),
             const SizedBox(height: 16),
             const Divider(),
-
-            _buildSectionTitle('แนะนำบทสนทนาเมื่อคุณโทรศัพท์', key: _callScriptKey, context: context),
+            _buildSectionTitle('แนะนำบทสนทนาเมื่อคุณโทรศัพท์',
+                key: _callScriptKey, context: context),
             _buildCallScriptSection(context),
             const SizedBox(height: 16),
-             Center(
+            Center(
               child: Column(
                 children: [
                   Text(
                     'หากยังมีคำถามอยู่ หรือต้องการความช่วยเหลือเพิ่มเติม:',
-                     style: appTextTheme.bodyMedium?.copyWith(color: appTextTheme.bodyMedium?.color?.withOpacity(0.8)),
-                     textAlign: TextAlign.center,
+                    style: appTextTheme.bodyMedium?.copyWith(
+                        color: appTextTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.8)),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 15),
                   Icon(Icons.mic, size: 40, color: appColorScheme.primary),
                   const SizedBox(height: 5),
-                   Text(
+                  Text(
                     'กดค้างแล้วพูดได้เลย (ฟังก์ชันนี้จะพัฒนาในอนาคต)',
-                    style: appTextTheme.bodySmall?.copyWith(color: appTextTheme.bodySmall?.color?.withOpacity(0.7)),
+                    style: appTextTheme.bodySmall?.copyWith(
+                        color: appTextTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7)),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 60), 
+            const SizedBox(height: 60),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar( // Theme applied from main.dart
+      bottomNavigationBar: BottomNavigationBar(
+        // Theme applied from main.dart
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.lightbulb_outline), label: 'คำแนะนำ'),
-          BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'ใกล้ฉัน'),
-          BottomNavigationBarItem(icon: Icon(Icons.phone_in_talk_outlined), label: 'บทสนทนา'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.lightbulb_outline), label: 'คำแนะนำ'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.map_outlined), label: 'ใกล้ฉัน'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.phone_in_talk_outlined), label: 'บทสนทนา'),
         ],
         currentIndex: _currentSectionIndex,
         onTap: _scrollToSection,
@@ -477,17 +569,24 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
     );
   }
 
-  Widget _buildSectionTitle(String title, {required GlobalKey? key, bool isQuery = false, required BuildContext context}) {
+  Widget _buildSectionTitle(String title,
+      {required GlobalKey? key,
+      bool isQuery = false,
+      required BuildContext context}) {
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
     return Padding(
       key: key,
-      padding: const EdgeInsets.only(top: 12.0, bottom: 8.0), // Adjusted padding
+      padding:
+          const EdgeInsets.only(top: 12.0, bottom: 8.0), // Adjusted padding
       child: Text(
         title,
-        style: (isQuery ? appTextTheme.titleMedium : appTextTheme.titleLarge)?.copyWith(
+        style: (isQuery ? appTextTheme.titleMedium : appTextTheme.titleLarge)
+            ?.copyWith(
           fontWeight: FontWeight.bold,
-          color: isQuery ? appColorScheme.primary.withOpacity(0.85) : appColorScheme.primary,
+          color: isQuery
+              ? appColorScheme.primary.withValues(alpha: 0.85)
+              : appColorScheme.primary,
         ),
       ),
     );
@@ -508,8 +607,11 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
               backgroundColor: appColorScheme.primary,
               child: Icon(service.icon, color: appColorScheme.onPrimary),
             ),
-            title: Text(service.name, style: appTextTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-            subtitle: Text('โทร: ${service.phone}', style: appTextTheme.bodyMedium),
+            title: Text(service.name,
+                style: appTextTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600)),
+            subtitle:
+                Text('โทร: ${service.phone}', style: appTextTheme.bodyMedium),
             trailing: IconButton(
               icon: Icon(Icons.call, color: appColorScheme.primary),
               onPressed: () => _makePhoneCall(service.phone),
@@ -522,20 +624,58 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
   }
 
   Widget _buildCallScriptSection(BuildContext context) {
+    if (widget.callScript.trim().isNotEmpty) {
+      final lines = widget.callScript
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: lines
+                .map((line) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(line),
+                    ))
+                .toList(),
+          ),
+        ),
+      );
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildScriptPoint("ผู้แจ้ง:", "สวัสดีครับ/ค่ะ ต้องการแจ้งเหตุฉุกเฉินครับ/ค่ะ", context),
-            _buildScriptPoint("สถานการณ์:", "(อธิบายสั้นๆ ว่าเกิดอะไรขึ้น เช่น 'มีคนหมดสติ', 'เกิดอุบัติเหตุรถชน')", context),
-            _buildScriptPoint("สถานที่:", "อยู่ที่ (บอกตำแหน่งที่เกิดเหตุให้ชัดเจนที่สุด เช่น 'หน้าอาคาร A ถนน B ใกล้กับ C')", context),
-            _buildScriptPoint("ผู้บาดเจ็บ/ผู้ป่วย:", "(บอกจำนวนคน อาการเบื้องต้นที่เห็น เช่น 'มีผู้บาดเจ็บ 1 คน ไม่รู้สึกตัว', 'มีเลือดออกมาก')", context),
-            _buildScriptPoint("ชื่อผู้แจ้ง:", "ผม/ดิฉันชื่อ (ชื่อของคุณ)", context),
-            _buildScriptPoint("เบอร์ติดต่อกลับ:", "เบอร์โทรศัพท์ (เบอร์ของคุณ)", context),
-            _buildScriptPoint("ความช่วยเหลือที่ทำไปแล้ว:", "(ถ้ามีการปฐมพยาบาลเบื้องต้นไปแล้ว ให้แจ้งด้วย)", context),
-            _buildScriptPoint("คำถามเพิ่มเติม:", "มีอะไรที่ผม/ดิฉันควรทำเพิ่มเติมระหว่างรอเจ้าหน้าที่ไหมครับ/คะ?", context),
+            _buildScriptPoint("ผู้แจ้ง:",
+                "สวัสดีครับ/ค่ะ ต้องการแจ้งเหตุฉุกเฉินครับ/ค่ะ", context),
+            _buildScriptPoint(
+                "สถานการณ์:",
+                "(อธิบายสั้นๆ ว่าเกิดอะไรขึ้น เช่น 'มีคนหมดสติ', 'เกิดอุบัติเหตุรถชน')",
+                context),
+            _buildScriptPoint(
+                "สถานที่:",
+                "อยู่ที่ (บอกตำแหน่งที่เกิดเหตุให้ชัดเจนที่สุด เช่น 'หน้าอาคาร A ถนน B ใกล้กับ C')",
+                context),
+            _buildScriptPoint(
+                "ผู้บาดเจ็บ/ผู้ป่วย:",
+                "(บอกจำนวนคน อาการเบื้องต้นที่เห็น เช่น 'มีผู้บาดเจ็บ 1 คน ไม่รู้สึกตัว', 'มีเลือดออกมาก')",
+                context),
+            _buildScriptPoint(
+                "ชื่อผู้แจ้ง:", "ผม/ดิฉันชื่อ (ชื่อของคุณ)", context),
+            _buildScriptPoint(
+                "เบอร์ติดต่อกลับ:", "เบอร์โทรศัพท์ (เบอร์ของคุณ)", context),
+            _buildScriptPoint("ความช่วยเหลือที่ทำไปแล้ว:",
+                "(ถ้ามีการปฐมพยาบาลเบื้องต้นไปแล้ว ให้แจ้งด้วย)", context),
+            _buildScriptPoint(
+                "คำถามเพิ่มเติม:",
+                "มีอะไรที่ผม/ดิฉันควรทำเพิ่มเติมระหว่างรอเจ้าหน้าที่ไหมครับ/คะ?",
+                context),
           ],
         ),
       ),
@@ -551,8 +691,13 @@ class _ComprehensiveGuidanceScreenState extends State<ComprehensiveGuidanceScree
         text: TextSpan(
           style: appTextTheme.bodyLarge, // Default style for this RichText
           children: <TextSpan>[
-            TextSpan(text: '$title ', style: TextStyle(fontWeight: FontWeight.bold, color: appColorScheme.primary)),
-            TextSpan(text: content), // Inherits style from appTextTheme.bodyLarge
+            TextSpan(
+                text: '$title ',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: appColorScheme.primary)),
+            TextSpan(
+                text: content), // Inherits style from appTextTheme.bodyLarge
           ],
         ),
       ),
