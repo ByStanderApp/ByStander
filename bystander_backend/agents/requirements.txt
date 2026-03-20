@@ -13,4 +13,5 @@ google-cloud-aiplatform
 langfuse
 opentelemetry-sdk
 opentelemetry-exporter-otlp
-openinference-instrumentation-vertexai
+openinference-instrumentation-vertexai; python_version < "3.14"
+opentelemetry-instrumentation-vertexai; python_version >= "3.14"
