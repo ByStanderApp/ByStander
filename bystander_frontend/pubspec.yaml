@@ -49,6 +49,7 @@ dependencies:
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
   csv: ^6.0.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:js_util' as js_util;
 import 'package:bystander_frontend/services/runtime_asset_mode.dart';
 
 bool _readBool(String key, {bool fallback = false}) {
   try {
-    final value = js_util.getProperty(html.window, key);
+    // `dart:js_util` isn't available in some Dart SDK builds, so access the
+    // window global dynamically instead.
+    final dynamic win = html.window;
+    final value = win[key];
     if (value is bool) return value;
     return fallback;
   } catch (_) {

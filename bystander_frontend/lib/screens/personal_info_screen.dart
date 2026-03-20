@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'package:bystander_frontend/screens/friends_screen.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -58,6 +63,12 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       '• ท่านสามารถถอนความยินยอมได้โดยการลบข้อมูลหรือออกจากระบบ\n'
       '• การไม่ให้ความยินยอมหรือถอนความยินยอมอาจทำให้ไม่สามารถใช้ฟีเจอร์บางอย่างของแอปได้\n\n'
       'โดยการกดยอมรับ ท่านยืนยันว่าท่านได้อ่าน เข้าใจ และยินยอมตามข้อตกลงและนโยบายข้างต้น';
+
+  String _emailHash(String email) {
+    final normalized = email.trim().toLowerCase();
+    final digest = sha256.convert(utf8.encode(normalized));
+    return digest.toString();
+  }
 
   Future<void> _showConsentDialog() async {
     await showDialog<void>(
@@ -464,6 +475,19 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
       await firestore.collection('users').doc(uid).set(userPayload, SetOptions(merge: true));
 
+      // Seed the friend system email->UID lookup. This enables inviting friends by email.
+      final rawEmail = user.email;
+      if (rawEmail != null && rawEmail.trim().isNotEmpty) {
+        final email = rawEmail.trim().toLowerCase();
+        final emailHash = _emailHash(email);
+        await firestore.collection('user_lookup').doc(emailHash).set({
+          'uid': uid,
+          'displayName': userPayload['fullName'],
+          'firstName': first,
+          'lastName': last,
+        }, SetOptions(merge: true));
+      }
+
       final conditions = _conditionControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList();
       final allergies = _allergyControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList();
       final immunizations = _immunizationControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList();
@@ -648,6 +672,17 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               tooltip: 'ลบข้อมูลส่วนตัว',
               onPressed: _isSaving ? null : _deleteProfile,
               icon: Icon(Icons.delete_outline, color: colorScheme.error),
+            ),
+          if (isLoggedIn)
+            IconButton(
+              tooltip: 'รายชื่อเพื่อน',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FriendsScreen()),
+                );
+              },
+              icon: const Icon(Icons.people_alt_outlined, color: Colors.white),
             ),
         ],
       ),
