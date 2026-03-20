@@ -26,12 +26,14 @@ except Exception:  # pragma: no cover
 if __package__:
     from .llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
     from .observability import observe, record_exception
+    from .judge_service import AsyncJudgeService
 else:  # pragma: no cover
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
     from llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
     from observability import observe, record_exception
+    from judge_service import AsyncJudgeService
 
 try:
     from google.adk.agents import LlmAgent  # type: ignore # noqa: F401
@@ -732,12 +734,13 @@ class MapAgent:
         if latitude is None or longitude is None:
             return ""
 
-        parts: List[str] = [
-            f"พิกัดโดยประมาณ: {latitude:.6f}, {longitude:.6f}",
-        ]
+        parts: List[str] = []
         address = self._reverse_geocode(latitude, longitude)
         if address:
             parts.append(f"ที่อยู่จากแผนที่: {address}")
+        parts.append(
+            f"พิกัดสำหรับระบบ (ไม่ต้องอ่านให้เจ้าหน้าที่): {latitude:.6f}, {longitude:.6f}"
+        )
 
         landmarks = self._nearby_landmarks(latitude, longitude)
         if landmarks:
@@ -1130,6 +1133,7 @@ class ByStanderWorkflow:
         self.map_agent = MapAgent()
         self.retriever = ProtocolRetriever()
         self.profile_service = FirebaseProfileService()
+        self.judge_service = AsyncJudgeService()
 
     @observe()
     def run(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -1171,9 +1175,11 @@ class ByStanderWorkflow:
             }
 
         try:
-            rag_context = self.retriever.retrieve(query=scenario, severity=severity)
+            rag_result = self.retriever.retrieve_with_meta(query=scenario, severity=severity)
+            rag_context = _normalize_text(rag_result.get("context"))
         except Exception as exc:
             record_exception(exc)
+            rag_result = {"source": "none", "count": 0}
             rag_context = (
                 "ไม่มีบริบทจาก RAG ชั่วคราว ให้ยึดหลักความปลอดภัย ประเมินพื้นที่ และโทร 1669 เมื่อเป็นเหตุฉุกเฉิน"
             )
@@ -1234,7 +1240,7 @@ class ByStanderWorkflow:
                 "ขอรถพยาบาลด่วนครับ/ค่ะ"
             )
 
-        return {
+        response_payload = {
             "route": "emergency_guidance",
             "is_emergency": True,
             "adk_available": ADK_AVAILABLE,
@@ -1247,3 +1253,19 @@ class ByStanderWorkflow:
             "facilities": facilities,
             "triage_reason": triage.get("reason_th", ""),
         }
+        try:
+            self.judge_service.submit(
+                {
+                    "scenario": scenario,
+                    "severity": severity,
+                    "rag_source": rag_result.get("source", "none"),
+                    "rag_count": int(rag_result.get("count", 0) or 0),
+                    "rag_context": rag_context,
+                    "guidance": guidance_text,
+                    "facilities": facilities,
+                    "call_script": call_script,
+                }
+            )
+        except Exception as exc:
+            record_exception(exc)
+        return response_payload

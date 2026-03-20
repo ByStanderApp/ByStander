@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sys
+import warnings
 from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
@@ -14,12 +15,24 @@ except Exception:  # pragma: no cover
     types = None
 
 try:
+    from openai import OpenAI
+except Exception:  # pragma: no cover
+    OpenAI = None
+
+try:
     import vertexai
     from vertexai.generative_models import GenerationConfig, GenerativeModel
 except Exception:  # pragma: no cover
     vertexai = None
     GenerationConfig = None
     GenerativeModel = None
+
+# Suppress Vertex AI deprecation warning spam in runtime logs.
+warnings.filterwarnings(
+    "ignore",
+    message=r"This feature is deprecated as of June 24, 2025.*",
+    category=UserWarning,
+)
 
 if __package__:
     from .observability import observe, record_exception
@@ -74,28 +87,23 @@ def _canonical_model_name(model_name: str) -> str:
     aliases = {
         "gemini-3-flash": "gemini-2.5-flash",
         "gemini-3-flash-preview": "gemini-2.5-flash",
+        "gemini-3.1-flash-lite-preview": "gemini-2.5-flash",
         "models/gemini-3-flash": "gemini-2.5-flash",
         "models/gemini-3-flash-preview": "gemini-2.5-flash",
+        "models/gemini-3.1-flash-lite-preview": "gemini-2.5-flash",
         "models/gemini-2.5-flash": "gemini-2.5-flash",
-        "models/gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
+        "models/gemini-2.5-pro": "gemini-2.5-pro",
+        "gemini-2.5-flash-lite": "gemini-2.5-flash",
+        "models/gemini-2.5-flash-lite": "gemini-2.5-flash",
     }
     return aliases.get(name, name)
 
 
 def _model_candidates(model_name: str) -> list[str]:
     canonical = _canonical_model_name(model_name)
-    candidates = [canonical]
-    if canonical == "gemini-2.5-flash":
-        candidates.append("gemini-2.5-flash-lite")
-    elif canonical == "gemini-2.5-flash-lite":
-        candidates.append("gemini-2.5-flash")
-    dedup: list[str] = []
-    seen = set()
-    for candidate in candidates:
-        if candidate and candidate not in seen:
-            dedup.append(candidate)
-            seen.add(candidate)
-    return dedup
+    if not canonical:
+        return ["gemini-2.5-flash"]
+    return [canonical]
 
 
 class GeminiJSONAgent:
@@ -263,8 +271,108 @@ class GuidanceAgent:
 
     def __init__(self, llm: GeminiJSONAgent) -> None:
         self.llm = llm
-        self.critical_model = _normalize_text(os.getenv("GUIDANCE_CRITICAL_MODEL")) or "gemini-2.5-flash"
-        self.moderate_model = _normalize_text(os.getenv("GUIDANCE_MODERATE_MODEL")) or "gemini-2.5-flash-lite"
+        default_guidance_model = "gemini-2.5-flash"
+        self.critical_model = _normalize_text(os.getenv("GUIDANCE_CRITICAL_MODEL")) or default_guidance_model
+        self.moderate_model = _normalize_text(os.getenv("GUIDANCE_MODERATE_MODEL")) or default_guidance_model
+        self.deepseek_model = _normalize_text(os.getenv("DEEPSEEK_FAST_MODEL")) or "deepseek-chat"
+        self.deepseek_key = _normalize_text(os.getenv("DEEPSEEK_KEY"))
+        self.deepseek_client = None
+        if self.deepseek_key and OpenAI is not None:
+            try:
+                self.deepseek_client = OpenAI(api_key=self.deepseek_key, base_url="https://api.deepseek.com")
+            except Exception as exc:
+                record_exception(exc)
+
+    @staticmethod
+    def _clean_rag_snippets(rag_context: str, max_snippets: int = 6, max_chars: int = 1600) -> str:
+        text = _normalize_text(rag_context)
+        if not text:
+            return ""
+        chunks = re.split(r"\n\s*\n", text)
+        snippets = []
+        seen = set()
+        for chunk in chunks:
+            lines = []
+            for line in chunk.splitlines():
+                ln = _normalize_text(line)
+                if not ln:
+                    continue
+                lower = ln.lower()
+                if lower.startswith("[protocol") or lower.startswith("[vertex protocol"):
+                    continue
+                if lower.startswith("- keywords:"):
+                    continue
+                if lower.startswith("- severity:") or lower.startswith("- facility:"):
+                    continue
+                if lower.startswith("- source="):
+                    continue
+                ln = re.sub(r"\s+", " ", ln)
+                lines.append(ln)
+            cleaned = " ".join(lines).strip()
+            if len(cleaned) < 20:
+                continue
+            key = cleaned.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            snippets.append(cleaned)
+            if len(snippets) >= max_snippets:
+                break
+
+        merged = "\n".join(f"- {s}" for s in snippets)
+        if len(merged) > max_chars:
+            merged = merged[:max_chars].rsplit(" ", 1)[0].strip()
+        return merged
+
+    @observe()
+    def _run_noncritical_deepseek(self, scenario: str, rag_context: str) -> Dict[str, Any]:
+        default = {
+            "guidance": (
+                "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
+                "1. ตั้งสติและประเมินความปลอดภัยของพื้นที่\n"
+                "2. โทร 1669 หากอาการแย่ลงหรือไม่มั่นใจ\n"
+                "3. ปฐมพยาบาลตามอาการอย่างปลอดภัย\n"
+                "4. เฝ้าระวังอาการและไปพบแพทย์โดยเร็ว"
+            ),
+            "facility_type": "clinic",
+        }
+        if self.deepseek_client is None:
+            return dict(default)
+
+        snippets = self._clean_rag_snippets(rag_context)
+        system_prompt = (
+            "You are a Thai emergency first-aid assistant. "
+            "Use retrieved medical snippets as the highest-priority source. "
+            "Return strict JSON only: {\"guidance\":\"...\",\"facility_type\":\"hospital|clinic|none\"}. "
+            "Guidance must be concise, numbered Thai steps, readable by layperson."
+        )
+        user_prompt = (
+            f"Scenario: {scenario}\n\n"
+            f"Retrieved contexts (cleaned):\n{snippets}\n\n"
+            "Rules:\n"
+            "- This is non-critical / moderate path.\n"
+            "- Provide practical first-aid steps from retrieved contexts.\n"
+            "- If symptoms escalate, explicitly instruct to call 1669.\n"
+            "- Prefer facility_type='clinic' unless clearly severe.\n"
+            "- Output JSON only."
+        )
+        try:
+            resp = self.deepseek_client.chat.completions.create(
+                model=self.deepseek_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+                max_tokens=900,
+            )
+            content = ""
+            if getattr(resp, "choices", None):
+                content = _normalize_text(resp.choices[0].message.content)
+            return _parse_json_fallback(content, default)
+        except Exception as exc:
+            record_exception(exc)
+            return dict(default)
 
     @observe()
     def run(self, scenario: str, severity: str, rag_context: str) -> Dict[str, Any]:
@@ -296,13 +404,19 @@ class GuidanceAgent:
             "- facility_type must be one of hospital|clinic|none\n"
             "Output JSON only."
         )
-        out = self.llm.generate_json(
-            model_name=model_name,
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            default=default,
-            temperature=0.15,
-        )
+        if severity != "critical":
+            out = self._run_noncritical_deepseek(
+                scenario=scenario,
+                rag_context=rag_context,
+            )
+        else:
+            out = self.llm.generate_json(
+                model_name=model_name,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                default=default,
+                temperature=0.15,
+            )
         out["guidance"] = _normalize_text(out.get("guidance")) or default["guidance"]
         facility = _normalize_text(out.get("facility_type", default["facility_type"])).lower()
         out["facility_type"] = facility if facility in {"hospital", "clinic", "none"} else default["facility_type"]
@@ -328,18 +442,31 @@ class ScriptAgent:
     ) -> str:
         default = {
             "call_script": (
-                "สวัสดีค่ะ/ครับ ต้องการแจ้งเหตุฉุกเฉิน\n"
-                "1) สถานการณ์: ...\n"
-                "2) จุดเกิดเหตุ: ...\n"
-                "3) อาการผู้ป่วย: ...\n"
-                "4) ข้อมูลโรคประจำตัว/ยาที่แพ้ (ถ้ามี): ...\n"
-                "5) เบอร์ติดต่อกลับ: ..."
+                "สวัสดีค่ะ/ครับ แจ้งเหตุฉุกเฉิน โทร 1669\n"
+                "1) ขณะนี้เกิดเหตุ: ...\n"
+                "2) สถานที่เกิดเหตุชัดเจน: ... (จุดสังเกตใกล้เคียง: ...)\n"
+                "3) ผู้ป่วยเพศ... อายุประมาณ... จำนวน... อาการหลัก...\n"
+                "4) ระดับความรู้สึกตัว: รู้สึกตัว/ซึม/ไม่รู้สึกตัว\n"
+                "5) ความเสี่ยงที่อาจเกิดซ้ำ: เช่น ไฟไหม้/ไฟฟ้ารั่ว/รถวิ่งผ่าน\n"
+                "6) ชื่อผู้แจ้ง... เบอร์ติดต่อกลับ...\n"
+                "7) ได้ช่วยเหลือเบื้องต้นแล้ว: ...\n"
+                "8) ขอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาลโดยด่วน"
             )
         }
         system_prompt = (
             "You are ScriptAgent for emergency operator call assistance in Thai. "
-            "Generate concise speaking script. "
-            "If location context is provided, include exact location cues (address/nearby landmarks) clearly. "
+            "Generate concise speaking script following this exact call protocol in order:\n"
+            "1) ตั้งสติ และโทรแจ้ง 1669\n"
+            "2) ให้ข้อมูลว่าเกิดเหตุอะไร\n"
+            "3) บอกสถานที่เกิดเหตุให้ชัดเจน\n"
+            "4) บอกเพศ อายุ อาการ จำนวน\n"
+            "5) บอกระดับความรู้สึกตัว\n"
+            "6) บอกความเสี่ยงที่อาจเกิดซ้ำ\n"
+            "7) บอกชื่อผู้แจ้ง + เบอร์โทรศัพท์\n"
+            "8) ช่วยเหลือเบื้องต้น\n"
+            "9) รอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาล\n"
+            "If location context is provided, convert it to human place description (address + landmarks). "
+            "Do NOT tell operator raw latitude/longitude values. "
             "Output JSON only with key: call_script."
         )
         user_prompt = (
@@ -351,8 +478,10 @@ class ScriptAgent:
             f"Location context from maps:\n{location_context}\n\n"
             "Build a Thai phone script the user can read to emergency operator.\n"
             "Requirements:\n"
-            "- Include a direct sentence the user can say about location.\n"
+            "- Follow protocol steps 1-9 in order.\n"
+            "- Include a direct sentence about location using address/place names from map context.\n"
             "- If location context exists, mention at least 1-2 nearby landmarks/place names.\n"
+            "- Never read out raw latitude/longitude numbers to operator.\n"
             "- Keep it short, urgent, and easy to read out loud."
         )
         out = self.llm.generate_json(

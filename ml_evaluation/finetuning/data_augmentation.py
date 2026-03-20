@@ -23,7 +23,7 @@ except ImportError as exc:
 BASE_DIR = os.path.dirname(__file__)
 DEFAULT_INPUT_CSV = os.path.join(BASE_DIR, "instructions_raw_final.csv")
 DEFAULT_OUTPUT_JSONL = os.path.join(BASE_DIR, "bystander_augmented_gemini.jsonl")
-DEFAULT_MODEL = "gemini-3-flash-preview"
+DEFAULT_MODEL = "gemini-2.5-flash"
 DEFAULT_INSTRUCTION = "วิเคราะห์สถานการณ์ฉุกเฉินและให้คำแนะนำการปฐมพยาบาลเบื้องต้น"
 
 
