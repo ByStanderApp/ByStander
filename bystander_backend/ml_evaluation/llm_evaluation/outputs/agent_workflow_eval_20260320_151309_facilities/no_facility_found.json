@@ -1,0 +1,127 @@
+{
+  "facility_name": "NO_FACILITY_FOUND",
+  "records": [
+    {
+      "run_id": 16,
+      "scenario_case_name": "เสื้อผ้าเปื้อนสารเคมี",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีเสื้อผ้าเปื้อนสารเคมีหน่อยครับ",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T15:18:35.194030"
+    },
+    {
+      "run_id": 67,
+      "scenario_case_name": "ตะคริว",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีตะคริวหน่อยครับ อาการประมาณ: ตะคริว, เกร็ง, ปวดน่อง",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T16:24:40.917212"
+    },
+    {
+      "run_id": 68,
+      "scenario_case_name": "ตะคริว",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสตะคริว ตอนนี้ควรทำไงดี อาการประมาณ: ตะคริว, เกร็ง, ปวดน่อง",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T16:24:42.070624"
+    },
+    {
+      "run_id": 91,
+      "scenario_case_name": "มดคันไฟกัด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีมดคันไฟกัดหน่อยครับ อาการประมาณ: มดกัด, บวมแดง, คันมาก",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T16:31:26.333623"
+    },
+    {
+      "run_id": 92,
+      "scenario_case_name": "มดคันไฟกัด",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสมดคันไฟกัด ตอนนี้ควรทำไงดี อาการประมาณ: มดกัด, บวมแดง, คันมาก",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T16:31:28.011500"
+    },
+    {
+      "run_id": 151,
+      "scenario_case_name": "แมงกะพรุนทั่วไป",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีแมงกะพรุนทั่วไปหน่อยครับ อาการประมาณ: คัน, ผื่นแดง, แสบๆ คันๆ",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T16:50:58.703012"
+    },
+    {
+      "run_id": 158,
+      "scenario_case_name": "แมลงก้นกระดก",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสแมลงก้นกระดก ตอนนี้ควรทำไงดี อาการประมาณ: แสบผิว, รอยไหม้, ผื่นแดงยาว",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T16:53:11.926052"
+    },
+    {
+      "run_id": 193,
+      "scenario_case_name": "ผิวไหม้แดด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีผิวไหม้แดดหน่อยครับ อาการประมาณ: แสบตัว, ผิวแดง, ตากแดดนาน",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T17:14:06.687616"
+    },
+    {
+      "run_id": 194,
+      "scenario_case_name": "ผิวไหม้แดด",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสผิวไหม้แดด ตอนนี้ควรทำไงดี อาการประมาณ: แสบตัว, ผิวแดง, ตากแดดนาน",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T17:14:07.615759"
+    },
+    {
+      "run_id": 195,
+      "scenario_case_name": "ผิวไหม้แดด",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! ผิวไหม้แดด ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T17:14:08.923910"
+    },
+    {
+      "run_id": 211,
+      "scenario_case_name": "แผลบดทับ (ประตูหนีบ)",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีแผลบดทับ (ประตูหนีบ)หน่อยครับ",
+      "severity": "none",
+      "facility_type": "none",
+      "route": "general_info",
+      "judge_mode": "workflow_async_only",
+      "timestamp": "2026-03-20T17:20:03.541998"
+    }
+  ],
+  "total_records": 11
+}

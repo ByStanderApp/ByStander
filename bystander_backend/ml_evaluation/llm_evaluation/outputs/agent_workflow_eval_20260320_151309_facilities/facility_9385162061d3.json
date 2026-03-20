@@ -1,0 +1,300 @@
+{
+  "facility_name": "โรงพยาบาลบีเอ็นเอช",
+  "records": [
+    {
+      "run_id": 25,
+      "scenario_case_name": "หัวกระแทก (รู้สึกตัว)",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีหัวกระแทก (รู้สึกตัว)หน่อยครับ อาการประมาณ: หัวแตก, หัวโน, หัวปูด",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T15:21:36.041950"
+    },
+    {
+      "run_id": 43,
+      "scenario_case_name": "ตะขาบกัด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีตะขาบกัดหน่อยครับ อาการประมาณ: ตะขาบกัด, บวมแดง, ปวดตุบๆ",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T15:28:25.918858"
+    },
+    {
+      "run_id": 44,
+      "scenario_case_name": "ตะขาบกัด",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสตะขาบกัด ตอนนี้ควรทำไงดี อาการประมาณ: ตะขาบกัด, บวมแดง, ปวดตุบๆ",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:17:29.194575"
+    },
+    {
+      "run_id": 76,
+      "scenario_case_name": "น้ำร้อนลวก/ไฟไหม้เล็กน้อย",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีน้ำร้อนลวก/ไฟไหม้เล็กน้อยหน่อยครับ อาการประมาณ: แสบ, แดง, พุพอง",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:26:44.380544"
+    },
+    {
+      "run_id": 78,
+      "scenario_case_name": "น้ำร้อนลวก/ไฟไหม้เล็กน้อย",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! น้ำร้อนลวก/ไฟไหม้เล็กน้อย ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:27:23.712703"
+    },
+    {
+      "run_id": 133,
+      "scenario_case_name": "เพลียแดด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีเพลียแดดหน่อยครับ อาการประมาณ: หน้ามืด, เหงื่อออกเยอะ, ตัวเย็น",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:43:56.519077"
+    },
+    {
+      "run_id": 134,
+      "scenario_case_name": "เพลียแดด",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสเพลียแดด ตอนนี้ควรทำไงดี อาการประมาณ: หน้ามืด, เหงื่อออกเยอะ, ตัวเย็น",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:44:18.840196"
+    },
+    {
+      "run_id": 147,
+      "scenario_case_name": "ไหล่หลุด",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! ไหล่หลุด ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:49:03.371537"
+    },
+    {
+      "run_id": 198,
+      "scenario_case_name": "สุนัขกัด (มีแผล)",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! สุนัขกัด (มีแผล) ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:14:54.196641"
+    },
+    {
+      "run_id": 199,
+      "scenario_case_name": "เลือดกำเดาไหล",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีเลือดกำเดาไหลหน่อยครับ อาการประมาณ: เลือดกำเดา, เลือดออกจมูก, โดนกระแทกจมูก",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:15:22.178432"
+    },
+    {
+      "run_id": 200,
+      "scenario_case_name": "เลือดกำเดาไหล",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสเลือดกำเดาไหล ตอนนี้ควรทำไงดี อาการประมาณ: เลือดกำเดา, เลือดออกจมูก, โดนกระแทกจมูก",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:15:51.322673"
+    },
+    {
+      "run_id": 201,
+      "scenario_case_name": "เลือดกำเดาไหล",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! เลือดกำเดาไหล ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "none",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:16:20.146931"
+    },
+    {
+      "run_id": 208,
+      "scenario_case_name": "ลิงกัด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีลิงกัดหน่อยครับ อาการประมาณ: ลิงกัด, แย่งของ, สัตว์ป่ากัด",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:19:06.194569"
+    },
+    {
+      "run_id": 209,
+      "scenario_case_name": "ลิงกัด",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสลิงกัด ตอนนี้ควรทำไงดี อาการประมาณ: ลิงกัด, แย่งของ, สัตว์ป่ากัด",
+      "severity": "moderate",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลบีเอ็นเอช",
+        "address": "9/1 ถ. คอนแวนต์ แขวงสีลม เขตบางรัก",
+        "phone_number": "02 022 0700",
+        "rating": 4.2,
+        "distance_km": 5.01,
+        "latitude": 13.724859,
+        "longitude": 100.5350217,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:19:24.552778"
+    }
+  ],
+  "total_records": 14
+}

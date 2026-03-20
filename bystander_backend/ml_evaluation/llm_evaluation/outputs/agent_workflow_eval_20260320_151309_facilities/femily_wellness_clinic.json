@@ -1,0 +1,258 @@
+{
+  "facility_name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+  "records": [
+    {
+      "run_id": 159,
+      "scenario_case_name": "แมลงก้นกระดก",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! แมลงก้นกระดก ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:53:14.608716"
+    },
+    {
+      "run_id": 160,
+      "scenario_case_name": "ผึ้ง/ต่อต่อย",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีผึ้ง/ต่อต่อยหน่อยครับ อาการประมาณ: ผึ้งต่อย, ต่อต่อย, บวมเป่ง",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:03:38.418381"
+    },
+    {
+      "run_id": 161,
+      "scenario_case_name": "ผึ้ง/ต่อต่อย",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสผึ้ง/ต่อต่อย ตอนนี้ควรทำไงดี อาการประมาณ: ผึ้งต่อย, ต่อต่อย, บวมเป่ง",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:04:02.764306"
+    },
+    {
+      "run_id": 180,
+      "scenario_case_name": "โดนสเปรย์พริกไทย",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! โดนสเปรย์พริกไทย ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:10:04.879598"
+    },
+    {
+      "run_id": 184,
+      "scenario_case_name": "โดนแก๊สน้ำตา",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีโดนแก๊สน้ำตาหน่อยครับ อาการประมาณ: ควันขาว, แสบตา, แสบจมูก",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:11:26.658014"
+    },
+    {
+      "run_id": 185,
+      "scenario_case_name": "โดนแก๊สน้ำตา",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสโดนแก๊สน้ำตา ตอนนี้ควรทำไงดี อาการประมาณ: ควันขาว, แสบตา, แสบจมูก",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:11:48.193327"
+    },
+    {
+      "run_id": 202,
+      "scenario_case_name": "ของติดจมูก",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีของติดจมูกหน่อยครับ อาการประมาณ: ยัดของเข้าจมูก, หายใจไม่ออก, สั่งน้ำมูก",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:16:46.164221"
+    },
+    {
+      "run_id": 204,
+      "scenario_case_name": "ของติดจมูก",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! ของติดจมูก ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:17:30.454515"
+    },
+    {
+      "run_id": 205,
+      "scenario_case_name": "แตนต่อย",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีแตนต่อยหน่อยครับ อาการประมาณ: แตนต่อย, รุมต่อย, ปวดบวม",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:17:50.113181"
+    },
+    {
+      "run_id": 206,
+      "scenario_case_name": "แตนต่อย",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสแตนต่อย ตอนนี้ควรทำไงดี อาการประมาณ: แตนต่อย, รุมต่อย, ปวดบวม",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:18:19.715008"
+    },
+    {
+      "run_id": 212,
+      "scenario_case_name": "แผลบดทับ (ประตูหนีบ)",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสแผลบดทับ (ประตูหนีบ) ตอนนี้ควรทำไงดี",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:20:12.512083"
+    },
+    {
+      "run_id": 214,
+      "scenario_case_name": "ตกใจกลัวสุดขีด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีตกใจกลัวสุดขีดหน่อยครับ อาการประมาณ: มือสั่น, หายใจไม่ออก, กลัว",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "address": "1/5 ซอย อารีย์ 2 แขวงพญาไท เขตพญาไท",
+        "phone_number": "065 952 2498",
+        "rating": 5.0,
+        "distance_km": 5.31,
+        "latitude": 13.7813172,
+        "longitude": 100.5436523,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T17:20:51.744551"
+    }
+  ],
+  "total_records": 12
+}

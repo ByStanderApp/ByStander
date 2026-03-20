@@ -1,0 +1,321 @@
+{
+  "facility_name": "โรงพยาบาลประสานมิตร",
+  "records": [
+    {
+      "run_id": 37,
+      "scenario_case_name": "สิ่งแปลกปลอมเข้าตา",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีสิ่งแปลกปลอมเข้าตาหน่อยครับ อาการประมาณ: อะไรเข้าตา, เจ็บตา, ตาแดง",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T15:26:07.299104"
+    },
+    {
+      "run_id": 38,
+      "scenario_case_name": "สิ่งแปลกปลอมเข้าตา",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสสิ่งแปลกปลอมเข้าตา ตอนนี้ควรทำไงดี อาการประมาณ: อะไรเข้าตา, เจ็บตา, ตาแดง",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T15:26:35.465162"
+    },
+    {
+      "run_id": 39,
+      "scenario_case_name": "สิ่งแปลกปลอมเข้าตา",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! สิ่งแปลกปลอมเข้าตา ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T15:26:56.161107"
+    },
+    {
+      "run_id": 77,
+      "scenario_case_name": "น้ำร้อนลวก/ไฟไหม้เล็กน้อย",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสน้ำร้อนลวก/ไฟไหม้เล็กน้อย ตอนนี้ควรทำไงดี อาการประมาณ: แสบ, แดง, พุพอง",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:27:04.039399"
+    },
+    {
+      "run_id": 82,
+      "scenario_case_name": "นิ้วบด / ประตูหนีบ",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีนิ้วบด / ประตูหนีบหน่อยครับ อาการประมาณ: นิ้วแบน, ประตูหนีบ, เครื่องจักรทับนิ้ว",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:28:35.738081"
+    },
+    {
+      "run_id": 84,
+      "scenario_case_name": "นิ้วบด / ประตูหนีบ",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! นิ้วบด / ประตูหนีบ ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:29:24.399654"
+    },
+    {
+      "run_id": 93,
+      "scenario_case_name": "มดคันไฟกัด",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! มดคันไฟกัด ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:31:29.608560"
+    },
+    {
+      "run_id": 118,
+      "scenario_case_name": "หนูกัด",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีหนูกัดหน่อยครับ อาการประมาณ: โดนหนูกัด, แผลเชื้อโรค, เลือดออก",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:39:26.790064"
+    },
+    {
+      "run_id": 119,
+      "scenario_case_name": "หนูกัด",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสหนูกัด ตอนนี้ควรทำไงดี อาการประมาณ: โดนหนูกัด, แผลเชื้อโรค, เลือดออก",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:39:48.707501"
+    },
+    {
+      "run_id": 148,
+      "scenario_case_name": "ปลิงเกาะ",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีปลิงเกาะหน่อยครับ อาการประมาณ: ปลิงดูดเลือด, ทากเกาะ, เลือดไหลไม่หยุด",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:49:34.863911"
+    },
+    {
+      "run_id": 149,
+      "scenario_case_name": "ปลิงเกาะ",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสปลิงเกาะ ตอนนี้ควรทำไงดี อาการประมาณ: ปลิงดูดเลือด, ทากเกาะ, เลือดไหลไม่หยุด",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:50:02.809021"
+    },
+    {
+      "run_id": 150,
+      "scenario_case_name": "ปลิงเกาะ",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! ปลิงเกาะ ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:50:30.926484"
+    },
+    {
+      "run_id": 152,
+      "scenario_case_name": "แมงกะพรุนทั่วไป",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสแมงกะพรุนทั่วไป ตอนนี้ควรทำไงดี อาการประมาณ: คัน, ผื่นแดง, แสบๆ คันๆ",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:51:06.078006"
+    },
+    {
+      "run_id": 153,
+      "scenario_case_name": "แมงกะพรุนทั่วไป",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! แมงกะพรุนทั่วไป ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:51:27.176097"
+    },
+    {
+      "run_id": 157,
+      "scenario_case_name": "แมลงก้นกระดก",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีแมลงก้นกระดกหน่อยครับ อาการประมาณ: แสบผิว, รอยไหม้, ผื่นแดงยาว",
+      "severity": "moderate",
+      "facility_type": "clinic",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "โรงพยาบาลประสานมิตร",
+        "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+        "phone_number": "02 279 9935",
+        "rating": 4.6,
+        "distance_km": 5.74,
+        "latitude": 13.7847004,
+        "longitude": 100.5461793,
+        "selection_reason": "moderate: sorted by rating then distance"
+      },
+      "timestamp": "2026-03-20T16:52:47.286492"
+    }
+  ],
+  "total_records": 15
+}

@@ -1,0 +1,279 @@
+{
+  "facility_name": "Ramathibodi Emergency Medicine Department",
+  "records": [
+    {
+      "run_id": 81,
+      "scenario_case_name": "บาดเจ็บกระดูกสันหลัง",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! บาดเจ็บกระดูกสันหลัง ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:28:15.836863"
+    },
+    {
+      "run_id": 83,
+      "scenario_case_name": "นิ้วบด / ประตูหนีบ",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสนิ้วบด / ประตูหนีบ ตอนนี้ควรทำไงดี อาการประมาณ: นิ้วแบน, ประตูหนีบ, เครื่องจักรทับนิ้ว",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:29:01.532041"
+    },
+    {
+      "run_id": 85,
+      "scenario_case_name": "ภาวะช็อก",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีภาวะช็อกหน่อยครับ อาการประมาณ: ตัวเย็น, เหงื่อออก, หน้าซีด",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:29:42.468526"
+    },
+    {
+      "run_id": 86,
+      "scenario_case_name": "ภาวะช็อก",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสภาวะช็อก ตอนนี้ควรทำไงดี อาการประมาณ: ตัวเย็น, เหงื่อออก, หน้าซีด",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:30:01.035344"
+    },
+    {
+      "run_id": 87,
+      "scenario_case_name": "ภาวะช็อก",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! ภาวะช็อก ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:30:17.542716"
+    },
+    {
+      "run_id": 88,
+      "scenario_case_name": "แผลกระสุนปืน",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีแผลกระสุนปืนหน่อยครับ อาการประมาณ: โดนยิง, ถูกยิง, ลูกปืน",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:30:37.161992"
+    },
+    {
+      "run_id": 89,
+      "scenario_case_name": "แผลกระสุนปืน",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสแผลกระสุนปืน ตอนนี้ควรทำไงดี อาการประมาณ: โดนยิง, ถูกยิง, ลูกปืน",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:30:53.978727"
+    },
+    {
+      "run_id": 90,
+      "scenario_case_name": "แผลกระสุนปืน",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! แผลกระสุนปืน ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:31:09.903062"
+    },
+    {
+      "run_id": 94,
+      "scenario_case_name": "สูดดมสารเคมี",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีสูดดมสารเคมีหน่อยครับ",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:31:56.525582"
+    },
+    {
+      "run_id": 95,
+      "scenario_case_name": "สูดดมสารเคมี",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสสูดดมสารเคมี ตอนนี้ควรทำไงดี",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:32:11.006766"
+    },
+    {
+      "run_id": 96,
+      "scenario_case_name": "สูดดมสารเคมี",
+      "style": "panic",
+      "prompt": "ช่วยด้วย!! สูดดมสารเคมี ด่วนมาก ต้องทำอะไรตอนนี้ โทร 1669 เลยไหม?!",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:32:24.745083"
+    },
+    {
+      "run_id": 97,
+      "scenario_case_name": "ถูกทำร้ายร่างกาย (ไม่มีแผลเปิด)",
+      "style": "calm",
+      "prompt": "สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณีถูกทำร้ายร่างกาย (ไม่มีแผลเปิด)หน่อยครับ อาการประมาณ: โดนรุม, โดนเตะ, ช้ำใน",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:32:39.935474"
+    },
+    {
+      "run_id": 98,
+      "scenario_case_name": "ถูกทำร้ายร่างกาย (ไม่มีแผลเปิด)",
+      "style": "misspelled",
+      "prompt": "ชวยเเนะนำปฐมพยาบานหน่อยครับ เคสถูกทำร้ายร่างกาย (ไม่มีแผลเปิด) ตอนนี้ควรทำไงดี อาการประมาณ: โดนรุม, โดนเตะ, ช้ำใน",
+      "severity": "critical",
+      "facility_type": "hospital",
+      "route": "emergency_guidance",
+      "judge_mode": "workflow_async_only",
+      "facility": {
+        "name": "Ramathibodi Emergency Medicine Department",
+        "address": "QG8G+FV9 แขวงทุ่งพญาไท เขตราชเทวี",
+        "phone_number": "02 201 1000",
+        "rating": 5.0,
+        "distance_km": 2.96,
+        "latitude": 13.7661716,
+        "longitude": 100.5272466,
+        "selection_reason": "critical: sorted by shortest distance"
+      },
+      "timestamp": "2026-03-20T16:33:01.969249"
+    }
+  ],
+  "total_records": 13
+}
