@@ -126,13 +126,8 @@ class FacilitySearchResponse {
 }
 
 class ApiService {
-  // !!! IMPORTANT: Replace with your Flask API's actual IP address and port !!!
-  // If running Flask locally and testing on an emulator:
-  // - Android Emulator: usually 'http://10.0.2.2:5000'
-  // - iOS Simulator: usually 'http://localhost:5000' or 'http://127.0.0.1:5000'
-  // If testing on a physical device, use your computer's network IP address:
-  // e.g., 'http://192.168.1.100:5000'
-  static const String _agentWorkflowBaseUrl = 'http://localhost:5003';
+  static const String _agentWorkflowBaseUrl =
+      'https://bystander-7197.onrender.com';
   static const String _facilityBaseUrl = _agentWorkflowBaseUrl;
 
   Future<AgentWorkflowResponse> runAgentWorkflow({

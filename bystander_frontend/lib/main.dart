@@ -1,6 +1,7 @@
 // main.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bystander_frontend/screens/main_screen_host.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -148,8 +149,75 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        return MobileWebFrame(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: const MainScreenHost(),
       debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class MobileWebFrame extends StatelessWidget {
+  const MobileWebFrame({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!kIsWeb) {
+      return child;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth <= 600) {
+          return child;
+        }
+
+        const frameWidth = 390.0;
+        const frameHeight = 844.0;
+        const borderRadius = BorderRadius.all(Radius.circular(36));
+
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFEAF3FA), Color(0xFFD4E4F0)],
+            ),
+          ),
+          child: Center(
+            child: Container(
+              width: frameWidth,
+              height: frameHeight,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: borderRadius,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40000000),
+                    blurRadius: 30,
+                    offset: Offset(0, 18),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(10),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(26)),
+                child: MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    size: const Size(frameWidth, frameHeight),
+                  ),
+                  child: child,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -5,7 +5,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 
 class TtsService {
-  static const String _ttsEndpoint = 'http://localhost:5001/synthesize_speech';
+  static const String _ttsEndpoint =
+      'https://bystander-7197.onrender.com/synthesize_speech';
 
   final AudioPlayer _audioPlayer = AudioPlayer();
 
