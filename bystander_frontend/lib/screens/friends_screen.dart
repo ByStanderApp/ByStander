@@ -198,6 +198,34 @@ class _FriendsScreenState extends State<FriendsScreen> {
       return;
     }
 
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ความเป็นส่วนตัวและการเข้าถึงข้อมูล'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'เมื่อเป็นเพื่อนกันแล้ว ทั้งสองฝ่ายสามารถใช้ข้อมูลโปรไฟล์ของอีกฝ่าย '
+            'ในการขอคำแนะนำฉุกเฉินได้ รวมถึงข้อมูลส่วนตัว ประวัติทางการแพทย์ '
+            'และผู้ติดต่อฉุกเฉินตามที่บันทึกไว้ในแอป\n\n'
+            'เพื่อความปลอดภัย ควรเพิ่มเฉพาะคนที่ไว้ใจได้มากที่สุด '
+            '(เช่น ครอบครัวหรือคนใกล้ชิด) เท่านั้น\n\n'
+            'ต้องการส่งคำขอเป็นเพื่อนต่อหรือไม่?',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('ยกเลิก'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('ยอมรับและส่งคำขอ'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
     setState(() => _isSending = true);
     try {
       final uid = user.uid;
@@ -222,9 +250,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
           .doc(otherUid)
           .get();
       if (existingFriendSnap.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('คุณเป็นเพื่อนกันแล้ว')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('คุณเป็นเพื่อนกันแล้ว')),
+          );
+        }
         return;
       }
 

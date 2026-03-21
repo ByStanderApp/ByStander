@@ -404,7 +404,9 @@ class GuidanceAgent:
             "- facility_type must be one of hospital|clinic|none\n"
             "Output JSON only."
         )
-        if severity != "critical":
+        # Moderate/non-critical: prefer DeepSeek when configured; otherwise Gemini (same as critical).
+        # Without this, missing DEEPSEEK_KEY caused only the static Thai default (generic 4 lines).
+        if severity != "critical" and self.deepseek_client is not None:
             out = self._run_noncritical_deepseek(
                 scenario=scenario,
                 rag_context=rag_context,
@@ -439,6 +441,7 @@ class ScriptAgent:
         location_context: str = "",
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
+        caller_profile: Optional[Dict[str, Any]] = None,
     ) -> str:
         default = {
             "call_script": (
@@ -453,8 +456,17 @@ class ScriptAgent:
                 "8) ขอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาลโดยด่วน"
             )
         }
+        caller_note = ""
+        if caller_profile:
+            caller_note = (
+                "The person currently using the app (reporter/caller) is NOT necessarily the patient. "
+                "Use PATIENT profile for age/gender/medical details of the person needing help. "
+                "Use CALLER profile only for reporter name/contact if different.\n"
+            )
+
         system_prompt = (
             "You are ScriptAgent for emergency operator call assistance in Thai. "
+            f"{caller_note}"
             "Generate concise speaking script following this exact call protocol in order:\n"
             "1) ตั้งสติ และโทรแจ้ง 1669\n"
             "2) ให้ข้อมูลว่าเกิดเหตุอะไร\n"
@@ -469,10 +481,18 @@ class ScriptAgent:
             "Do NOT tell operator raw latitude/longitude values. "
             "Output JSON only with key: call_script."
         )
+        caller_json = ""
+        if caller_profile:
+            caller_json = (
+                f"Caller/reporter profile (person using app): "
+                f"{json.dumps(caller_profile, ensure_ascii=False)}\n\n"
+            )
         user_prompt = (
             f"Scenario: {scenario}\n"
             f"Guidance: {guidance}\n"
-            f"User medical profile: {json.dumps(user_profile, ensure_ascii=False)}\n\n"
+            f"{caller_json}"
+            f"PATIENT medical profile (person the emergency is about): "
+            f"{json.dumps(user_profile, ensure_ascii=False)}\n\n"
             f"Latitude: {latitude}\n"
             f"Longitude: {longitude}\n"
             f"Location context from maps:\n{location_context}\n\n"
