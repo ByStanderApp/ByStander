@@ -33,10 +33,18 @@ except Exception:  # pragma: no cover
 try:
     from openinference.instrumentation.vertexai import VertexAIInstrumentor
 
+    VERTEX_INSTRUMENTOR_SOURCE = "openinference"
     VERTEX_INSTRUMENTOR_AVAILABLE = True
 except Exception:  # pragma: no cover
-    VertexAIInstrumentor = None
-    VERTEX_INSTRUMENTOR_AVAILABLE = False
+    try:
+        from opentelemetry.instrumentation.vertexai import VertexAIInstrumentor
+
+        VERTEX_INSTRUMENTOR_SOURCE = "opentelemetry"
+        VERTEX_INSTRUMENTOR_AVAILABLE = True
+    except Exception:
+        VertexAIInstrumentor = None
+        VERTEX_INSTRUMENTOR_SOURCE = ""
+        VERTEX_INSTRUMENTOR_AVAILABLE = False
 
 try:
     import certifi
@@ -50,6 +58,7 @@ _STATUS: Dict[str, Any] = {
     "enabled": False,
     "otel_available": OTEL_AVAILABLE,
     "vertex_instrumentor_available": VERTEX_INSTRUMENTOR_AVAILABLE,
+    "vertex_instrumentor_source": VERTEX_INSTRUMENTOR_SOURCE,
     "langfuse_observe_available": bool(_langfuse_observe),
     "endpoint": "",
     "error": "",

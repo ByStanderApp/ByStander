@@ -1,0 +1,17 @@
+Flask 
+transformers
+torch
+anthropic
+python-dotenv
+openai
+datasets
+requests
+google-genai
+google-adk
+firebase-admin
+google-cloud-aiplatform
+langfuse
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+openinference-instrumentation-vertexai; python_version < "3.14"
+opentelemetry-instrumentation-vertexai; python_version >= "3.14"
