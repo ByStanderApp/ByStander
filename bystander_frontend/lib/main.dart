@@ -14,7 +14,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final availability = await detectOnlineAssetsAvailability();
   RuntimeAssetMode.useOnlineMaps = availability.maps;
-  RuntimeAssetMode.useOnlineFonts = availability.fonts;
+  // Always use Sarabun/Prompt from google_fonts (not tied to network probe).
+  RuntimeAssetMode.useOnlineFonts = true;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // One-time test write so you can see the app is connected to your Firestore:
