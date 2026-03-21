@@ -19,6 +19,38 @@ service cloud.firestore {
       allow read, write: if isOwner(uid);
     }
 
+    // Friend system:
+    // - user_lookup/{emailHash} lets users resolve email -> UID.
+    // - incoming_friend_requests/{requesterUid} stores pending requests for the recipient.
+    // - friends/{otherUid} stores accepted friendships (mutual links created on accept).
+    match /user_lookup/{emailHash} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == request.resource.data.uid;
+      allow delete: if false;
+    }
+
+    match /users/{uid}/incoming_friend_requests/{requesterUid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == requesterUid && requesterUid != uid;
+      allow update: if signedIn() && request.auth.uid == uid;
+      allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == requesterUid);
+    }
+
+    match /users/{uid}/friends/{otherUid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      // Either user in the friendship may delete an edge (needed to remove both sides from the client).
+      allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == otherUid);
+
+      allow create, update: if signedIn() && (
+        // Owner can always write their own friend doc.
+        request.auth.uid == uid ||
+        // Recipient-accept creates reciprocal friend link for the requester.
+        // In this doc, uid is the requester and otherUid is the acceptor.
+        (request.auth.uid == otherUid &&
+         exists(/databases/$(database)/documents/users/$(otherUid)/incoming_friend_requests/$(uid)))
+      );
+    }
+
     // Global emergency catalog: everyone can read; no app writes (admin via console if needed)
     match /emergencies/{id} {
       allow read: if true;

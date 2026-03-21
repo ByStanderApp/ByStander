@@ -1216,8 +1216,21 @@ class ByStanderWorkflow:
             longitude=longitude,
         )
 
-        user_id = _normalize_text(payload.get("user_id"))
-        user_profile = self.profile_service.get_user_profile(user_id=user_id) if user_id else {}
+        legacy_user_id = _normalize_text(payload.get("user_id"))
+        target_user_id = _normalize_text(payload.get("target_user_id")) or legacy_user_id
+        caller_user_id = _normalize_text(payload.get("caller_user_id")) or legacy_user_id
+        if not target_user_id:
+            target_user_id = caller_user_id
+        if not caller_user_id:
+            caller_user_id = target_user_id
+
+        patient_profile = (
+            self.profile_service.get_user_profile(user_id=target_user_id) if target_user_id else {}
+        )
+        caller_profile: Dict[str, Any] = {}
+        if caller_user_id and caller_user_id != target_user_id:
+            caller_profile = self.profile_service.get_user_profile(user_id=caller_user_id)
+
         location_context = self.map_agent.build_location_context(
             latitude=latitude,
             longitude=longitude,
@@ -1227,7 +1240,8 @@ class ByStanderWorkflow:
             call_script = self.script_agent.run(
                 scenario=scenario,
                 guidance=guidance_text,
-                user_profile=user_profile,
+                user_profile=patient_profile,
+                caller_profile=caller_profile if caller_profile else None,
                 location_context=location_context,
                 latitude=latitude,
                 longitude=longitude,

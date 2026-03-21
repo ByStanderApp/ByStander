@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -24,6 +27,15 @@ class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
+  /// If true, emergency profile data comes from selected friend; otherwise from own account.
+  bool _promptForFriend = false;
+  bool _loadingFriends = false;
+  final List<_HomeFriendOption> _friendOptions = [];
+  String? _selectedFriendUid;
+
+  /// Rebuild when Firebase restores session (often async on web); [currentUser] is null on first frame.
+  StreamSubscription<User?>? _authSubscription;
+
   final TextEditingController _textEditingController = TextEditingController();
   final Color microphoneColor =
       Colors.redAccent; // User specified color for mic button
@@ -34,10 +46,57 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    _loadFriends();
+    _authSubscription =
+        FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (!mounted) return;
+      setState(() {});
+      if (user != null) {
+        _loadFriends();
+      }
+    });
+  }
+
+  Future<void> _loadFriends() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    setState(() => _loadingFriends = true);
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('friends')
+          .get();
+      final list = <_HomeFriendOption>[];
+      for (final d in snap.docs) {
+        final data = d.data();
+        final first = (data['otherFirstName'] as String?)?.trim() ?? '';
+        final last = (data['otherLastName'] as String?)?.trim() ?? '';
+        final email = (data['otherEmail'] as String?)?.trim() ?? '';
+        var label = [first, last].where((s) => s.isNotEmpty).join(' ');
+        if (label.isEmpty) label = email.isNotEmpty ? email : 'เพื่อน';
+        list.add(_HomeFriendOption(uid: d.id, label: label));
+      }
+      if (!mounted) return;
+      setState(() {
+        _friendOptions
+          ..clear()
+          ..addAll(list);
+        if (_selectedFriendUid != null &&
+            !_friendOptions.any((f) => f.uid == _selectedFriendUid)) {
+          _selectedFriendUid = null;
+        }
+      });
+    } catch (_) {
+      // Friends list is optional for "self" mode.
+    } finally {
+      if (mounted) setState(() => _loadingFriends = false);
+    }
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _textEditingController.dispose();
     _speech.cancel();
     super.dispose();
@@ -130,7 +189,33 @@ class _HomeScreenState extends State<HomeScreen> {
     FocusScope.of(context).unfocus();
 
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        if (mounted) {
+          setState(() {
+            _status = 'กรุณาเข้าสู่ระบบก่อน';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      String? targetUid;
+      if (_promptForFriend) {
+        if (_selectedFriendUid == null || _selectedFriendUid!.isEmpty) {
+          if (mounted) {
+            setState(() {
+              _status = 'กรุณาเลือกเพื่อนที่ต้องการขอคำแนะนำให้';
+              _isLoading = false;
+            });
+          }
+          return;
+        }
+        targetUid = _selectedFriendUid;
+      } else {
+        targetUid = user.uid;
+      }
+
       double? latitude;
       double? longitude;
       try {
@@ -153,7 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final workflowResponse = await _apiService.runAgentWorkflow(
         scenario: sentence,
-        userId: userId,
+        callerUserId: user.uid,
+        targetUserId: targetUid,
         latitude: latitude,
         longitude: longitude,
       );
@@ -232,6 +318,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
+    // Use live auth state (listener above forces rebuild when session restores).
+    final bool isLoggedIn = FirebaseAuth.instance.currentUser != null;
 
     return Scaffold(
       body: SafeArea(
@@ -287,21 +375,119 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'เล่าเหตุการณ์สั้นๆ แล้วกดส่ง',
-                        style: appTextTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: appColorScheme.primary,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'เล่าเหตุการณ์สั้นๆ แล้วกดส่ง',
+                                  style: appTextTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: appColorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'ระบบจะสรุปขั้นตอนฉุกเฉินแบบทีละข้อเพื่อให้ทำตามได้ง่าย',
+                                  style: appTextTheme.bodyMedium?.copyWith(
+                                    color: appTextTheme.bodyMedium?.color
+                                        ?.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isLoggedIn) ...[
+                            const SizedBox(width: 12),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  FilterChip(
+                                    label: const Text('ตัวเอง'),
+                                    selected: !_promptForFriend,
+                                    onSelected: (_) {
+                                      setState(() => _promptForFriend = false);
+                                    },
+                                  ),
+                                  FilterChip(
+                                    label: const Text('เพื่อนในรายชื่อ'),
+                                    selected: _promptForFriend,
+                                    onSelected: (_) {
+                                      setState(() => _promptForFriend = true);
+                                      _loadFriends();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'ระบบจะสรุปขั้นตอนฉุกเฉินแบบทีละข้อเพื่อให้ทำตามได้ง่าย',
-                        style: appTextTheme.bodyMedium?.copyWith(
-                          color: appTextTheme.bodyMedium?.color
-                              ?.withValues(alpha: 0.8),
+                      const SizedBox(height: 14),
+                      if (isLoggedIn && _promptForFriend) ...[
+                        const SizedBox(height: 10),
+                        if (_loadingFriends)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: LinearProgressIndicator(),
+                          )
+                        else if (_friendOptions.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              'ยังไม่มีเพื่อน — ไปที่ข้อมูลส่วนตัว แล้วเปิด "รายชื่อเพื่อน" เพื่อเพิ่มเพื่อน',
+                              style: appTextTheme.bodySmall?.copyWith(
+                                color: appColorScheme.error,
+                              ),
+                            ),
+                          )
+                        else
+                          InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'เลือกเพื่อน',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                value: _selectedFriendUid,
+                                hint: const Text('แตะเพื่อเลือก'),
+                                items: _friendOptions
+                                    .map(
+                                      (f) => DropdownMenuItem<String>(
+                                        value: f.uid,
+                                        child: Text(
+                                          f.label,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _selectedFriendUid = v),
+                              ),
+                            ),
+                          ),
+                      ],
+                      if (isLoggedIn) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          _promptForFriend
+                              ? 'ระบบจะใช้ข้อมูลโปรไฟล์/ประวัติตามเพื่อนที่เลือกในการช่วยสร้างคำแนะนำ'
+                              : 'ระบบจะใช้ข้อมูลจากบัญชีของคุณ',
+                          style: appTextTheme.bodySmall?.copyWith(
+                            color: appTextTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.75),
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 14),
                       TextField(
                         controller: _textEditingController,
@@ -459,4 +645,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _HomeFriendOption {
+  final String uid;
+  final String label;
+  _HomeFriendOption({required this.uid, required this.label});
 }

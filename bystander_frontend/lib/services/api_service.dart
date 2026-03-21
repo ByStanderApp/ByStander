@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 // Data models
@@ -130,21 +132,47 @@ class ApiService {
       'https://bystander-7197.onrender.com';
   static const String _facilityBaseUrl = _agentWorkflowBaseUrl;
 
+  /// [callerUserId] = signed-in user; [targetUserId] = whose profile to use (self or friend).
   Future<AgentWorkflowResponse> runAgentWorkflow({
     required String scenario,
     String? userId,
+    String? callerUserId,
+    String? targetUserId,
     double? latitude,
     double? longitude,
   }) async {
     final Uri url = Uri.parse('$_agentWorkflowBaseUrl/agent_workflow');
+    final user = FirebaseAuth.instance.currentUser;
+    final token = await user?.getIdToken();
+
+    final effectiveCaller = (callerUserId != null && callerUserId.isNotEmpty)
+        ? callerUserId
+        : user?.uid;
+    final effectiveTarget = (targetUserId != null && targetUserId.isNotEmpty)
+        ? targetUserId
+        : (userId != null && userId.isNotEmpty)
+            ? userId
+            : user?.uid;
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+
     try {
       final response = await http
           .post(
             url,
-            headers: {'Content-Type': 'application/json; charset=UTF-8'},
+            headers: headers,
             body: jsonEncode({
               'scenario': scenario,
-              if (userId != null && userId.isNotEmpty) 'user_id': userId,
+              if (effectiveCaller != null && effectiveCaller.isNotEmpty)
+                'caller_user_id': effectiveCaller,
+              if (effectiveTarget != null && effectiveTarget.isNotEmpty)
+                'target_user_id': effectiveTarget,
+              // Backward compatibility: backend treats user_id as legacy target profile id
+              if (effectiveTarget != null && effectiveTarget.isNotEmpty)
+                'user_id': effectiveTarget,
               if (latitude != null) 'latitude': latitude,
               if (longitude != null) 'longitude': longitude,
             }),
