@@ -15,7 +15,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final availability = await detectOnlineAssetsAvailability();
   RuntimeAssetMode.useOnlineMaps = availability.maps;
-  RuntimeAssetMode.useOnlineFonts = availability.fonts;
+  // Always use Sarabun/Prompt from google_fonts (not tied to network probe).
+  RuntimeAssetMode.useOnlineFonts = true;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // One-time test write so you can see the app is connected to your Firestore:
@@ -160,6 +161,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// On desktop web, show a phone-like frame; native mobile and narrow web unchanged.
 class MobileWebFrame extends StatelessWidget {
   const MobileWebFrame({super.key, required this.child});
 
@@ -179,7 +181,6 @@ class MobileWebFrame extends StatelessWidget {
 
         const frameWidth = 390.0;
         const frameHeight = 844.0;
-        const borderRadius = BorderRadius.all(Radius.circular(36));
 
         return Container(
           decoration: const BoxDecoration(
@@ -193,10 +194,10 @@ class MobileWebFrame extends StatelessWidget {
             child: Container(
               width: frameWidth,
               height: frameHeight,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.black,
-                borderRadius: borderRadius,
-                boxShadow: const [
+                borderRadius: BorderRadius.all(Radius.circular(36)),
+                boxShadow: [
                   BoxShadow(
                     color: Color(0x40000000),
                     blurRadius: 30,

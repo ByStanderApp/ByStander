@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:bystander_frontend/services/api_service.dart';
+import 'package:bystander_frontend/services/friend_name_lookup.dart';
 import 'package:bystander_frontend/screens/comprehensive_guidance_screen.dart';
 import 'package:bystander_frontend/screens/general_first_aid_screen.dart';
 import 'package:bystander_frontend/screens/general_info_screen.dart';
@@ -67,16 +68,21 @@ class _HomeScreenState extends State<HomeScreen> {
           .doc(user.uid)
           .collection('friends')
           .get();
-      final list = <_HomeFriendOption>[];
-      for (final d in snap.docs) {
-        final data = d.data();
-        final first = (data['otherFirstName'] as String?)?.trim() ?? '';
-        final last = (data['otherLastName'] as String?)?.trim() ?? '';
-        final email = (data['otherEmail'] as String?)?.trim() ?? '';
-        var label = [first, last].where((s) => s.isNotEmpty).join(' ');
-        if (label.isEmpty) label = email.isNotEmpty ? email : 'เพื่อน';
-        list.add(_HomeFriendOption(uid: d.id, label: label));
-      }
+      final list = await Future.wait(
+        snap.docs.map((d) async {
+          final data = d.data();
+          var first = (data['otherFirstName'] as String?)?.trim() ?? '';
+          var last = (data['otherLastName'] as String?)?.trim() ?? '';
+          final email = (data['otherEmail'] as String?)?.trim() ?? '';
+          if (email.isNotEmpty) {
+            final lookup = await lookupNameFromUserLookup(email);
+            if (first.isEmpty) first = lookup['firstName'] ?? '';
+            if (last.isEmpty) last = lookup['lastName'] ?? '';
+          }
+          final label = formatFriendListLabel(first, last, email);
+          return _HomeFriendOption(uid: d.id, label: label);
+        }),
+      );
       if (!mounted) return;
       setState(() {
         _friendOptions
@@ -375,63 +381,59 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'เล่าเหตุการณ์สั้นๆ แล้วกดส่ง',
-                                  style: appTextTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: appColorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'ระบบจะสรุปขั้นตอนฉุกเฉินแบบทีละข้อเพื่อให้ทำตามได้ง่าย',
-                                  style: appTextTheme.bodyMedium?.copyWith(
-                                    color: appTextTheme.bodyMedium?.color
-                                        ?.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
+                      Text(
+                        'เล่าเหตุการณ์สั้นๆ แล้วกดส่ง',
+                        style: appTextTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: appColorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'ระบบจะสรุปขั้นตอนฉุกเฉินแบบทีละข้อเพื่อให้ทำตามได้ง่าย',
+                        style: appTextTheme.bodyMedium?.copyWith(
+                          color: appTextTheme.bodyMedium?.color
+                              ?.withValues(alpha: 0.8),
+                        ),
+                      ),
+                      if (isLoggedIn) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _promptForFriend
+                              ? 'ระบบจะใช้ข้อมูลโปรไฟล์/ประวัติตามเพื่อนที่เลือกในการช่วยสร้างคำแนะนำ'
+                              : 'ระบบจะใช้ข้อมูลจากบัญชีของคุณ',
+                          style: appTextTheme.bodySmall?.copyWith(
+                            color: appTextTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.75),
                           ),
-                          if (isLoggedIn) ...[
-                            const SizedBox(width: 12),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  FilterChip(
-                                    label: const Text('ตัวเอง'),
-                                    selected: !_promptForFriend,
-                                    onSelected: (_) {
-                                      setState(() => _promptForFriend = false);
-                                    },
-                                  ),
-                                  FilterChip(
-                                    label: const Text('เพื่อนในรายชื่อ'),
-                                    selected: _promptForFriend,
-                                    onSelected: (_) {
-                                      setState(() => _promptForFriend = true);
-                                      _loadFriends();
-                                    },
-                                  ),
-                                ],
-                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            FilterChip(
+                              label: const Text('ตัวเอง'),
+                              selected: !_promptForFriend,
+                              onSelected: (_) {
+                                setState(() => _promptForFriend = false);
+                              },
+                            ),
+                            FilterChip(
+                              label: const Text('เพื่อนในรายชื่อ'),
+                              selected: _promptForFriend,
+                              onSelected: (_) {
+                                setState(() => _promptForFriend = true);
+                                _loadFriends();
+                              },
                             ),
                           ],
-                        ],
+                        ),
+                      ],
+                      SizedBox(
+                        height: (isLoggedIn && _promptForFriend) ? 6 : 14,
                       ),
-                      const SizedBox(height: 14),
                       if (isLoggedIn && _promptForFriend) ...[
-                        const SizedBox(height: 10),
                         if (_loadingFriends)
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),
@@ -448,51 +450,79 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           )
                         else
-                          InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'เลือกเพื่อน',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                isExpanded: true,
-                                value: _selectedFriendUid,
-                                hint: const Text('แตะเพื่อเลือก'),
-                                items: _friendOptions
-                                    .map(
-                                      (f) => DropdownMenuItem<String>(
-                                        value: f.uid,
-                                        child: Text(
-                                          f.label,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _selectedFriendUid = v),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'เลือกเพื่อน',
+                                style: appTextTheme.labelMedium?.copyWith(
+                                  color: appTextTheme.bodySmall?.color
+                                      ?.withValues(alpha: 0.75),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 6),
+                              Theme(
+                                data: Theme.of(context).copyWith(
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding:
+                                        const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      isDense: true,
+                                      isExpanded: true,
+                                      padding: EdgeInsets.zero,
+                                      value: _selectedFriendUid,
+                                      hint: const Text('แตะเพื่อเลือก'),
+                                      items: _friendOptions
+                                          .map(
+                                            (f) => DropdownMenuItem<String>(
+                                              value: f.uid,
+                                              child: Text(
+                                                f.label,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (v) => setState(
+                                        () => _selectedFriendUid = v,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                      ],
-                      if (isLoggedIn) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          _promptForFriend
-                              ? 'ระบบจะใช้ข้อมูลโปรไฟล์/ประวัติตามเพื่อนที่เลือกในการช่วยสร้างคำแนะนำ'
-                              : 'ระบบจะใช้ข้อมูลจากบัญชีของคุณ',
-                          style: appTextTheme.bodySmall?.copyWith(
-                            color: appTextTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.75),
-                          ),
-                        ),
                       ],
                       const SizedBox(height: 14),
                       TextField(
                         controller: _textEditingController,
                         decoration: InputDecoration(
                           hintText: 'ตัวอย่าง: พ่อหมดสติ ไม่หายใจ อยู่หน้าบ้าน',
+                          filled: true,
+                          fillColor: appColorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: appColorScheme.outline
+                                  .withValues(alpha: 0.35),
+                            ),
+                          ),
                           suffixIcon: _textEditingController.text.isNotEmpty
                               ? IconButton(
                                   icon: Icon(Icons.clear,
