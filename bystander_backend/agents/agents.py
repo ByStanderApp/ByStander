@@ -512,8 +512,8 @@ class MapAgent:
         self.validator_llm = GeminiJSONAgent()
         self.validator_model = _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or "gemini-2.0-flash-lite"
 
-    def _get_google_maps_api_key(self) -> Optional[str]:
-        return _normalize_text(os.getenv("GOOGLE_MAPS_API_KEY")) or None
+    def _get_google_api_key(self) -> Optional[str]:
+        return _normalize_text(os.getenv("GOOGLE_API_KEY")) or None
 
     @staticmethod
     def _is_veterinary_place(place: Dict[str, Any]) -> bool:
@@ -603,9 +603,9 @@ class MapAgent:
         place_type: str,
         keyword: str,
     ) -> Dict[str, Any]:
-        api_key = self._get_google_maps_api_key()
+        api_key = self._get_google_api_key()
         if not api_key:
-            return {"error": "Google Maps API key not configured"}
+            return {"error": "Google API key not configured"}
 
         params = {
             "location": f"{latitude},{longitude}",
@@ -638,7 +638,7 @@ class MapAgent:
             return {"error": f"Nearby Search request failed: {exc}"}
 
     def _get_place_details(self, place_id: str) -> Dict[str, Any]:
-        api_key = self._get_google_maps_api_key()
+        api_key = self._get_google_api_key()
         if not api_key:
             return {}
         params = {
@@ -667,7 +667,7 @@ class MapAgent:
             return {}
 
     def _reverse_geocode(self, latitude: float, longitude: float) -> str:
-        api_key = self._get_google_maps_api_key()
+        api_key = self._get_google_api_key()
         if not api_key:
             return ""
         params = {

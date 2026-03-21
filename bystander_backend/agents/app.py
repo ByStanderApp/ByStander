@@ -2,6 +2,7 @@ import os
 import sys
 
 from flask import Flask, jsonify, make_response, request
+import requests
 
 if __package__:
     from .agents import ByStanderWorkflow
@@ -39,6 +40,51 @@ def _safe_float(value):
         return float(value)
     except Exception:
         return None
+
+
+def _google_tts_api_key() -> str:
+    return (
+        str(
+            os.getenv("GOOGLE_TTS_API_KEY")
+            or os.getenv("GOOGLE_API_KEY")
+            or ""
+        )
+        .strip()
+    )
+
+
+def _synthesize_with_google_tts(text: str) -> dict:
+    api_key = _google_tts_api_key()
+    if not api_key:
+        return {"error": "GOOGLE_TTS_API_KEY or GOOGLE_API_KEY is missing"}
+
+    endpoint = "https://texttospeech.googleapis.com/v1/text:synthesize"
+    params = {"key": api_key}
+    payload = {
+        "input": {"text": text},
+        "voice": {"languageCode": "th-TH", "ssmlGender": "NEUTRAL"},
+        "audioConfig": {"audioEncoding": "MP3", "speakingRate": 1.0, "pitch": 0.0},
+    }
+
+    try:
+        response = requests.post(endpoint, params=params, json=payload, timeout=20)
+        response.raise_for_status()
+        data = response.json() if response.content else {}
+        audio_content = str(data.get("audioContent") or "").strip()
+        if not audio_content:
+            return {"error": "Google TTS returned empty audioContent"}
+        return {"audioContent": audio_content}
+    except requests.RequestException as exc:
+        detail = ""
+        try:
+            detail = response.text  # type: ignore[name-defined]
+        except Exception:
+            detail = ""
+        if detail:
+            return {"error": f"Google TTS request failed: {exc}", "detail": detail}
+        return {"error": f"Google TTS request failed: {exc}"}
+    except Exception as exc:
+        return {"error": f"Google TTS failed: {exc}"}
 
 
 @app.route("/agent_workflow", methods=["POST", "OPTIONS"])
@@ -92,6 +138,27 @@ def find_facilities():
     except Exception as exc:
         return _corsify_actual_response(
             jsonify({"error": "find facilities failed", "detail": str(exc)})
+        ), 500
+
+
+@app.route("/synthesize_speech", methods=["POST", "OPTIONS"])
+def synthesize_speech():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+
+    try:
+        data = request.get_json() or {}
+        text = str(data.get("text") or "").strip()
+        if not text:
+            return _corsify_actual_response(jsonify({"error": "text is required"})), 400
+        result = _synthesize_with_google_tts(text)
+        if "error" in result:
+            status = 502 if "request failed" in str(result.get("error")).lower() else 500
+            return _corsify_actual_response(jsonify(result)), status
+        return _corsify_actual_response(jsonify(result))
+    except Exception as exc:
+        return _corsify_actual_response(
+            jsonify({"error": "synthesize speech failed", "detail": str(exc)})
         ), 500
 
 
