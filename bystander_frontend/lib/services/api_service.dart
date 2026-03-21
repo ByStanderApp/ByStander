@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import 'package:bystander_frontend/services/app_config.dart';
 
 // Data models
 class GuidanceResponse {
@@ -128,9 +129,8 @@ class FacilitySearchResponse {
 }
 
 class ApiService {
-  static const String _agentWorkflowBaseUrl =
-      'https://bystander-7197.onrender.com';
-  static const String _facilityBaseUrl = _agentWorkflowBaseUrl;
+  static final String _agentWorkflowBaseUrl = AppConfig.apiBaseUrl;
+  static final String _facilityBaseUrl = _agentWorkflowBaseUrl;
 
   /// [callerUserId] = signed-in user; [targetUserId] = whose profile to use (self or friend).
   Future<AgentWorkflowResponse> runAgentWorkflow({
