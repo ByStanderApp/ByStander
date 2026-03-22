@@ -26,7 +26,12 @@ jobs:
       - name: Install backend test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flask requests python-dotenv google-cloud-aiplatform
+          pip install flask requests python-dotenv google-cloud-aiplatform ruff
+
+      - name: Run backend lint (Ruff)
+        run: |
+          ruff check bystander_backend
+          ruff format --check bystander_backend
 
       - name: Run backend tests
         env:

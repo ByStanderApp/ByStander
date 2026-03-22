@@ -44,9 +44,7 @@ class ProtocolRetrieverTests(unittest.TestCase):
                 }
             ]
             with patch.object(ProtocolRetriever, "_search_vertex", return_value=fake_docs):
-                result = retriever.retrieve_with_meta(
-                    query="ไม่หายใจ", severity="critical", top_k=1
-                )
+                result = retriever.retrieve_with_meta(query="ไม่หายใจ", severity="critical", top_k=1)
             self.assertEqual(result["source"], "vertex")
             self.assertEqual(result["count"], 1)
             self.assertIn("[Vertex Protocol 1]", result["context"])

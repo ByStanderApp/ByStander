@@ -3,7 +3,7 @@ import os
 import re
 import sys
 import warnings
-from typing import Any, Dict, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -51,7 +51,7 @@ def _normalize_text(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _extract_json_block(text: str) -> Optional[str]:
+def _extract_json_block(text: str) -> str | None:
     raw = _normalize_text(text)
     if not raw:
         return None
@@ -65,7 +65,7 @@ def _extract_json_block(text: str) -> Optional[str]:
     return raw[start : end + 1]
 
 
-def _parse_json_fallback(text: str, default: Dict[str, Any]) -> Dict[str, Any]:
+def _parse_json_fallback(text: str, default: dict[str, Any]) -> dict[str, Any]:
     block = _extract_json_block(text)
     if not block:
         return default
@@ -191,9 +191,9 @@ class GeminiJSONAgent:
         model_name: str,
         system_prompt: str,
         user_prompt: str,
-        default: Dict[str, Any],
+        default: dict[str, Any],
         temperature: float = 0.1,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         # Primary path: Vertex AI SDK call (auto-instrumented by VertexAIInstrumentor).
         for candidate_model in _model_candidates(model_name):
             try:
@@ -230,7 +230,7 @@ class TriageAgent:
         self.model_name = _normalize_text(os.getenv("TRIAGE_MODEL")) or "gemini-2.5-flash"
 
     @observe()
-    def run(self, scenario: str) -> Dict[str, Any]:
+    def run(self, scenario: str) -> dict[str, Any]:
         default = {
             "is_emergency": True,
             "severity": "moderate",
@@ -240,12 +240,14 @@ class TriageAgent:
         system_prompt = (
             "You are llmAgent for ByStander emergency triage. "
             "Return strict JSON only with fields: is_emergency (bool), "
-            "severity (critical|moderate|none), facility_type (hospital|clinic|none), reason_th (Thai)."
+            "severity (critical|moderate|none), facility_type (hospital|clinic|none), "
+            "reason_th (Thai)."
         )
         user_prompt = (
             f"Scenario: {scenario}\n"
             "Rules:\n"
-            "- If clearly non-emergency daily issue => is_emergency=false, severity=none, facility_type=none\n"
+            "- If clearly non-emergency daily issue => is_emergency=false,"
+            "severity=none, facility_type=none\n"
             "- If life-threatening => critical + hospital\n"
             "- If emergency but not immediately life-threatening => moderate + clinic\n"
             "Output JSON only."
@@ -272,14 +274,20 @@ class GuidanceAgent:
     def __init__(self, llm: GeminiJSONAgent) -> None:
         self.llm = llm
         default_guidance_model = "gemini-2.5-flash"
-        self.critical_model = _normalize_text(os.getenv("GUIDANCE_CRITICAL_MODEL")) or default_guidance_model
-        self.moderate_model = _normalize_text(os.getenv("GUIDANCE_MODERATE_MODEL")) or default_guidance_model
+        self.critical_model = (
+            _normalize_text(os.getenv("GUIDANCE_CRITICAL_MODEL")) or default_guidance_model
+        )
+        self.moderate_model = (
+            _normalize_text(os.getenv("GUIDANCE_MODERATE_MODEL")) or default_guidance_model
+        )
         self.deepseek_model = _normalize_text(os.getenv("DEEPSEEK_FAST_MODEL")) or "deepseek-chat"
         self.deepseek_key = _normalize_text(os.getenv("DEEPSEEK_KEY"))
         self.deepseek_client = None
         if self.deepseek_key and OpenAI is not None:
             try:
-                self.deepseek_client = OpenAI(api_key=self.deepseek_key, base_url="https://api.deepseek.com")
+                self.deepseek_client = OpenAI(
+                    api_key=self.deepseek_key, base_url="https://api.deepseek.com"
+                )
             except Exception as exc:
                 record_exception(exc)
 
@@ -325,7 +333,7 @@ class GuidanceAgent:
         return merged
 
     @observe()
-    def _run_noncritical_deepseek(self, scenario: str, rag_context: str) -> Dict[str, Any]:
+    def _run_noncritical_deepseek(self, scenario: str, rag_context: str) -> dict[str, Any]:
         default = {
             "guidance": (
                 "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
@@ -343,7 +351,8 @@ class GuidanceAgent:
         system_prompt = (
             "You are a Thai emergency first-aid assistant. "
             "Use retrieved medical snippets as the highest-priority source. "
-            "Return strict JSON only: {\"guidance\":\"...\",\"facility_type\":\"hospital|clinic|none\"}. "
+            'Return strict JSON only: {"guidance":"...","facility_type":'
+            '"hospital|clinic|none"}. '
             "Guidance must be concise, numbered Thai steps, readable by layperson."
         )
         user_prompt = (
@@ -375,7 +384,7 @@ class GuidanceAgent:
             return dict(default)
 
     @observe()
-    def run(self, scenario: str, severity: str, rag_context: str) -> Dict[str, Any]:
+    def run(self, scenario: str, severity: str, rag_context: str) -> dict[str, Any]:
         model_name = self.critical_model if severity == "critical" else self.moderate_model
         default = {
             "guidance": (
@@ -404,7 +413,8 @@ class GuidanceAgent:
             "- facility_type must be one of hospital|clinic|none\n"
             "Output JSON only."
         )
-        # Moderate/non-critical: prefer DeepSeek when configured; otherwise Gemini (same as critical).
+        # Moderate/non-critical: prefer DeepSeek when configured; otherwise Gemini
+        # (same as critical).
         # Without this, missing DEEPSEEK_KEY caused only the static Thai default (generic 4 lines).
         if severity != "critical" and self.deepseek_client is not None:
             out = self._run_noncritical_deepseek(
@@ -421,7 +431,9 @@ class GuidanceAgent:
             )
         out["guidance"] = _normalize_text(out.get("guidance")) or default["guidance"]
         facility = _normalize_text(out.get("facility_type", default["facility_type"])).lower()
-        out["facility_type"] = facility if facility in {"hospital", "clinic", "none"} else default["facility_type"]
+        out["facility_type"] = (
+            facility if facility in {"hospital", "clinic", "none"} else default["facility_type"]
+        )
         return out
 
 
@@ -437,11 +449,11 @@ class ScriptAgent:
         self,
         scenario: str,
         guidance: str,
-        user_profile: Dict[str, Any],
+        user_profile: dict[str, Any],
         location_context: str = "",
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-        caller_profile: Optional[Dict[str, Any]] = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        caller_profile: dict[str, Any] | None = None,
     ) -> str:
         default = {
             "call_script": (
@@ -459,7 +471,8 @@ class ScriptAgent:
         caller_note = ""
         if caller_profile:
             caller_note = (
-                "The person currently using the app (reporter/caller) is NOT necessarily the patient. "
+                "The person currently using the app (reporter/caller) "
+                "is NOT necessarily the patient. "
                 "Use PATIENT profile for age/gender/medical details of the person needing help. "
                 "Use CALLER profile only for reporter name/contact if different.\n"
             )
@@ -477,7 +490,8 @@ class ScriptAgent:
             "7) บอกชื่อผู้แจ้ง + เบอร์โทรศัพท์\n"
             "8) ช่วยเหลือเบื้องต้น\n"
             "9) รอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาล\n"
-            "If location context is provided, convert it to human place description (address + landmarks). "
+            "If location context is provided, convert it to human place description "
+            "(address + landmarks). "
             "Do NOT tell operator raw latitude/longitude values. "
             "Output JSON only with key: call_script."
         )
@@ -499,7 +513,8 @@ class ScriptAgent:
             "Build a Thai phone script the user can read to emergency operator.\n"
             "Requirements:\n"
             "- Follow protocol steps 1-9 in order.\n"
-            "- Include a direct sentence about location using address/place names from map context.\n"
+            "- Include a direct sentence about location using address/place names "
+            "from map context.\n"
             "- If location context exists, mention at least 1-2 nearby landmarks/place names.\n"
             "- Never read out raw latitude/longitude numbers to operator.\n"
             "- Keep it short, urgent, and easy to read out loud."

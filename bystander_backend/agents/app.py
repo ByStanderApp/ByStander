@@ -1,8 +1,8 @@
 import os
 import sys
 
-from flask import Flask, jsonify, make_response, request
 import requests
+from flask import Flask, jsonify, make_response, request
 
 if __package__:
     from .agents import ByStanderWorkflow
@@ -11,8 +11,9 @@ else:  # pragma: no cover
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
-    from agents import ByStanderWorkflow
     from observability import init_observability
+
+    from agents import ByStanderWorkflow
 
 
 app = Flask(__name__)
@@ -43,14 +44,7 @@ def _safe_float(value):
 
 
 def _google_tts_api_key() -> str:
-    return (
-        str(
-            os.getenv("GOOGLE_TTS_API_KEY")
-            or os.getenv("GOOGLE_API_KEY")
-            or ""
-        )
-        .strip()
-    )
+    return str(os.getenv("GOOGLE_TTS_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
 
 
 def _synthesize_with_google_tts(text: str) -> dict:
