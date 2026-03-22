@@ -4,7 +4,7 @@ import queue
 import re
 import threading
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -35,7 +35,7 @@ def _normalize_text(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _extract_json_block(text: str) -> Optional[str]:
+def _extract_json_block(text: str) -> str | None:
     raw = _normalize_text(text)
     if not raw:
         return None
@@ -49,7 +49,7 @@ def _extract_json_block(text: str) -> Optional[str]:
     return raw[start : end + 1]
 
 
-def _parse_json_fallback(text: str, default: Dict[str, Any]) -> Dict[str, Any]:
+def _parse_json_fallback(text: str, default: dict[str, Any]) -> dict[str, Any]:
     block = _extract_json_block(text)
     if not block:
         return dict(default)
@@ -83,20 +83,17 @@ class AsyncJudgeService:
     """
 
     def __init__(self) -> None:
-        self.api_key = _normalize_text(
-            os.getenv("OPENAI_API_KEY")
-            or os.getenv("OPENAI_KEY")
-        )
+        self.api_key = _normalize_text(os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY"))
         self.model = _normalize_text(os.getenv("JUDGE_MODEL")) or "gpt-5.4-mini"
         self.enabled = bool(self.api_key and OPENAI_AVAILABLE)
         self.client = OpenAI(api_key=self.api_key) if self.enabled and OpenAI else None
-        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=256)
-        self._worker: Optional[threading.Thread] = None
+        self._queue: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=256)
+        self._worker: threading.Thread | None = None
         if self.enabled:
             self._worker = threading.Thread(target=self._worker_loop, daemon=True)
             self._worker.start()
 
-    def submit(self, task: Dict[str, Any]) -> bool:
+    def submit(self, task: dict[str, Any]) -> bool:
         """
         Non-blocking submit. Returns False if queue is full or judge is disabled.
         """
@@ -120,7 +117,7 @@ class AsyncJudgeService:
                 self._queue.task_done()
 
     @observe()
-    def _process_task(self, task: Dict[str, Any]) -> None:
+    def _process_task(self, task: dict[str, Any]) -> None:
         started = time.perf_counter()
 
         guidance_judge = self._judge_guidance(
@@ -177,7 +174,7 @@ class AsyncJudgeService:
         guidance: str,
         rag_context: str,
         severity: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         default = {
             "compliance_score": 1,
             "correctness_score": 1,
@@ -199,17 +196,21 @@ class AsyncJudgeService:
             f"Guidance to evaluate:\n{guidance}\n\n"
             "Return strict JSON:\n"
             "{"
-            "\"compliance_score\":1-5,"
-            "\"correctness_score\":1-5,"
-            "\"readability_score\":1-5,"
-            "\"chain_of_thought\":\"detailed reasoning\""
+            '"compliance_score":1-5,'
+            '"correctness_score":1-5,'
+            '"readability_score":1-5,'
+            '"chain_of_thought":"detailed reasoning"'
             "}"
         )
-        out = self._judge_json(system_prompt=system_prompt, user_prompt=user_prompt, default=default)
+        out = self._judge_json(
+            system_prompt=system_prompt, user_prompt=user_prompt, default=default
+        )
         out["compliance_score"] = _to_int_in_range(out.get("compliance_score"), 1, 5, 1)
         out["correctness_score"] = _to_int_in_range(out.get("correctness_score"), 1, 5, 1)
         out["readability_score"] = _to_int_in_range(out.get("readability_score"), 1, 5, 1)
-        out["chain_of_thought"] = _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
+        out["chain_of_thought"] = (
+            _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
+        )
         return out
 
     @observe()
@@ -217,8 +218,8 @@ class AsyncJudgeService:
         self,
         scenario: str,
         severity: str,
-        facilities: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        facilities: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         default = {
             "facility_score": 1,
             "chain_of_thought": "judge_unavailable",
@@ -233,15 +234,19 @@ class AsyncJudgeService:
             f"Severity: {severity}\n"
             f"Selected facilities JSON:\n{json.dumps(facilities, ensure_ascii=False)}\n\n"
             "Return strict JSON: "
-            "{\"facility_score\":1-3,\"chain_of_thought\":\"detailed reasoning\"}"
+            '{"facility_score":1-3,"chain_of_thought":"detailed reasoning"}'
         )
-        out = self._judge_json(system_prompt=system_prompt, user_prompt=user_prompt, default=default)
+        out = self._judge_json(
+            system_prompt=system_prompt, user_prompt=user_prompt, default=default
+        )
         out["facility_score"] = _to_int_in_range(out.get("facility_score"), 1, 3, 1)
-        out["chain_of_thought"] = _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
+        out["chain_of_thought"] = (
+            _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
+        )
         return out
 
     @observe()
-    def _judge_script(self, scenario: str, script: str) -> Dict[str, Any]:
+    def _judge_script(self, scenario: str, script: str) -> dict[str, Any]:
         default = {
             "script_score": 1,
             "chain_of_thought": "judge_unavailable",
@@ -264,11 +269,15 @@ class AsyncJudgeService:
             f"Scenario: {scenario}\n"
             f"Script:\n{script}\n\n"
             "Return strict JSON: "
-            "{\"script_score\":1-3,\"chain_of_thought\":\"detailed reasoning\"}"
+            '{"script_score":1-3,"chain_of_thought":"detailed reasoning"}'
         )
-        out = self._judge_json(system_prompt=system_prompt, user_prompt=user_prompt, default=default)
+        out = self._judge_json(
+            system_prompt=system_prompt, user_prompt=user_prompt, default=default
+        )
         out["script_score"] = _to_int_in_range(out.get("script_score"), 1, 3, 1)
-        out["chain_of_thought"] = _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
+        out["chain_of_thought"] = (
+            _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
+        )
         return out
 
     @observe()
@@ -276,8 +285,8 @@ class AsyncJudgeService:
         self,
         system_prompt: str,
         user_prompt: str,
-        default: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        default: dict[str, Any],
+    ) -> dict[str, Any]:
         if not self.enabled or self.client is None:
             return dict(default)
 
@@ -318,4 +327,3 @@ class AsyncJudgeService:
         except Exception as exc:
             record_exception(exc)
             return dict(default)
-

@@ -1,10 +1,11 @@
 import base64
 import os
+import ssl
 import threading
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 from urllib import request as urllib_request
 from urllib.error import HTTPError, URLError
-import ssl
 
 try:
     from langfuse import observe as _langfuse_observe  # type: ignore
@@ -54,7 +55,7 @@ except Exception:  # pragma: no cover
 
 _LOCK = threading.Lock()
 _INITIALIZED = False
-_STATUS: Dict[str, Any] = {
+_STATUS: dict[str, Any] = {
     "enabled": False,
     "otel_available": OTEL_AVAILABLE,
     "vertex_instrumentor_available": VERTEX_INSTRUMENTOR_AVAILABLE,
@@ -76,6 +77,7 @@ def observe(*args, **kwargs):
     """
 
     if _langfuse_observe is None:
+
         def _noop_decorator(func: Callable):
             return func
 
@@ -107,7 +109,7 @@ def record_exception(exc: Exception) -> None:
 
 
 def _build_langfuse_auth_header(public_key: str, secret_key: str) -> str:
-    token = base64.b64encode(f"{public_key}:{secret_key}".encode("utf-8")).decode("utf-8")
+    token = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode("utf-8")
     return f"Basic {token}"
 
 
@@ -174,7 +176,7 @@ def _probe_langfuse_auth(
         return False, f"probe_error: {exc}"
 
 
-def init_observability(service_name: str = "bystander-agent-workflow") -> Dict[str, Any]:
+def init_observability(service_name: str = "bystander-agent-workflow") -> dict[str, Any]:
     """
     Initialize OpenTelemetry and export traces to Langfuse OTEL endpoint.
     Also instruments Vertex AI calls via OpenInference VertexAIInstrumentor.
