@@ -45,6 +45,8 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
 
 class _ComprehensiveGuidanceScreenState
     extends State<ComprehensiveGuidanceScreen> {
+  static const double _fallbackLatitude = 13.7563;
+  static const double _fallbackLongitude = 100.5018;
   final ScrollController _scrollController = ScrollController();
   int _currentSectionIndex = 0; // 0: Guidance, 1: Nearby, 2: Call Script
   final TtsService _ttsService = TtsService();
@@ -223,20 +225,21 @@ class _ComprehensiveGuidanceScreenState
     final hasUserLocation =
         widget.userLatitude != null && widget.userLongitude != null;
 
-    if (mapped.isEmpty && !hasUserLocation) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('ไม่พบข้อมูลสถานพยาบาลและไม่มีพิกัดตำแหน่งผู้ใช้'),
-        ),
-      );
-      return;
-    }
-
-    final centerLat = widget.userLatitude ?? mapped.first.latitude;
-    final centerLon = widget.userLongitude ?? mapped.first.longitude;
+    final centerLat = hasUserLocation
+        ? widget.userLatitude!
+        : (mapped.isNotEmpty ? mapped.first.latitude : _fallbackLatitude);
+    final centerLon = hasUserLocation
+        ? widget.userLongitude!
+        : (mapped.isNotEmpty ? mapped.first.longitude : _fallbackLongitude);
 
     if (!mounted) return;
+    if (!hasUserLocation && mapped.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ไม่พบพิกัดตำแหน่งผู้ใช้ จึงใช้จุดกึ่งกลางเริ่มต้น'),
+        ),
+      );
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
