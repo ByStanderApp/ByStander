@@ -865,7 +865,7 @@ class MapAgent:
         system_prompt = (
             "You are MapAgent validation model for an emergency app. "
             "Classify ONLY true human treatment facilities. "
-            "Reject veterinary clinics/hospitals, pharmacies, medical companies, and offices. "
+            "Reject veterinary clinics/hospitals, pharmacies, medical companies, surgical centers and offices. "
             "Return strict JSON only."
         )
         user_prompt = (
