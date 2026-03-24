@@ -30,7 +30,9 @@ class _StubWorkflow:
     def run(self, data):
         return {"route": "general_info", "is_emergency": False}
 
-    def search_nearby_facilities(self, latitude, longitude, facility_type, severity, scenario=""):
+    def search_nearby_facilities(
+        self, latitude, longitude, facility_type, severity, scenario=""
+    ):
         return {
             "facilities": [
                 {
@@ -61,7 +63,9 @@ class AgentAppTests(unittest.TestCase):
         self.assertIn("route", resp.get_json())
 
     def test_debug_retrieval_endpoint(self):
-        resp = self.client.post("/debug_retrieval", json={"scenario": "x", "severity": "critical"})
+        resp = self.client.post(
+            "/debug_retrieval", json={"scenario": "x", "severity": "critical"}
+        )
         self.assertEqual(resp.status_code, 200)
         data = resp.get_json()
         self.assertEqual(data["source"], "vertex")

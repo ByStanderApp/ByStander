@@ -7,6 +7,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:bystander_frontend/services/api_service.dart';
 import 'package:bystander_frontend/services/friend_name_lookup.dart';
+import 'package:bystander_frontend/services/offline_first_aid_catalog_service.dart';
 import 'package:bystander_frontend/screens/comprehensive_guidance_screen.dart';
 import 'package:bystander_frontend/screens/general_first_aid_screen.dart';
 import 'package:bystander_frontend/screens/general_info_screen.dart';
@@ -311,24 +312,83 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => GeneralFirstAidScreen(initialQuery: sentence),
-          ),
+      if (!mounted) return;
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+
+      OfflineFirstAidMatch? fallback;
+      try {
+        fallback = await OfflineFirstAidCatalogService.instance.searchBestMatch(
+          sentence,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
+      } catch (_) {
+        fallback = null;
+      }
+      if (!mounted) return;
+
+      if (fallback != null) {
+        final matched = fallback;
+        final fallbackSeverity =
+            matched.severity == 'moderate' ? 'mild' : matched.severity;
+        navigator
+            .push(
+          MaterialPageRoute(
+            builder: (_) => ComprehensiveGuidanceScreen(
+              guidanceText: matched.instructions,
+              originalQuery: sentence,
+              severity: fallbackSeverity,
+              facilityType: matched.facilityType,
+            ),
+          ),
+        )
+            .then((_) {
+          if (!mounted) return;
+          setState(() {
+            _voiceInputText = 'กดปุ่มไมโครโฟนค้างไว้ เพื่อพูด';
+            _textEditingController.clear();
+            _status = '';
+            _isLoading = false;
+          });
+        });
+
+        messenger.showSnackBar(
           const SnackBar(
-            content:
-                Text('เชื่อมต่อระบบหลักไม่ได้ จึงเปิดคู่มือปฐมพยาบาลออฟไลน์'),
+            content: Text(
+              'เชื่อมต่อระบบหลักไม่ได้ จึงใช้คำแนะนำจากคู่มือปฐมพยาบาลออฟไลน์',
+            ),
           ),
         );
         setState(() {
           _status = 'กำลังใช้งานโหมดออฟไลน์';
           _isLoading = false;
         });
+        return;
       }
+
+      navigator
+          .push(
+        MaterialPageRoute(
+          builder: (_) => GeneralFirstAidScreen(initialQuery: sentence),
+        ),
+      )
+          .then((_) {
+        if (!mounted) return;
+        setState(() {
+          _voiceInputText = 'กดปุ่มไมโครโฟนค้างไว้ เพื่อพูด';
+          _textEditingController.clear();
+          _status = '';
+          _isLoading = false;
+        });
+      });
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('เชื่อมต่อระบบหลักไม่ได้ จึงเปิดคู่มือปฐมพยาบาลออฟไลน์'),
+        ),
+      );
+      setState(() {
+        _status = 'กำลังใช้งานโหมดออฟไลน์';
+        _isLoading = false;
+      });
     }
     // No finally block needed for isLoading if handled in .then and catch
   }

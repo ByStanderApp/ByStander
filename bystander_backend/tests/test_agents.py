@@ -43,8 +43,12 @@ class ProtocolRetrieverTests(unittest.TestCase):
                     "meta": "source=gs://test/doc.txt",
                 }
             ]
-            with patch.object(ProtocolRetriever, "_search_vertex", return_value=fake_docs):
-                result = retriever.retrieve_with_meta(query="ไม่หายใจ", severity="critical", top_k=1)
+            with patch.object(
+                ProtocolRetriever, "_search_vertex", return_value=fake_docs
+            ):
+                result = retriever.retrieve_with_meta(
+                    query="ไม่หายใจ", severity="critical", top_k=1
+                )
             self.assertEqual(result["source"], "vertex")
             self.assertEqual(result["count"], 1)
             self.assertIn("[Vertex Protocol 1]", result["context"])
@@ -75,7 +79,9 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
+        with patch.object(
+            MapAgent, "search_nearby_facilities", return_value=fake_result
+        ):
             out = agent.run(
                 scenario="critical",
                 severity="critical",
@@ -109,7 +115,9 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
+        with patch.object(
+            MapAgent, "search_nearby_facilities", return_value=fake_result
+        ):
             out = agent.run(
                 scenario="moderate",
                 severity="moderate",

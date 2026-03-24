@@ -170,7 +170,9 @@ def debug_retrieval():
         data = request.get_json() or {}
         scenario = str(data.get("scenario") or data.get("query") or "").strip()
         if not scenario:
-            return _corsify_actual_response(jsonify({"error": "scenario is required"})), 400
+            return _corsify_actual_response(
+                jsonify({"error": "scenario is required"})
+            ), 400
         severity = str(data.get("severity") or "moderate").strip().lower()
         if severity not in {"critical", "moderate", "none"}:
             severity = "moderate"

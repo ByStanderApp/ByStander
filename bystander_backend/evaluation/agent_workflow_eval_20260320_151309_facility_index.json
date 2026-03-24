@@ -1,0 +1,26 @@
+{
+  "timestamp": "20260320_151309",
+  "main_output": "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309.json",
+  "facility_log_dir": "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities",
+  "facility_log_files": [
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/craft_clinic_bts.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/dusita_medical_clinic.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_2b7c8988dca4.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_319a15cf0629.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_3d7b2bd26b78.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_54a81470f011.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_729afb12013a.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_7f15696048a1.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_89e70081c000.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_8ec19d55c421.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_9385162061d3.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_98f2425fd8db.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_b860040c7f96.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/facility_e610dd6e5459.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/femily_wellness_clinic.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/no_facility_found.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/ramathibodi_emergency_medicine_department.json",
+    "/Users/amyworawalan/ByStander/bystander_backend/ml_evaluation/llm_evaluation/outputs/agent_workflow_eval_20260320_151309_facilities/urology_department_of_phramongkutklao_hospital.json"
+  ],
+  "total_facility_files": 18
+}

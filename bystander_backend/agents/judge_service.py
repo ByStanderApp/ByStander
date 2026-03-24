@@ -83,7 +83,9 @@ class AsyncJudgeService:
     """
 
     def __init__(self) -> None:
-        self.api_key = _normalize_text(os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY"))
+        self.api_key = _normalize_text(
+            os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY")
+        )
         self.model = _normalize_text(os.getenv("JUDGE_MODEL")) or "gpt-5.4-mini"
         self.enabled = bool(self.api_key and OPENAI_AVAILABLE)
         self.client = OpenAI(api_key=self.api_key) if self.enabled and OpenAI else None
@@ -146,15 +148,21 @@ class AsyncJudgeService:
                     span.set_attribute("judge.elapsed_ms", elapsed_ms)
                     span.set_attribute(
                         "judge.guidance.compliance",
-                        _to_int_in_range(guidance_judge.get("compliance_score"), 1, 5, 1),
+                        _to_int_in_range(
+                            guidance_judge.get("compliance_score"), 1, 5, 1
+                        ),
                     )
                     span.set_attribute(
                         "judge.guidance.correctness",
-                        _to_int_in_range(guidance_judge.get("correctness_score"), 1, 5, 1),
+                        _to_int_in_range(
+                            guidance_judge.get("correctness_score"), 1, 5, 1
+                        ),
                     )
                     span.set_attribute(
                         "judge.guidance.readability",
-                        _to_int_in_range(guidance_judge.get("readability_score"), 1, 5, 1),
+                        _to_int_in_range(
+                            guidance_judge.get("readability_score"), 1, 5, 1
+                        ),
                     )
                     span.set_attribute(
                         "judge.facility.score",
@@ -206,8 +214,12 @@ class AsyncJudgeService:
             system_prompt=system_prompt, user_prompt=user_prompt, default=default
         )
         out["compliance_score"] = _to_int_in_range(out.get("compliance_score"), 1, 5, 1)
-        out["correctness_score"] = _to_int_in_range(out.get("correctness_score"), 1, 5, 1)
-        out["readability_score"] = _to_int_in_range(out.get("readability_score"), 1, 5, 1)
+        out["correctness_score"] = _to_int_in_range(
+            out.get("correctness_score"), 1, 5, 1
+        )
+        out["readability_score"] = _to_int_in_range(
+            out.get("readability_score"), 1, 5, 1
+        )
         out["chain_of_thought"] = (
             _normalize_text(out.get("chain_of_thought")) or default["chain_of_thought"]
         )
