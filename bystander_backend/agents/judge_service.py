@@ -4,7 +4,7 @@ import queue
 import re
 import threading
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -35,7 +35,7 @@ def _normalize_text(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _extract_json_block(text: str) -> Optional[str]:
+def _extract_json_block(text: str) -> str | None:
     raw = _normalize_text(text)
     if not raw:
         return None
@@ -49,7 +49,7 @@ def _extract_json_block(text: str) -> Optional[str]:
     return raw[start : end + 1]
 
 
-def _parse_json_fallback(text: str, default: Dict[str, Any]) -> Dict[str, Any]:
+def _parse_json_fallback(text: str, default: dict[str, Any]) -> dict[str, Any]:
     block = _extract_json_block(text)
     if not block:
         return dict(default)
@@ -89,13 +89,13 @@ class AsyncJudgeService:
         self.model = _normalize_text(os.getenv("JUDGE_MODEL")) or "gpt-5.4-mini"
         self.enabled = bool(self.api_key and OPENAI_AVAILABLE)
         self.client = OpenAI(api_key=self.api_key) if self.enabled and OpenAI else None
-        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=256)
-        self._worker: Optional[threading.Thread] = None
+        self._queue: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=256)
+        self._worker: threading.Thread | None = None
         if self.enabled:
             self._worker = threading.Thread(target=self._worker_loop, daemon=True)
             self._worker.start()
 
-    def submit(self, task: Dict[str, Any]) -> bool:
+    def submit(self, task: dict[str, Any]) -> bool:
         """
         Non-blocking submit. Returns False if queue is full or judge is disabled.
         """
@@ -119,7 +119,7 @@ class AsyncJudgeService:
                 self._queue.task_done()
 
     @observe()
-    def _process_task(self, task: Dict[str, Any]) -> None:
+    def _process_task(self, task: dict[str, Any]) -> None:
         started = time.perf_counter()
 
         guidance_judge = self._judge_guidance(
@@ -182,7 +182,7 @@ class AsyncJudgeService:
         guidance: str,
         rag_context: str,
         severity: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         default = {
             "compliance_score": 1,
             "correctness_score": 1,
@@ -230,8 +230,8 @@ class AsyncJudgeService:
         self,
         scenario: str,
         severity: str,
-        facilities: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        facilities: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         default = {
             "facility_score": 1,
             "chain_of_thought": "judge_unavailable",
@@ -258,7 +258,7 @@ class AsyncJudgeService:
         return out
 
     @observe()
-    def _judge_script(self, scenario: str, script: str) -> Dict[str, Any]:
+    def _judge_script(self, scenario: str, script: str) -> dict[str, Any]:
         default = {
             "script_score": 1,
             "chain_of_thought": "judge_unavailable",
@@ -297,8 +297,8 @@ class AsyncJudgeService:
         self,
         system_prompt: str,
         user_prompt: str,
-        default: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        default: dict[str, Any],
+    ) -> dict[str, Any]:
         if not self.enabled or self.client is None:
             return dict(default)
 

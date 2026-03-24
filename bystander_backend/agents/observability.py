@@ -1,10 +1,11 @@
 import base64
 import os
+import ssl
 import threading
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 from urllib import request as urllib_request
 from urllib.error import HTTPError, URLError
-import ssl
 
 try:
     from langfuse import observe as _langfuse_observe  # type: ignore
@@ -54,7 +55,7 @@ except Exception:  # pragma: no cover
 
 _LOCK = threading.Lock()
 _INITIALIZED = False
-_STATUS: Dict[str, Any] = {
+_STATUS: dict[str, Any] = {
     "enabled": False,
     "otel_available": OTEL_AVAILABLE,
     "vertex_instrumentor_available": VERTEX_INSTRUMENTOR_AVAILABLE,

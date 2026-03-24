@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bystander_frontend/services/app_config.dart';
 import 'package:http/http.dart' as http;
 
 class TtsService {
-  static const String _ttsEndpoint =
-      'https://bystander-7197.onrender.com/synthesize_speech';
+  static final String _ttsEndpoint =
+      '${AppConfig.apiBaseUrl}/synthesize_speech';
 
   final AudioPlayer _audioPlayer = AudioPlayer();
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -110,52 +111,64 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _listen() async {
-    var microphoneStatus = await Permission.microphone.request();
+    if (_isListening) return;
+
+    if (kIsWeb) {
+      await _startListening();
+      return;
+    }
+
+    final microphoneStatus = await Permission.microphone.request();
     if (microphoneStatus.isGranted) {
-      if (!_isListening) {
-        bool available = await _speech.initialize(onStatus: (val) {
-          debugPrint('onStatus: $val');
-          if (val == 'notListening' || val == 'done') {
-            setState(() => _isListening = false);
-            if (_voiceInputText.isNotEmpty &&
-                _voiceInputText != 'กำลังฟัง...' &&
-                _voiceInputText != 'กดปุ่มไมโครโฟนค้างไว้ เพื่อพูด') {
-              _fetchGuidance(_voiceInputText);
-            }
-          }
-        }, onError: (val) {
-          debugPrint('onError: $val');
-          setState(() {
-            _isListening = false;
-            _status = 'เกิดข้อผิดพลาดในการฟัง: ${val.errorMsg}';
-          });
-        });
-        if (available) {
-          setState(() => _isListening = true);
-          _speech.listen(
-            onResult: (val) => setState(() {
-              _voiceInputText = val.recognizedWords;
-              _textEditingController.text = val.recognizedWords;
-              if (val.recognizedWords.isNotEmpty) _status = '';
-            }),
-            localeId: 'th_TH',
-            listenFor: const Duration(seconds: 30),
-            pauseFor: const Duration(seconds: 5),
-          );
-          setState(() {
-            _voiceInputText = 'กำลังฟัง...';
-            _textEditingController.clear();
-            _status = '';
-          });
-        } else {
-          setState(() {
-            _status = "ไม่สามารถเข้าถึงไมโครโฟนได้";
-            _isListening = false;
-          });
-        }
-      }
+      await _startListening();
     } else {
       setState(() => _status = 'ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน');
+    }
+  }
+
+  Future<void> _startListening() async {
+    final available = await _speech.initialize(
+      onStatus: (val) {
+        debugPrint('onStatus: $val');
+        if (val == 'notListening' || val == 'done') {
+          setState(() => _isListening = false);
+          if (_voiceInputText.isNotEmpty &&
+              _voiceInputText != 'กำลังฟัง...' &&
+              _voiceInputText != 'กดปุ่มไมโครโฟนค้างไว้ เพื่อพูด') {
+            _fetchGuidance(_voiceInputText);
+          }
+        }
+      },
+      onError: (val) {
+        debugPrint('onError: $val');
+        setState(() {
+          _isListening = false;
+          _status = 'เกิดข้อผิดพลาดในการฟัง: ${val.errorMsg}';
+        });
+      },
+    );
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(
+        onResult: (val) => setState(() {
+          _voiceInputText = val.recognizedWords;
+          _textEditingController.text = val.recognizedWords;
+          if (val.recognizedWords.isNotEmpty) _status = '';
+        }),
+        localeId: 'th_TH',
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 5),
+      );
+      setState(() {
+        _voiceInputText = 'กำลังฟัง...';
+        _textEditingController.clear();
+        _status = '';
+      });
+    } else {
+      setState(() {
+        _status = "ไม่สามารถเข้าถึงไมโครโฟนได้";
+        _isListening = false;
+      });
     }
   }
 
@@ -197,18 +210,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        if (mounted) {
-          setState(() {
-            _status = 'กรุณาเข้าสู่ระบบก่อน';
-            _isLoading = false;
-          });
-        }
-        return;
-      }
 
       String? targetUid;
       if (_promptForFriend) {
+        if (user == null) {
+          if (mounted) {
+            setState(() {
+              _status = 'กรุณาเข้าสู่ระบบเพื่อเลือกเพื่อน';
+              _isLoading = false;
+            });
+          }
+          return;
+        }
         if (_selectedFriendUid == null || _selectedFriendUid!.isEmpty) {
           if (mounted) {
             setState(() {
@@ -220,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         targetUid = _selectedFriendUid;
       } else {
-        targetUid = user.uid;
+        targetUid = user?.uid;
       }
 
       double? latitude;
@@ -245,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final workflowResponse = await _apiService.runAgentWorkflow(
         scenario: sentence,
-        callerUserId: user.uid,
+        callerUserId: user?.uid,
         targetUserId: targetUid,
         latitude: latitude,
         longitude: longitude,
