@@ -120,9 +120,13 @@ class PromptGenerationAgent:
         self.client = OpenAI(api_key=api_key) if self.enabled and OpenAI else None
 
     def _fallback_prompts(self, scenario: Dict[str, Any]) -> Dict[str, str]:
-        case_name = _normalize_text(scenario.get("case_name_th") or scenario.get("case_name_en"))
+        case_name = _normalize_text(
+            scenario.get("case_name_th") or scenario.get("case_name_en")
+        )
         keywords = _normalize_text(scenario.get("keywords"))
-        keywords_short = ", ".join([x.strip() for x in keywords.split(",") if x.strip()][:3])
+        keywords_short = ", ".join(
+            [x.strip() for x in keywords.split(",") if x.strip()][:3]
+        )
         hint = f" อาการประมาณ: {keywords_short}" if keywords_short else ""
         return {
             "calm": f"สวัสดีครับ ช่วยแนะนำปฐมพยาบาลเบื้องต้นกรณี{case_name}หน่อยครับ{hint}",
@@ -133,7 +137,6 @@ class PromptGenerationAgent:
     def _build_prompts(self, scenario: Dict[str, Any]) -> Tuple[str, str]:
         case_name_th = _normalize_text(scenario.get("case_name_th"))
         case_name_en = _normalize_text(scenario.get("case_name_en"))
-        keywords = _normalize_text(scenario.get("keywords"))
         instructions = _normalize_text(scenario.get("instructions"))[:1400]
         severity = _normalize_text(scenario.get("severity"))
         facility_type = _normalize_text(scenario.get("facility_type"))
@@ -158,7 +161,7 @@ class PromptGenerationAgent:
             f"- expected_facility_type: {facility_type}\n"
             f"- reference_instructions: {instructions}\n\n"
             "Return strict JSON only:\n"
-            "{\"calm\":\"...\",\"misspelled\":\"...\",\"panic\":\"...\"}"
+            '{"calm":"...","misspelled":"...","panic":"..."}'
         )
         return system_prompt, user_prompt
 
@@ -207,10 +210,14 @@ class PromptGenerationAgent:
         except Exception as exc:
             return "", f"{responses_error}; {exc}"
 
-    def generate_prompts(self, scenario: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, Any]]:
+    def generate_prompts(
+        self, scenario: Dict[str, Any]
+    ) -> Tuple[Dict[str, str], Dict[str, Any]]:
         fallback = self._fallback_prompts(scenario)
         system_prompt, user_prompt = self._build_prompts(scenario)
-        raw_text, call_error = self._call_openai(system_prompt=system_prompt, user_prompt=user_prompt)
+        raw_text, call_error = self._call_openai(
+            system_prompt=system_prompt, user_prompt=user_prompt
+        )
         parsed = _parse_json_object(raw_text) if raw_text else None
 
         out = dict(fallback)
@@ -278,11 +285,15 @@ class FacilityLogWriter:
             bucket["records"].append(
                 {
                     "run_id": run_record.get("run_id"),
-                    "scenario_case_name": ((run_record.get("scenario") or {}).get("case_name_th")),
+                    "scenario_case_name": (
+                        (run_record.get("scenario") or {}).get("case_name_th")
+                    ),
                     "style": run_record.get("style"),
                     "prompt": run_record.get("prompt"),
                     "severity": ((run_record.get("workflow") or {}).get("severity")),
-                    "facility_type": ((run_record.get("workflow") or {}).get("facility_type")),
+                    "facility_type": (
+                        (run_record.get("workflow") or {}).get("facility_type")
+                    ),
                     "route": ((run_record.get("workflow") or {}).get("route")),
                     "judge_mode": run_record.get("judge_mode"),
                     "timestamp": run_record.get("timestamp"),
@@ -297,11 +308,15 @@ class FacilityLogWriter:
             bucket["records"].append(
                 {
                     "run_id": run_record.get("run_id"),
-                    "scenario_case_name": ((run_record.get("scenario") or {}).get("case_name_th")),
+                    "scenario_case_name": (
+                        (run_record.get("scenario") or {}).get("case_name_th")
+                    ),
                     "style": run_record.get("style"),
                     "prompt": run_record.get("prompt"),
                     "severity": ((run_record.get("workflow") or {}).get("severity")),
-                    "facility_type": ((run_record.get("workflow") or {}).get("facility_type")),
+                    "facility_type": (
+                        (run_record.get("workflow") or {}).get("facility_type")
+                    ),
                     "route": ((run_record.get("workflow") or {}).get("route")),
                     "judge_mode": run_record.get("judge_mode"),
                     "facility": facility,
@@ -377,7 +392,9 @@ def _build_summary(run_records: List[Dict[str, Any]]) -> Dict[str, Any]:
         route_counts[route] = route_counts.get(route, 0) + 1
 
         facility_type = _normalize_text(workflow.get("facility_type")) or "unknown"
-        facility_type_counts[facility_type] = facility_type_counts.get(facility_type, 0) + 1
+        facility_type_counts[facility_type] = (
+            facility_type_counts.get(facility_type, 0) + 1
+        )
 
         if style in style_counts:
             style_counts[style] += 1
@@ -486,7 +503,10 @@ def main() -> int:
     if args.strict_preflight and not bool(observability_status.get("enabled")):
         print("Preflight failed: observability is not enabled.", file=sys.stderr)
         if observability_status.get("error"):
-            print(f"Observability error: {observability_status.get('error')}", file=sys.stderr)
+            print(
+                f"Observability error: {observability_status.get('error')}",
+                file=sys.stderr,
+            )
         return 3
 
     catalog_path = Path(args.catalog).resolve()
@@ -503,7 +523,9 @@ def main() -> int:
         scenario_filter=_normalize_text(args.scenario_filter),
     )
     if not selected_scenarios:
-        print("No scenarios selected. Adjust --start-index/--max-scenarios/--scenario-filter.")
+        print(
+            "No scenarios selected. Adjust --start-index/--max-scenarios/--scenario-filter."
+        )
         return 1
 
     workflow = ByStanderWorkflow()
@@ -540,7 +562,9 @@ def main() -> int:
 
     for scenario_index, scenario in enumerate(selected_scenarios, start=1):
         prompts_by_style, prompt_meta = prompt_agent.generate_prompts(scenario)
-        case_name = _normalize_text(scenario.get("case_name_th") or scenario.get("case_name_en"))
+        case_name = _normalize_text(
+            scenario.get("case_name_th") or scenario.get("case_name_en")
+        )
         print(f"[{scenario_index}/{len(selected_scenarios)}] scenario: {case_name}")
 
         for style in STYLE_KEYS:
@@ -619,7 +643,9 @@ def main() -> int:
         "facility_log_files": facility_files,
         "total_facility_files": len(facility_files),
     }
-    facility_index_path = output_dir / f"{args.output_prefix}_{timestamp}_facility_index.json"
+    facility_index_path = (
+        output_dir / f"{args.output_prefix}_{timestamp}_facility_index.json"
+    )
     with facility_index_path.open("w", encoding="utf-8") as f:
         json.dump(facility_index_payload, f, ensure_ascii=False, indent=2)
 

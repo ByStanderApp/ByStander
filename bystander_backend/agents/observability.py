@@ -76,6 +76,7 @@ def observe(*args, **kwargs):
     """
 
     if _langfuse_observe is None:
+
         def _noop_decorator(func: Callable):
             return func
 
@@ -107,19 +108,25 @@ def record_exception(exc: Exception) -> None:
 
 
 def _build_langfuse_auth_header(public_key: str, secret_key: str) -> str:
-    token = base64.b64encode(f"{public_key}:{secret_key}".encode("utf-8")).decode("utf-8")
+    token = base64.b64encode(f"{public_key}:{secret_key}".encode("utf-8")).decode(
+        "utf-8"
+    )
     return f"Basic {token}"
 
 
 def _clean_env(value: str) -> str:
     v = (value or "").strip()
-    if len(v) >= 2 and ((v[0] == '"' and v[-1] == '"') or (v[0] == "'" and v[-1] == "'")):
+    if len(v) >= 2 and (
+        (v[0] == '"' and v[-1] == '"') or (v[0] == "'" and v[-1] == "'")
+    ):
         v = v[1:-1].strip()
     return v
 
 
 def _resolve_ca_bundle() -> str:
-    explicit = _clean_env(os.getenv("SSL_CERT_FILE") or os.getenv("REQUESTS_CA_BUNDLE") or "")
+    explicit = _clean_env(
+        os.getenv("SSL_CERT_FILE") or os.getenv("REQUESTS_CA_BUNDLE") or ""
+    )
     if explicit and os.path.exists(explicit):
         return explicit
     if certifi is not None:
@@ -156,7 +163,9 @@ def _probe_langfuse_auth(
         elif ca_bundle:
             ssl_context = ssl.create_default_context(cafile=ca_bundle)
 
-        with urllib_request.urlopen(req, timeout=timeout_sec, context=ssl_context) as resp:
+        with urllib_request.urlopen(
+            req, timeout=timeout_sec, context=ssl_context
+        ) as resp:
             code = int(getattr(resp, "status", 0) or 0)
             if 200 <= code < 300:
                 return True, f"ok ({code})"
@@ -174,7 +183,9 @@ def _probe_langfuse_auth(
         return False, f"probe_error: {exc}"
 
 
-def init_observability(service_name: str = "bystander-agent-workflow") -> Dict[str, Any]:
+def init_observability(
+    service_name: str = "bystander-agent-workflow",
+) -> Dict[str, Any]:
     """
     Initialize OpenTelemetry and export traces to Langfuse OTEL endpoint.
     Also instruments Vertex AI calls via OpenInference VertexAIInstrumentor.
@@ -200,7 +211,9 @@ def init_observability(service_name: str = "bystander-agent-workflow") -> Dict[s
             return dict(_STATUS)
 
         endpoint = f"{host}/api/public/otel/v1/traces"
-        insecure_tls = _clean_env(os.getenv("LANGFUSE_OTEL_INSECURE_TLS") or "").lower() in {
+        insecure_tls = _clean_env(
+            os.getenv("LANGFUSE_OTEL_INSECURE_TLS") or ""
+        ).lower() in {
             "1",
             "true",
             "yes",

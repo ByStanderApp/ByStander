@@ -207,8 +207,12 @@ def main() -> int:
         json.dump(output_payload, f, ensure_ascii=False, indent=2)
 
     print(f"Catalog path: {catalog_path}")
-    print(f"Available: critical={len(pools['critical'])}, non_critical={len(pools['non_critical'])}, not_emergency={len(pools['not_emergency'])}")
-    print(f"Requested: critical={targets['critical']}, non_critical={targets['non_critical']}, not_emergency={targets['not_emergency']}")
+    print(
+        f"Available: critical={len(pools['critical'])}, non_critical={len(pools['non_critical'])}, not_emergency={len(pools['not_emergency'])}"
+    )
+    print(
+        f"Requested: critical={targets['critical']}, non_critical={targets['non_critical']}, not_emergency={targets['not_emergency']}"
+    )
     print(f"Selected total: {len(selected)}")
     if any(v > 0 for v in shortages.values()):
         print(

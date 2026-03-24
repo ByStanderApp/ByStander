@@ -201,7 +201,9 @@ def _build_analysis(
     total_judge_records = 0
     matched_prompt_set: Set[str] = set()
 
-    records_by_source = {key: len(value) for key, value in judge_records_by_source.items()}
+    records_by_source = {
+        key: len(value) for key, value in judge_records_by_source.items()
+    }
     matched_records_by_source = defaultdict(int)
 
     for source, records in judge_records_by_source.items():

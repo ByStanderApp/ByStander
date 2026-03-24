@@ -108,16 +108,24 @@ def _model_candidates(model_name: str) -> list[str]:
 
 class GeminiJSONAgent:
     def __init__(self) -> None:
-        self.api_key = _normalize_text(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
-        self.client = genai.Client(api_key=self.api_key) if self.api_key and genai else None
+        self.api_key = _normalize_text(
+            os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        )
+        self.client = (
+            genai.Client(api_key=self.api_key) if self.api_key and genai else None
+        )
         self.vertex_project = _normalize_text(os.getenv("GOOGLE_CLOUD_PROJECT"))
         self.vertex_location = _normalize_text(
-            os.getenv("VERTEX_RAG_LOCATION") or os.getenv("VERTEX_LOCATION") or "us-central1"
+            os.getenv("VERTEX_RAG_LOCATION")
+            or os.getenv("VERTEX_LOCATION")
+            or "us-central1"
         )
         self.vertex_enabled = False
         if vertexai and GenerativeModel and self.vertex_project:
             try:
-                vertexai.init(project=self.vertex_project, location=self.vertex_location)
+                vertexai.init(
+                    project=self.vertex_project, location=self.vertex_location
+                )
                 self.vertex_enabled = True
             except Exception as exc:
                 record_exception(exc)
@@ -145,7 +153,11 @@ class GeminiJSONAgent:
         user_prompt: str,
         temperature: float,
     ) -> str:
-        if not self.vertex_enabled or GenerativeModel is None or GenerationConfig is None:
+        if (
+            not self.vertex_enabled
+            or GenerativeModel is None
+            or GenerationConfig is None
+        ):
             raise RuntimeError("Vertex AI Gemini SDK is not available")
 
         model = GenerativeModel(
@@ -227,7 +239,9 @@ class TriageAgent:
 
     def __init__(self, llm: GeminiJSONAgent) -> None:
         self.llm = llm
-        self.model_name = _normalize_text(os.getenv("TRIAGE_MODEL")) or "gemini-2.5-flash"
+        self.model_name = (
+            _normalize_text(os.getenv("TRIAGE_MODEL")) or "gemini-2.5-flash"
+        )
 
     @observe()
     def run(self, scenario: str) -> Dict[str, Any]:
@@ -261,7 +275,9 @@ class TriageAgent:
         sev = _normalize_text(out.get("severity", "moderate")).lower()
         out["severity"] = sev if sev in {"critical", "moderate", "none"} else "moderate"
         fac = _normalize_text(out.get("facility_type", "clinic")).lower()
-        out["facility_type"] = fac if fac in {"hospital", "clinic", "none"} else "clinic"
+        out["facility_type"] = (
+            fac if fac in {"hospital", "clinic", "none"} else "clinic"
+        )
         out["reason_th"] = _normalize_text(out.get("reason_th")) or default["reason_th"]
         return out
 
@@ -272,19 +288,31 @@ class GuidanceAgent:
     def __init__(self, llm: GeminiJSONAgent) -> None:
         self.llm = llm
         default_guidance_model = "gemini-2.5-flash"
-        self.critical_model = _normalize_text(os.getenv("GUIDANCE_CRITICAL_MODEL")) or default_guidance_model
-        self.moderate_model = _normalize_text(os.getenv("GUIDANCE_MODERATE_MODEL")) or default_guidance_model
-        self.deepseek_model = _normalize_text(os.getenv("DEEPSEEK_FAST_MODEL")) or "deepseek-chat"
+        self.critical_model = (
+            _normalize_text(os.getenv("GUIDANCE_CRITICAL_MODEL"))
+            or default_guidance_model
+        )
+        self.moderate_model = (
+            _normalize_text(os.getenv("GUIDANCE_MODERATE_MODEL"))
+            or default_guidance_model
+        )
+        self.deepseek_model = (
+            _normalize_text(os.getenv("DEEPSEEK_FAST_MODEL")) or "deepseek-chat"
+        )
         self.deepseek_key = _normalize_text(os.getenv("DEEPSEEK_KEY"))
         self.deepseek_client = None
         if self.deepseek_key and OpenAI is not None:
             try:
-                self.deepseek_client = OpenAI(api_key=self.deepseek_key, base_url="https://api.deepseek.com")
+                self.deepseek_client = OpenAI(
+                    api_key=self.deepseek_key, base_url="https://api.deepseek.com"
+                )
             except Exception as exc:
                 record_exception(exc)
 
     @staticmethod
-    def _clean_rag_snippets(rag_context: str, max_snippets: int = 6, max_chars: int = 1600) -> str:
+    def _clean_rag_snippets(
+        rag_context: str, max_snippets: int = 6, max_chars: int = 1600
+    ) -> str:
         text = _normalize_text(rag_context)
         if not text:
             return ""
@@ -298,7 +326,9 @@ class GuidanceAgent:
                 if not ln:
                     continue
                 lower = ln.lower()
-                if lower.startswith("[protocol") or lower.startswith("[vertex protocol"):
+                if lower.startswith("[protocol") or lower.startswith(
+                    "[vertex protocol"
+                ):
                     continue
                 if lower.startswith("- keywords:"):
                     continue
@@ -325,7 +355,9 @@ class GuidanceAgent:
         return merged
 
     @observe()
-    def _run_noncritical_deepseek(self, scenario: str, rag_context: str) -> Dict[str, Any]:
+    def _run_noncritical_deepseek(
+        self, scenario: str, rag_context: str
+    ) -> Dict[str, Any]:
         default = {
             "guidance": (
                 "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
@@ -343,7 +375,7 @@ class GuidanceAgent:
         system_prompt = (
             "You are a Thai emergency first-aid assistant. "
             "Use retrieved medical snippets as the highest-priority source. "
-            "Return strict JSON only: {\"guidance\":\"...\",\"facility_type\":\"hospital|clinic|none\"}. "
+            'Return strict JSON only: {"guidance":"...","facility_type":"hospital|clinic|none"}. '
             "Guidance must be concise, numbered Thai steps, readable by layperson."
         )
         user_prompt = (
@@ -376,7 +408,9 @@ class GuidanceAgent:
 
     @observe()
     def run(self, scenario: str, severity: str, rag_context: str) -> Dict[str, Any]:
-        model_name = self.critical_model if severity == "critical" else self.moderate_model
+        model_name = (
+            self.critical_model if severity == "critical" else self.moderate_model
+        )
         default = {
             "guidance": (
                 "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
@@ -420,8 +454,14 @@ class GuidanceAgent:
                 temperature=0.15,
             )
         out["guidance"] = _normalize_text(out.get("guidance")) or default["guidance"]
-        facility = _normalize_text(out.get("facility_type", default["facility_type"])).lower()
-        out["facility_type"] = facility if facility in {"hospital", "clinic", "none"} else default["facility_type"]
+        facility = _normalize_text(
+            out.get("facility_type", default["facility_type"])
+        ).lower()
+        out["facility_type"] = (
+            facility
+            if facility in {"hospital", "clinic", "none"}
+            else default["facility_type"]
+        )
         return out
 
 
@@ -430,7 +470,9 @@ class ScriptAgent:
 
     def __init__(self, llm: GeminiJSONAgent) -> None:
         self.llm = llm
-        self.model_name = _normalize_text(os.getenv("SCRIPT_MODEL")) or "gemini-2.5-flash"
+        self.model_name = (
+            _normalize_text(os.getenv("SCRIPT_MODEL")) or "gemini-2.5-flash"
+        )
 
     @observe()
     def run(

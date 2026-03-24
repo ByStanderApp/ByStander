@@ -126,12 +126,16 @@ class ProtocolRetriever:
 
     def __init__(self, csv_path: Optional[str] = None) -> None:
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        self.csv_path = csv_path or os.path.join(base_dir, "finetuning", "instructions_raw_final.csv")
+        self.csv_path = csv_path or os.path.join(
+            base_dir, "finetuning", "instructions_raw_final.csv"
+        )
         self.rows = self._load_rows()
         self.vertex_project = _normalize_text(os.getenv("GOOGLE_CLOUD_PROJECT"))
         self.vertex_project_number = _normalize_text(os.getenv("VERTEX_PROJECT_NUMBER"))
         self.vertex_location = _normalize_text(os.getenv("VERTEX_LOCATION") or "global")
-        self.rag_location = _normalize_text(os.getenv("VERTEX_RAG_LOCATION") or "us-east1")
+        self.rag_location = _normalize_text(
+            os.getenv("VERTEX_RAG_LOCATION") or "us-east1"
+        )
         self.rag_corpus_display_name = _normalize_text(
             os.getenv("VERTEX_RAG_CORPUS_NAME") or "ByStander Rag Corpus"
         )
@@ -143,7 +147,9 @@ class ProtocolRetriever:
             self.rag_similarity_top_k_default = int(rag_top_k_raw)
         except Exception:
             self.rag_similarity_top_k_default = 8
-        rag_threshold_raw = _normalize_text(os.getenv("VERTEX_RAG_VECTOR_DISTANCE_THRESHOLD"))
+        rag_threshold_raw = _normalize_text(
+            os.getenv("VERTEX_RAG_VECTOR_DISTANCE_THRESHOLD")
+        )
         self.rag_vector_distance_threshold = _safe_float(rag_threshold_raw)
         self.last_vertex_error: str = ""
         self.last_vertex_attempts: List[Dict[str, str]] = []
@@ -167,7 +173,9 @@ class ProtocolRetriever:
                         "keywords": _normalize_text(row.get("Keywords", "")),
                         "instructions": _normalize_text(row.get("Instructions", "")),
                         "severity": _normalize_text(row.get("severity", "")).lower(),
-                        "facility_type": _normalize_text(row.get("facility_type", "")).lower(),
+                        "facility_type": _normalize_text(
+                            row.get("facility_type", "")
+                        ).lower(),
                     }
                 )
         return out
@@ -249,12 +257,12 @@ class ProtocolRetriever:
             if target in display.lower():
                 return _normalize_text(getattr(corpus, "name", ""))
 
-        self.last_vertex_error = (
-            f"RAG corpus '{self.rag_corpus_display_name}' not found in {self.rag_project}/{self.rag_location}"
-        )
+        self.last_vertex_error = f"RAG corpus '{self.rag_corpus_display_name}' not found in {self.rag_project}/{self.rag_location}"
         return ""
 
-    def _search_vertex(self, query: str, severity: str, top_k: int) -> List[Dict[str, str]]:
+    def _search_vertex(
+        self, query: str, severity: str, top_k: int
+    ) -> List[Dict[str, str]]:
         if not self.rag_initialized:
             if not self.last_vertex_error:
                 self.last_vertex_error = "RAG engine is not initialized"
@@ -282,7 +290,11 @@ class ProtocolRetriever:
             if severity:
                 scoped_query = f"{query}\nseverity:{severity}"
 
-            query_top_k = top_k if isinstance(top_k, int) and top_k > 0 else self.rag_similarity_top_k_default
+            query_top_k = (
+                top_k
+                if isinstance(top_k, int) and top_k > 0
+                else self.rag_similarity_top_k_default
+            )
             final_top_k = max(1, min(query_top_k, 20))
             retrieval_config_kwargs: Dict[str, Any] = {"top_k": final_top_k}
             if self.rag_vector_distance_threshold is not None:
@@ -368,7 +380,9 @@ class ProtocolRetriever:
         return result["context"]
 
     @observe()
-    def retrieve_with_meta(self, query: str, severity: str, top_k: int = 3) -> Dict[str, Any]:
+    def retrieve_with_meta(
+        self, query: str, severity: str, top_k: int = 3
+    ) -> Dict[str, Any]:
         # Primary: Vertex AI RAG Engine retrieval (if configured and available).
         vertex_docs = self._search_vertex(query=query, severity=severity, top_k=top_k)
         if vertex_docs:
@@ -418,7 +432,9 @@ class ProtocolRetriever:
             "vertex_attempts": self.last_vertex_attempts,
         }
 
-    def debug_vertex_status(self, scenario: str, severity: str, top_k: int = 3) -> Dict[str, Any]:
+    def debug_vertex_status(
+        self, scenario: str, severity: str, top_k: int = 3
+    ) -> Dict[str, Any]:
         query = _normalize_text(scenario)
         sev = _normalize_text(severity).lower() or "moderate"
         if sev not in {"critical", "moderate", "none"}:
@@ -468,7 +484,9 @@ class ProtocolRetriever:
                 "source": result.get("source", "none"),
                 "count": int(result.get("count", 0) or 0),
                 "vertex_error": result.get("vertex_error", self.last_vertex_error),
-                "vertex_attempts": result.get("vertex_attempts", self.last_vertex_attempts),
+                "vertex_attempts": result.get(
+                    "vertex_attempts", self.last_vertex_attempts
+                ),
                 "context_preview": _normalize_text(result.get("context", ""))[:1200],
             }
         )
@@ -496,7 +514,9 @@ class ProtocolRetriever:
                 details["corpora"].append(
                     {
                         "name": _normalize_text(getattr(corpus, "name", "")),
-                        "display_name": _normalize_text(getattr(corpus, "display_name", "")),
+                        "display_name": _normalize_text(
+                            getattr(corpus, "display_name", "")
+                        ),
                     }
                 )
         except Exception as exc:
@@ -510,7 +530,9 @@ class ProtocolRetriever:
 class MapAgent:
     def __init__(self) -> None:
         self.validator_llm = GeminiJSONAgent()
-        self.validator_model = _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or "gemini-2.0-flash-lite"
+        self.validator_model = (
+            _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or "gemini-2.0-flash-lite"
+        )
 
     def _get_google_maps_api_key(self) -> Optional[str]:
         return _normalize_text(os.getenv("GOOGLE_MAPS_API_KEY")) or None
@@ -541,7 +563,9 @@ class MapAgent:
             "การแพทย์",
         }
         type_signals = {"hospital", "doctor", "health"}
-        return any(t in types_list for t in type_signals) or any(tok in name for tok in name_tokens)
+        return any(t in types_list for t in type_signals) or any(
+            tok in name for tok in name_tokens
+        )
 
     @staticmethod
     def _is_non_treatment_business(place: Dict[str, Any]) -> bool:
@@ -572,7 +596,9 @@ class MapAgent:
         }
         return any(tok in name for tok in bad_name_tokens)
 
-    def _build_query_plan(self, facility_type: str, severity: str) -> List[Dict[str, Any]]:
+    def _build_query_plan(
+        self, facility_type: str, severity: str
+    ) -> List[Dict[str, Any]]:
         fac = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
         if fac == "hospital" or severity == "critical":
             return [
@@ -761,7 +787,9 @@ class MapAgent:
                 parts.append(f"สถานพยาบาลใกล้เคียง: {', '.join(nearby_refs)}")
         return "\n".join(parts)
 
-    def _strict_filter(self, place: Dict[str, Any], requested_facility_type: str) -> str:
+    def _strict_filter(
+        self, place: Dict[str, Any], requested_facility_type: str
+    ) -> str:
         if self._is_veterinary_place(place):
             return "reject"
         if self._is_non_treatment_business(place):
@@ -875,8 +903,8 @@ class MapAgent:
             "For requested type hospital, only hospitals are valid.\n"
             "For requested type clinic, hospitals and doctor/clinic facilities are valid.\n"
             "Return JSON schema exactly: "
-            "{\"items\":[{\"place_id\":\"...\",\"is_valid\":true|false,"
-            "\"facility_type\":\"hospital|clinic|other\",\"reason\":\"short\"}]}\n\n"
+            '{"items":[{"place_id":"...","is_valid":true|false,'
+            '"facility_type":"hospital|clinic|other","reason":"short"}]}\n\n'
             f"Candidates:\n{json.dumps(serialized_places, ensure_ascii=False)}"
         )
 
@@ -901,8 +929,12 @@ class MapAgent:
         severity: str,
         scenario: str = "",
     ) -> Dict[str, Any]:
-        requested = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
-        map_severity = severity if severity in {"critical", "moderate", "mild", "none"} else "none"
+        requested = (
+            facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        )
+        map_severity = (
+            severity if severity in {"critical", "moderate", "mild", "none"} else "none"
+        )
 
         all_candidates: List[Dict[str, Any]] = []
         errors: List[str] = []
@@ -975,7 +1007,9 @@ class MapAgent:
                     "website": _normalize_text(details.get("website")),
                     "rating": float(place.get("rating", 0) or 0),
                     "user_ratings_total": int(place.get("user_ratings_total", 0) or 0),
-                    "open_now": (place.get("opening_hours") or {}).get("open_now", None),
+                    "open_now": (place.get("opening_hours") or {}).get(
+                        "open_now", None
+                    ),
                     "latitude": f_lat,
                     "longitude": f_lon,
                     "types": place.get("types", []),
@@ -995,7 +1029,9 @@ class MapAgent:
             return []
 
         map_severity = "critical" if severity == "critical" else "mild"
-        fac_type = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        fac_type = (
+            facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        )
         result = self.search_nearby_facilities(
             latitude=latitude,
             longitude=longitude,
@@ -1053,7 +1089,9 @@ class FirebaseProfileService:
 
         try:
             if not firebase_admin._apps:
-                service_account_path = _normalize_text(os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH"))
+                service_account_path = _normalize_text(
+                    os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+                )
                 if service_account_path and os.path.exists(service_account_path):
                     cred = credentials.Certificate(service_account_path)
                     firebase_admin.initialize_app(cred)
@@ -1077,7 +1115,9 @@ class FirebaseProfileService:
                 profile["firstName"] = data.get("firstName") or ""
                 profile["lastName"] = data.get("lastName") or ""
                 profile["gender"] = data.get("gender") or ""
-                profile["birthdate"] = data.get("birthdate") or data.get("dateOfBirth") or ""
+                profile["birthdate"] = (
+                    data.get("birthdate") or data.get("dateOfBirth") or ""
+                )
                 profile["phone"] = data.get("tel") or data.get("phone") or ""
         except Exception:
             pass
@@ -1175,14 +1215,14 @@ class ByStanderWorkflow:
             }
 
         try:
-            rag_result = self.retriever.retrieve_with_meta(query=scenario, severity=severity)
+            rag_result = self.retriever.retrieve_with_meta(
+                query=scenario, severity=severity
+            )
             rag_context = _normalize_text(rag_result.get("context"))
         except Exception as exc:
             record_exception(exc)
             rag_result = {"source": "none", "count": 0}
-            rag_context = (
-                "ไม่มีบริบทจาก RAG ชั่วคราว ให้ยึดหลักความปลอดภัย ประเมินพื้นที่ และโทร 1669 เมื่อเป็นเหตุฉุกเฉิน"
-            )
+            rag_context = "ไม่มีบริบทจาก RAG ชั่วคราว ให้ยึดหลักความปลอดภัย ประเมินพื้นที่ และโทร 1669 เมื่อเป็นเหตุฉุกเฉิน"
         try:
             guidance_result = self.guidance_agent.run(
                 scenario=scenario,
@@ -1217,19 +1257,27 @@ class ByStanderWorkflow:
         )
 
         legacy_user_id = _normalize_text(payload.get("user_id"))
-        target_user_id = _normalize_text(payload.get("target_user_id")) or legacy_user_id
-        caller_user_id = _normalize_text(payload.get("caller_user_id")) or legacy_user_id
+        target_user_id = (
+            _normalize_text(payload.get("target_user_id")) or legacy_user_id
+        )
+        caller_user_id = (
+            _normalize_text(payload.get("caller_user_id")) or legacy_user_id
+        )
         if not target_user_id:
             target_user_id = caller_user_id
         if not caller_user_id:
             caller_user_id = target_user_id
 
         patient_profile = (
-            self.profile_service.get_user_profile(user_id=target_user_id) if target_user_id else {}
+            self.profile_service.get_user_profile(user_id=target_user_id)
+            if target_user_id
+            else {}
         )
         caller_profile: Dict[str, Any] = {}
         if caller_user_id and caller_user_id != target_user_id:
-            caller_profile = self.profile_service.get_user_profile(user_id=caller_user_id)
+            caller_profile = self.profile_service.get_user_profile(
+                user_id=caller_user_id
+            )
 
         location_context = self.map_agent.build_location_context(
             latitude=latitude,
