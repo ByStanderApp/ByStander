@@ -1,3 +1,4 @@
+import asyncio
 import csv
 import json
 import math
@@ -5,6 +6,7 @@ import os
 import re
 import sys
 import types
+from functools import partial
 from typing import Any
 
 from dotenv import load_dotenv
@@ -1116,6 +1118,233 @@ class FirebaseProfileService:
             pass
         return profile
 
+    def get_medical_network(self, user_id: str) -> dict[str, Any]:
+        if not self.available or not user_id:
+            return {"owner": {}, "friends": []}
+
+        owner = self.get_user_profile(user_id)
+        friends: list[dict[str, Any]] = []
+        try:
+            db = self.firestore.client()
+            friend_docs = (
+                db.collection("users").document(user_id).collection("friends").limit(10).stream()
+            )
+            for doc in friend_docs:
+                data = doc.to_dict() or {}
+                friend_uid = _normalize_text(doc.id)
+                if not friend_uid:
+                    continue
+                friend_profile = self.get_user_profile(friend_uid)
+                friends.append(
+                    {
+                        "uid": friend_uid,
+                        "name": " ".join(
+                            [
+                                _normalize_text(data.get("otherFirstName"))
+                                or _normalize_text(friend_profile.get("firstName")),
+                                _normalize_text(data.get("otherLastName"))
+                                or _normalize_text(friend_profile.get("lastName")),
+                            ]
+                        ).strip(),
+                        "relationship": _normalize_text(data.get("relationship")),
+                        "gender": _normalize_text(friend_profile.get("gender")),
+                        "medicalCondition": friend_profile.get("medicalCondition") or [],
+                        "allergies": friend_profile.get("allergies") or [],
+                        "immunizations": friend_profile.get("immunizations") or [],
+                    }
+                )
+        except Exception:
+            pass
+        return {"owner": owner, "friends": friends}
+
+
+def _normalize_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [_normalize_text(x) for x in value if _normalize_text(x)]
+
+
+def _full_name(first_name: Any, last_name: Any) -> str:
+    return " ".join([_normalize_text(first_name), _normalize_text(last_name)]).strip()
+
+
+def _merge_history(*groups: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for group in groups:
+        for value in group:
+            key = value.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(value)
+    return out
+
+
+def _medical_context_has_history(medical_context: dict[str, Any] | None) -> bool:
+    if not isinstance(medical_context, dict):
+        return False
+    individuals = medical_context.get("individuals")
+    if not isinstance(individuals, list):
+        return False
+    for item in individuals:
+        if not isinstance(item, dict):
+            continue
+        if (
+            _normalize_list(item.get("conditions"))
+            or _normalize_list(item.get("allergies"))
+            or _normalize_list(item.get("immunizations"))
+        ):
+            return True
+    return False
+
+
+def _infer_pronoun(relationship: str, gender: str = "") -> str:
+    rel = _normalize_text(relationship).lower()
+    sex = _normalize_text(gender).lower()
+    if rel in {"แม่", "มารดา", "ภรรยา", "wife", "mother", "mom", "female"}:
+        return "she"
+    if rel in {"พ่อ", "บิดา", "สามี", "husband", "father", "dad", "male"}:
+        return "he"
+    if sex in {"female", "หญิง"}:
+        return "she"
+    if sex in {"male", "ชาย"}:
+        return "he"
+    return "they"
+
+
+def _normalize_medical_context_payload(
+    raw: Any, caller_user_id: str, target_user_id: str
+) -> dict[str, Any]:
+    if not isinstance(raw, dict):
+        return {"individuals": []}
+    individuals = raw.get("individuals")
+    if not isinstance(individuals, list):
+        return {"individuals": []}
+    normalized: list[dict[str, Any]] = []
+    for item in individuals:
+        if not isinstance(item, dict):
+            continue
+        uid = _normalize_text(item.get("uid"))
+        normalized.append(
+            {
+                "uid": uid,
+                "name": _normalize_text(item.get("name")) or "Unknown",
+                "relationship": _normalize_text(item.get("relationship")),
+                "pronoun": _normalize_text(item.get("pronoun"))
+                or _infer_pronoun(
+                    _normalize_text(item.get("relationship")),
+                    _normalize_text(item.get("gender")),
+                ),
+                "conditions": _normalize_list(item.get("conditions")),
+                "allergies": _normalize_list(item.get("allergies")),
+                "immunizations": _normalize_list(item.get("immunizations")),
+                "is_caller": bool(item.get("is_caller")) or (uid and uid == caller_user_id),
+                "is_target": bool(item.get("is_target")) or (uid and uid == target_user_id),
+            }
+        )
+    return {"individuals": normalized}
+
+
+def _build_medical_context_from_network(
+    network: dict[str, Any], caller_user_id: str, target_user_id: str
+) -> dict[str, Any]:
+    owner = network.get("owner") if isinstance(network, dict) else {}
+    friends = network.get("friends") if isinstance(network, dict) else []
+    individuals: list[dict[str, Any]] = []
+    if isinstance(owner, dict) and caller_user_id:
+        individuals.append(
+            {
+                "uid": caller_user_id,
+                "name": _full_name(owner.get("firstName"), owner.get("lastName")) or "User",
+                "relationship": "self" if caller_user_id == target_user_id else "",
+                "pronoun": _infer_pronoun("", _normalize_text(owner.get("gender"))),
+                "conditions": _normalize_list(owner.get("medicalCondition")),
+                "allergies": _normalize_list(owner.get("allergies")),
+                "immunizations": _normalize_list(owner.get("immunizations")),
+                "is_caller": True,
+                "is_target": caller_user_id == target_user_id,
+            }
+        )
+    if isinstance(friends, list):
+        for friend in friends:
+            if not isinstance(friend, dict):
+                continue
+            uid = _normalize_text(friend.get("uid"))
+            if not uid:
+                continue
+            individuals.append(
+                {
+                    "uid": uid,
+                    "name": _normalize_text(friend.get("name")) or "Friend",
+                    "relationship": _normalize_text(friend.get("relationship")),
+                    "pronoun": _infer_pronoun(
+                        _normalize_text(friend.get("relationship")),
+                        _normalize_text(friend.get("gender")),
+                    ),
+                    "conditions": _normalize_list(friend.get("medicalCondition")),
+                    "allergies": _normalize_list(friend.get("allergies")),
+                    "immunizations": _normalize_list(friend.get("immunizations")),
+                    "is_caller": uid == caller_user_id,
+                    "is_target": uid == target_user_id,
+                }
+            )
+    return {"individuals": individuals}
+
+
+def _merge_medical_context(
+    primary: dict[str, Any] | None, secondary: dict[str, Any] | None
+) -> dict[str, Any]:
+    merged: dict[str, dict[str, Any]] = {}
+    for source in [secondary or {}, primary or {}]:
+        individuals = source.get("individuals")
+        if not isinstance(individuals, list):
+            continue
+        for item in individuals:
+            if not isinstance(item, dict):
+                continue
+            uid = _normalize_text(item.get("uid")) or _normalize_text(item.get("name"))
+            if not uid:
+                continue
+            current = merged.get(uid, {})
+            merged[uid] = {
+                "uid": _normalize_text(item.get("uid")),
+                "name": _normalize_text(item.get("name")) or _normalize_text(current.get("name")),
+                "relationship": _normalize_text(item.get("relationship"))
+                or _normalize_text(current.get("relationship")),
+                "pronoun": _normalize_text(item.get("pronoun"))
+                or _normalize_text(current.get("pronoun"))
+                or "they",
+                "conditions": _merge_history(
+                    _normalize_list(current.get("conditions")),
+                    _normalize_list(item.get("conditions")),
+                ),
+                "allergies": _merge_history(
+                    _normalize_list(current.get("allergies")),
+                    _normalize_list(item.get("allergies")),
+                ),
+                "immunizations": _merge_history(
+                    _normalize_list(current.get("immunizations")),
+                    _normalize_list(item.get("immunizations")),
+                ),
+                "is_caller": bool(current.get("is_caller")) or bool(item.get("is_caller")),
+                "is_target": bool(current.get("is_target")) or bool(item.get("is_target")),
+            }
+    return {"individuals": list(merged.values())}
+
+
+def _select_target_person(medical_context: dict[str, Any], target_user_id: str) -> dict[str, Any]:
+    individuals = medical_context.get("individuals") if isinstance(medical_context, dict) else []
+    if isinstance(individuals, list):
+        for item in individuals:
+            if not isinstance(item, dict):
+                continue
+            if target_user_id and _normalize_text(item.get("uid")) == target_user_id:
+                return item
+            if bool(item.get("is_target")):
+                return item
+    return {}
+
 
 class ByStanderWorkflow:
     def __init__(self) -> None:
@@ -1130,20 +1359,151 @@ class ByStanderWorkflow:
 
     @observe()
     def run(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return asyncio.run(self.run_async(payload))
+
+    async def _run_blocking_with_timeout(
+        self,
+        func: Any,
+        *args: Any,
+        timeout: float = 0.8,
+        default: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(partial(func, *args, **kwargs)),
+                timeout=timeout,
+            )
+        except Exception as exc:
+            record_exception(exc)
+            return default
+
+    @staticmethod
+    async def _return_async(value: Any) -> Any:
+        return value
+
+    def _safe_task_result(self, task: asyncio.Task[Any] | None, default: Any) -> Any:
+        if task is None or not task.done():
+            return default
+        try:
+            return task.result()
+        except Exception as exc:
+            record_exception(exc)
+            return default
+
+    async def _prime_support_context(
+        self,
+        *,
+        caller_user_id: str,
+        target_user_id: str,
+        scenario: str,
+        severity: str,
+        facility_type: str,
+        latitude: float | None,
+        longitude: float | None,
+    ) -> dict[str, Any]:
+        patient_coro = (
+            self._run_blocking_with_timeout(
+                self.profile_service.get_user_profile,
+                target_user_id,
+                timeout=0.8,
+                default={},
+            )
+            if target_user_id
+            else self._return_async({})
+        )
+        network_coro = (
+            self._run_blocking_with_timeout(
+                self.profile_service.get_medical_network,
+                caller_user_id or target_user_id,
+                timeout=0.8,
+                default={"owner": {}, "friends": []},
+            )
+            if (caller_user_id or target_user_id)
+            else self._return_async({"owner": {}, "friends": []})
+        )
+        facility_coro = (
+            self._run_blocking_with_timeout(
+                self.map_agent.run,
+                scenario,
+                severity,
+                facility_type,
+                latitude,
+                longitude,
+                timeout=0.8,
+                default=[],
+            )
+            if latitude is not None and longitude is not None and facility_type != "none"
+            else self._return_async([])
+        )
+        patient_profile, medical_network, facilities = await asyncio.gather(
+            patient_coro,
+            network_coro,
+            facility_coro,
+        )
+        return {
+            "patient_profile": patient_profile or {},
+            "medical_network": medical_network or {"owner": {}, "friends": []},
+            "facilities": facilities or [],
+        }
+
+    async def _triage_async(self, scenario: str) -> dict[str, Any]:
+        triage = await self._run_blocking_with_timeout(
+            self.triage_agent.run,
+            scenario,
+            timeout=12.0,
+            default=None,
+        )
+        if isinstance(triage, dict):
+            return triage
+        return {
+            "is_emergency": True,
+            "severity": "moderate",
+            "facility_type": "clinic",
+            "reason_th": "ระบบวิเคราะห์ฉุกเฉินขัดข้องชั่วคราว ใช้ค่าเริ่มต้นเพื่อความปลอดภัย",
+        }
+
+    async def _retrieve_rag_async(self, scenario: str, severity: str) -> tuple[dict[str, Any], str]:
+        rag_result = await self._run_blocking_with_timeout(
+            self.retriever.retrieve_with_meta,
+            timeout=3.0,
+            default=None,
+            query=scenario,
+            severity=severity,
+            top_k=3,
+        )
+        if isinstance(rag_result, dict):
+            return rag_result, _normalize_text(rag_result.get("context"))
+        return (
+            {"source": "none", "count": 0},
+            "ไม่มีบริบทจาก RAG ชั่วคราว ให้ยึดหลักความปลอดภัย ประเมินพื้นที่ และโทร 1669 เมื่อเป็นเหตุฉุกเฉิน",
+        )
+
+    def _parse_identity_fields(self, payload: dict[str, Any]) -> tuple[str, str]:
+        legacy_user_id = _normalize_text(payload.get("user_id"))
+        target_user_id = _normalize_text(payload.get("target_user_id")) or legacy_user_id
+        caller_user_id = _normalize_text(payload.get("caller_user_id")) or legacy_user_id
+        if not target_user_id:
+            target_user_id = caller_user_id
+        if not caller_user_id:
+            caller_user_id = target_user_id
+        return caller_user_id, target_user_id
+
+    @observe()
+    async def run_async(self, payload: dict[str, Any]) -> dict[str, Any]:
         scenario = _normalize_text(payload.get("scenario") or payload.get("sentence"))
         if not scenario:
             raise ValueError("scenario is required")
+        caller_user_id, target_user_id = self._parse_identity_fields(payload)
+        latitude = _safe_float(payload.get("latitude"))
+        longitude = _safe_float(payload.get("longitude"))
+        payload_medical_context = _normalize_medical_context_payload(
+            payload.get("medical_context"),
+            caller_user_id=caller_user_id,
+            target_user_id=target_user_id,
+        )
 
-        try:
-            triage = self.triage_agent.run(scenario)
-        except Exception as exc:
-            record_exception(exc)
-            triage = {
-                "is_emergency": True,
-                "severity": "moderate",
-                "facility_type": "clinic",
-                "reason_th": "ระบบวิเคราะห์ฉุกเฉินขัดข้องชั่วคราว ใช้ค่าเริ่มต้นเพื่อความปลอดภัย",
-            }
+        triage = await self._triage_async(scenario)
         is_emergency = bool(triage.get("is_emergency"))
         severity = _normalize_text(triage.get("severity", "none")).lower()
         if severity not in {"critical", "moderate", "none"}:
@@ -1167,23 +1527,44 @@ class ByStanderWorkflow:
                 "triage_reason": triage.get("reason_th", ""),
             }
 
+        support_task: asyncio.Task[Any] | None = None
+        if _medical_context_has_history(payload_medical_context):
+            support_task = asyncio.create_task(
+                self._prime_support_context(
+                    caller_user_id=caller_user_id,
+                    target_user_id=target_user_id,
+                    scenario=scenario,
+                    severity=severity,
+                    facility_type=_normalize_text(triage.get("facility_type")).lower() or "clinic",
+                    latitude=latitude,
+                    longitude=longitude,
+                )
+            )
         try:
-            rag_result = self.retriever.retrieve_with_meta(query=scenario, severity=severity)
-            rag_context = _normalize_text(rag_result.get("context"))
+            rag_result, rag_context = await self._retrieve_rag_async(scenario, severity)
         except Exception as exc:
             record_exception(exc)
             rag_result = {"source": "none", "count": 0}
             rag_context = (
                 "ไม่มีบริบทจาก RAG ชั่วคราว ให้ยึดหลักความปลอดภัย ประเมินพื้นที่ และโทร 1669 เมื่อเป็นเหตุฉุกเฉิน"
             )
-        try:
-            guidance_result = self.guidance_agent.run(
-                scenario=scenario,
-                severity=severity,
-                rag_context=rag_context,
-            )
-        except Exception as exc:
-            record_exception(exc)
+
+        backend_context = _build_medical_context_from_network(
+            self._safe_task_result(support_task, {}).get("medical_network", {}),
+            caller_user_id=caller_user_id,
+            target_user_id=target_user_id,
+        )
+        medical_context = _merge_medical_context(payload_medical_context, backend_context)
+        guidance_result = await self._run_blocking_with_timeout(
+            self.guidance_agent.run,
+            scenario,
+            severity,
+            rag_context,
+            timeout=15.0,
+            default=None,
+            medical_context=medical_context,
+        )
+        if not isinstance(guidance_result, dict):
             guidance_result = {
                 "guidance": (
                     "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
@@ -1199,54 +1580,6 @@ class ByStanderWorkflow:
         if facility_type not in {"hospital", "clinic", "none"}:
             facility_type = "hospital" if severity == "critical" else "clinic"
 
-        latitude = _safe_float(payload.get("latitude"))
-        longitude = _safe_float(payload.get("longitude"))
-        facilities = self.map_agent.run(
-            scenario=scenario,
-            severity=severity,
-            facility_type=facility_type,
-            latitude=latitude,
-            longitude=longitude,
-        )
-
-        legacy_user_id = _normalize_text(payload.get("user_id"))
-        target_user_id = _normalize_text(payload.get("target_user_id")) or legacy_user_id
-        caller_user_id = _normalize_text(payload.get("caller_user_id")) or legacy_user_id
-        if not target_user_id:
-            target_user_id = caller_user_id
-        if not caller_user_id:
-            caller_user_id = target_user_id
-
-        patient_profile = (
-            self.profile_service.get_user_profile(user_id=target_user_id) if target_user_id else {}
-        )
-        caller_profile: dict[str, Any] = {}
-        if caller_user_id and caller_user_id != target_user_id:
-            caller_profile = self.profile_service.get_user_profile(user_id=caller_user_id)
-
-        location_context = self.map_agent.build_location_context(
-            latitude=latitude,
-            longitude=longitude,
-            facilities=facilities,
-        )
-        try:
-            call_script = self.script_agent.run(
-                scenario=scenario,
-                guidance=guidance_text,
-                user_profile=patient_profile,
-                caller_profile=caller_profile if caller_profile else None,
-                location_context=location_context,
-                latitude=latitude,
-                longitude=longitude,
-            )
-        except Exception as exc:
-            record_exception(exc)
-            call_script = (
-                "สวัสดีค่ะ/ครับ แจ้งเหตุฉุกเฉิน มีผู้ป่วยต้องการความช่วยเหลือด่วน\n"
-                "จุดเกิดเหตุ: โปรดระบุที่อยู่หรือจุดสังเกตใกล้เคียง\n"
-                "ขอรถพยาบาลด่วนครับ/ค่ะ"
-            )
-
         response_payload = {
             "route": "emergency_guidance",
             "is_emergency": True,
@@ -1255,9 +1588,9 @@ class ByStanderWorkflow:
             "facility_type": facility_type,
             "guidance": guidance_text,
             "general_info": "",
-            "call_script": call_script,
-            "location_context": location_context,
-            "facilities": facilities,
+            "call_script": "",
+            "location_context": "",
+            "facilities": [],
             "triage_reason": triage.get("reason_th", ""),
         }
         try:
@@ -1269,10 +1602,192 @@ class ByStanderWorkflow:
                     "rag_count": int(rag_result.get("count", 0) or 0),
                     "rag_context": rag_context,
                     "guidance": guidance_text,
-                    "facilities": facilities,
-                    "call_script": call_script,
+                    "facilities": [],
+                    "call_script": "",
                 }
             )
         except Exception as exc:
             record_exception(exc)
         return response_payload
+
+    @observe()
+    async def find_facilities_async(self, payload: dict[str, Any]) -> dict[str, Any]:
+        latitude = _safe_float(payload.get("latitude"))
+        longitude = _safe_float(payload.get("longitude"))
+        if latitude is None or longitude is None:
+            return {"facilities": [], "total": 0, "pending_location": True}
+
+        scenario = _normalize_text(payload.get("scenario") or payload.get("query"))
+        severity = _normalize_text(payload.get("severity")).lower()
+        facility_type = _normalize_text(payload.get("facility_type")).lower()
+        if not severity or severity not in {"critical", "moderate", "none"}:
+            triage = await self._triage_async(scenario) if scenario else {"severity": "moderate"}
+            severity = _normalize_text(triage.get("severity", "moderate")).lower()
+        if not facility_type or facility_type not in {"hospital", "clinic", "none"}:
+            if severity == "critical":
+                facility_type = "hospital"
+            elif severity == "none":
+                facility_type = "none"
+            else:
+                facility_type = "clinic"
+        if facility_type == "none":
+            return {"facilities": [], "total": 0, "pending_location": False}
+
+        facilities = await self._run_blocking_with_timeout(
+            self.map_agent.run,
+            scenario,
+            severity,
+            facility_type,
+            latitude,
+            longitude,
+            timeout=8.0,
+            default=[],
+        )
+        facilities = facilities if isinstance(facilities, list) else []
+        return {
+            "facilities": facilities,
+            "total": len(facilities),
+            "pending_location": False,
+            "location_context": self.map_agent.build_location_context(
+                latitude=latitude,
+                longitude=longitude,
+                facilities=facilities,
+            ),
+        }
+
+    @observe()
+    async def generate_call_script_async(self, payload: dict[str, Any]) -> dict[str, Any]:
+        scenario = _normalize_text(payload.get("scenario") or payload.get("sentence"))
+        if not scenario:
+            raise ValueError("scenario is required")
+
+        caller_user_id, target_user_id = self._parse_identity_fields(payload)
+        latitude = _safe_float(payload.get("latitude"))
+        longitude = _safe_float(payload.get("longitude"))
+        payload_medical_context = _normalize_medical_context_payload(
+            payload.get("medical_context"),
+            caller_user_id=caller_user_id,
+            target_user_id=target_user_id,
+        )
+
+        guidance = _normalize_text(payload.get("guidance"))
+        severity = _normalize_text(payload.get("severity")).lower()
+        facility_type = _normalize_text(payload.get("facility_type")).lower()
+        route = _normalize_text(payload.get("route"))
+        is_emergency = bool(payload.get("is_emergency"))
+        if not guidance or severity not in {"critical", "moderate", "none"} or not facility_type:
+            workflow_result = await self.run_async(payload)
+            guidance = _normalize_text(workflow_result.get("guidance"))
+            severity = _normalize_text(workflow_result.get("severity")).lower()
+            facility_type = _normalize_text(workflow_result.get("facility_type")).lower()
+            route = _normalize_text(workflow_result.get("route"))
+            is_emergency = bool(workflow_result.get("is_emergency"))
+        if not is_emergency and route == "general_info":
+            return {
+                "call_script": "",
+                "used_medical_history": [],
+                "is_emergency": False,
+                "route": "general_info",
+            }
+
+        patient_coro = (
+            self._run_blocking_with_timeout(
+                self.profile_service.get_user_profile,
+                target_user_id,
+                timeout=0.8,
+                default={},
+            )
+            if target_user_id
+            else self._return_async({})
+        )
+        caller_coro = (
+            self._run_blocking_with_timeout(
+                self.profile_service.get_user_profile,
+                caller_user_id,
+                timeout=0.8,
+                default={},
+            )
+            if caller_user_id and caller_user_id != target_user_id
+            else self._return_async({})
+        )
+        network_coro = (
+            self._run_blocking_with_timeout(
+                self.profile_service.get_medical_network,
+                caller_user_id or target_user_id,
+                timeout=0.8,
+                default={"owner": {}, "friends": []},
+            )
+            if _medical_context_has_history(payload_medical_context)
+            and (caller_user_id or target_user_id)
+            else self._return_async({"owner": {}, "friends": []})
+        )
+        facilities_coro = self.find_facilities_async(
+            {
+                "scenario": scenario,
+                "severity": severity,
+                "facility_type": facility_type,
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+        )
+        patient_profile, caller_profile, medical_network, facilities_result = await asyncio.gather(
+            patient_coro,
+            caller_coro,
+            network_coro,
+            facilities_coro,
+        )
+        merged_context = _merge_medical_context(
+            payload_medical_context,
+            _build_medical_context_from_network(
+                medical_network if isinstance(medical_network, dict) else {},
+                caller_user_id=caller_user_id,
+                target_user_id=target_user_id,
+            ),
+        )
+        target_person = _select_target_person(merged_context, target_user_id)
+        patient_medical_history = _merge_history(
+            _normalize_list(target_person.get("conditions")),
+            _normalize_list(target_person.get("allergies")),
+            _normalize_list(target_person.get("immunizations")),
+        )
+        facilities = (
+            facilities_result.get("facilities")
+            if isinstance(facilities_result, dict)
+            and isinstance(facilities_result.get("facilities"), list)
+            else []
+        )
+        location_context = self.map_agent.build_location_context(
+            latitude=latitude,
+            longitude=longitude,
+            facilities=facilities,
+        )
+        call_script = await self._run_blocking_with_timeout(
+            self.script_agent.run,
+            scenario,
+            guidance,
+            patient_profile if isinstance(patient_profile, dict) else {},
+            location_context,
+            latitude,
+            longitude,
+            timeout=15.0,
+            default="",
+            caller_profile=caller_profile
+            if isinstance(caller_profile, dict) and caller_profile
+            else None,
+            patient_relationship=_normalize_text(target_person.get("relationship")),
+            patient_pronoun=_normalize_text(target_person.get("pronoun")) or "they",
+            patient_medical_history=patient_medical_history,
+        )
+        if not call_script:
+            call_script = (
+                "สวัสดีค่ะ/ครับ แจ้งเหตุฉุกเฉิน มีผู้ป่วยต้องการความช่วยเหลือด่วน\n"
+                "จุดเกิดเหตุ: โปรดระบุที่อยู่หรือจุดสังเกตใกล้เคียง\n"
+                "ขอรถพยาบาลด่วนครับ/ค่ะ"
+            )
+        return {
+            "call_script": call_script,
+            "used_medical_history": patient_medical_history,
+            "location_context": location_context,
+            "facilities": facilities,
+            "total": len(facilities),
+        }

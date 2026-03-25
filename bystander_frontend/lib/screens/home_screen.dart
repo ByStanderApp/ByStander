@@ -7,6 +7,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:bystander_frontend/services/api_service.dart';
 import 'package:bystander_frontend/services/friend_name_lookup.dart';
+import 'package:bystander_frontend/services/medical_context_cache_service.dart';
 import 'package:bystander_frontend/services/offline_first_aid_catalog_service.dart';
 import 'package:bystander_frontend/screens/comprehensive_guidance_screen.dart';
 import 'package:bystander_frontend/screens/general_first_aid_screen.dart';
@@ -82,7 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
             if (last.isEmpty) last = lookup['lastName'] ?? '';
           }
           final label = formatFriendListLabel(first, last, email);
-          return _HomeFriendOption(uid: d.id, label: label);
+          return _HomeFriendOption(
+            uid: d.id,
+            label: label,
+            relationship: (data['relationship'] as String?)?.trim() ?? '',
+          );
         }),
       );
       if (!mounted) return;
@@ -191,6 +196,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<Position?> _resolveCurrentPosition() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+      return Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 8),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _fetchGuidance(String sentence) async {
     if (sentence.trim().isEmpty ||
         sentence == 'กำลังฟัง...' ||
@@ -236,33 +260,38 @@ class _HomeScreenState extends State<HomeScreen> {
         targetUid = user?.uid;
       }
 
-      double? latitude;
-      double? longitude;
-      try {
-        LocationPermission permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-        if (permission != LocationPermission.denied &&
-            permission != LocationPermission.deniedForever) {
-          final position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
-            timeLimit: const Duration(seconds: 8),
-          );
-          latitude = position.latitude;
-          longitude = position.longitude;
-        }
-      } catch (_) {
-        // Location is optional for workflow; continue without it.
-      }
-
-      final workflowResponse = await _apiService.runAgentWorkflow(
+      final medicalContext = MedicalContextCacheService.instance.buildPayload(
+        callerUserId: user?.uid,
+        targetUserId: targetUid,
+      );
+      final effectiveMedicalContext =
+          medicalContext.isEmpty ? null : medicalContext;
+      final locationFuture = _resolveCurrentPosition();
+      final workflowFuture = _apiService.runAgentWorkflow(
         scenario: sentence,
         callerUserId: user?.uid,
         targetUserId: targetUid,
-        latitude: latitude,
-        longitude: longitude,
+        medicalContext: effectiveMedicalContext,
       );
+      final facilitiesFuture = locationFuture.then(
+        (position) => _apiService.findNearbyFacilities(
+          scenario: sentence,
+          latitude: position?.latitude,
+          longitude: position?.longitude,
+        ),
+      );
+      final callScriptFuture = locationFuture.then(
+        (position) => _apiService.getCallScript(
+          scenario: sentence,
+          callerUserId: user?.uid,
+          targetUserId: targetUid,
+          latitude: position?.latitude,
+          longitude: position?.longitude,
+          medicalContext: effectiveMedicalContext,
+        ),
+      );
+
+      final workflowResponse = await workflowFuture;
       if (mounted) {
         if (!workflowResponse.isEmergency ||
             workflowResponse.route == 'general_info') {
@@ -298,8 +327,8 @@ class _HomeScreenState extends State<HomeScreen> {
               facilityType: workflowResponse.facilityType,
               facilities: workflowResponse.facilities,
               callScript: workflowResponse.callScript,
-              userLatitude: latitude,
-              userLongitude: longitude,
+              facilitiesFuture: facilitiesFuture,
+              callScriptFuture: callScriptFuture,
             ),
           ),
         ).then((_) {
@@ -382,7 +411,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       messenger.showSnackBar(
         const SnackBar(
-          content: Text('เชื่อมต่อระบบหลักไม่ได้ จึงเปิดคู่มือปฐมพยาบาลออฟไลน์'),
+          content:
+              Text('เชื่อมต่อระบบหลักไม่ได้ จึงเปิดคู่มือปฐมพยาบาลออฟไลน์'),
         ),
       );
       setState(() {
@@ -543,8 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: InputDecorator(
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    contentPadding:
-                                        const EdgeInsets.symmetric(
+                                    contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 4,
                                     ),
@@ -565,8 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               value: f.uid,
                                               child: Text(
                                                 f.label,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           )
@@ -753,5 +781,10 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeFriendOption {
   final String uid;
   final String label;
-  _HomeFriendOption({required this.uid, required this.label});
+  final String relationship;
+  _HomeFriendOption({
+    required this.uid,
+    required this.label,
+    this.relationship = '',
+  });
 }

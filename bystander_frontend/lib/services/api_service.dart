@@ -4,7 +4,76 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:bystander_frontend/services/app_config.dart';
 
-// Data models
+Map<String, dynamic> buildAgentWorkflowPayload({
+  required String scenario,
+  String? userId,
+  String? callerUserId,
+  String? targetUserId,
+  double? latitude,
+  double? longitude,
+  Map<String, dynamic>? medicalContext,
+}) {
+  return {
+    'scenario': scenario,
+    if (callerUserId != null && callerUserId.isNotEmpty)
+      'caller_user_id': callerUserId,
+    if (targetUserId != null && targetUserId.isNotEmpty)
+      'target_user_id': targetUserId,
+    if (userId != null && userId.isNotEmpty) 'user_id': userId,
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+    if (medicalContext != null && medicalContext.isNotEmpty)
+      'medical_context': medicalContext,
+  };
+}
+
+Map<String, dynamic> buildFindFacilitiesPayload({
+  required String scenario,
+  String? severity,
+  String? facilityType,
+  double? latitude,
+  double? longitude,
+}) {
+  return {
+    'scenario': scenario,
+    if (severity != null && severity.isNotEmpty) 'severity': severity,
+    if (facilityType != null && facilityType.isNotEmpty)
+      'facility_type': facilityType,
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+  };
+}
+
+Map<String, dynamic> buildCallScriptPayload({
+  required String scenario,
+  String? guidance,
+  String? severity,
+  String? facilityType,
+  String? callerUserId,
+  String? targetUserId,
+  double? latitude,
+  double? longitude,
+  Map<String, dynamic>? medicalContext,
+}) {
+  return {
+    'scenario': scenario,
+    if (guidance != null && guidance.isNotEmpty) 'guidance': guidance,
+    if (severity != null && severity.isNotEmpty) 'severity': severity,
+    if (facilityType != null && facilityType.isNotEmpty)
+      'facility_type': facilityType,
+    if (callerUserId != null && callerUserId.isNotEmpty)
+      'caller_user_id': callerUserId,
+    if (targetUserId != null && targetUserId.isNotEmpty)
+      'target_user_id': targetUserId,
+    if (targetUserId != null && targetUserId.isNotEmpty)
+      'user_id': targetUserId,
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+    if (medicalContext != null && medicalContext.isNotEmpty)
+      'medical_context': medicalContext,
+  };
+}
+
 class GuidanceResponse {
   final String guidance;
   final String severity;
@@ -112,18 +181,65 @@ class AgentWorkflowResponse {
 }
 
 class FacilitySearchResponse {
-  final List<dynamic> facilities;
+  final List<AgentFacility> facilities;
   final int total;
+  final bool pendingLocation;
+  final String locationContext;
 
   FacilitySearchResponse({
     required this.facilities,
     required this.total,
+    this.pendingLocation = false,
+    this.locationContext = '',
   });
 
   factory FacilitySearchResponse.fromJson(Map<String, dynamic> json) {
+    final rawFacilities = (json['facilities'] is List)
+        ? json['facilities'] as List<dynamic>
+        : const [];
     return FacilitySearchResponse(
-      facilities: json['facilities'] ?? [],
-      total: json['total'] ?? 0,
+      facilities: rawFacilities
+          .whereType<Map<String, dynamic>>()
+          .map((e) => AgentFacility.fromJson(e))
+          .toList(),
+      total: (json['total'] is num) ? (json['total'] as num).toInt() : 0,
+      pendingLocation: json['pending_location'] == true,
+      locationContext: (json['location_context'] ?? '').toString(),
+    );
+  }
+}
+
+class CallScriptResponse {
+  final String callScript;
+  final String locationContext;
+  final List<AgentFacility> facilities;
+  final List<String> usedMedicalHistory;
+
+  CallScriptResponse({
+    required this.callScript,
+    required this.locationContext,
+    required this.facilities,
+    required this.usedMedicalHistory,
+  });
+
+  factory CallScriptResponse.fromJson(Map<String, dynamic> json) {
+    final rawFacilities = (json['facilities'] is List)
+        ? json['facilities'] as List<dynamic>
+        : const [];
+    final rawMedicalHistory = (json['used_medical_history'] is List)
+        ? json['used_medical_history'] as List<dynamic>
+        : const [];
+    return CallScriptResponse(
+      callScript: (json['call_script'] ?? '').toString(),
+      locationContext: (json['location_context'] ?? '').toString(),
+      facilities: rawFacilities
+          .whereType<Map<String, dynamic>>()
+          .map((e) => AgentFacility.fromJson(e))
+          .toList(),
+      usedMedicalHistory: rawMedicalHistory
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList(),
     );
   }
 }
@@ -132,7 +248,15 @@ class ApiService {
   static final String _agentWorkflowBaseUrl = AppConfig.apiBaseUrl;
   static final String _facilityBaseUrl = _agentWorkflowBaseUrl;
 
-  /// [callerUserId] = signed-in user; [targetUserId] = whose profile to use (self or friend).
+  Future<Map<String, String>> _authHeaders() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final token = await user?.getIdToken();
+    return <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
   Future<AgentWorkflowResponse> runAgentWorkflow({
     required String scenario,
     String? userId,
@@ -140,10 +264,10 @@ class ApiService {
     String? targetUserId,
     double? latitude,
     double? longitude,
+    Map<String, dynamic>? medicalContext,
   }) async {
     final Uri url = Uri.parse('$_agentWorkflowBaseUrl/agent_workflow');
     final user = FirebaseAuth.instance.currentUser;
-    final token = await user?.getIdToken();
 
     final effectiveCaller = (callerUserId != null && callerUserId.isNotEmpty)
         ? callerUserId
@@ -154,28 +278,22 @@ class ApiService {
             ? userId
             : user?.uid;
 
-    final headers = <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
-
     try {
       final response = await http
           .post(
             url,
-            headers: headers,
-            body: jsonEncode({
-              'scenario': scenario,
-              if (effectiveCaller != null && effectiveCaller.isNotEmpty)
-                'caller_user_id': effectiveCaller,
-              if (effectiveTarget != null && effectiveTarget.isNotEmpty)
-                'target_user_id': effectiveTarget,
-              // Backward compatibility: backend treats user_id as legacy target profile id
-              if (effectiveTarget != null && effectiveTarget.isNotEmpty)
-                'user_id': effectiveTarget,
-              if (latitude != null) 'latitude': latitude,
-              if (longitude != null) 'longitude': longitude,
-            }),
+            headers: await _authHeaders(),
+            body: jsonEncode(
+              buildAgentWorkflowPayload(
+                scenario: scenario,
+                callerUserId: effectiveCaller,
+                targetUserId: effectiveTarget,
+                userId: effectiveTarget,
+                latitude: latitude,
+                longitude: longitude,
+                medicalContext: medicalContext,
+              ),
+            ),
           )
           .timeout(const Duration(seconds: 45));
 
@@ -203,9 +321,7 @@ class ApiService {
     }
   }
 
-  // Get guidance with structured response (guidance, severity, facility_type)
   Future<GuidanceResponse> getGuidanceFromSentence(String sentence) async {
-    // Backward-compatible helper mapped from the new single workflow endpoint.
     final workflow = await runAgentWorkflow(scenario: sentence);
     if (!workflow.isEmergency || workflow.route == 'general_info') {
       return GuidanceResponse(
@@ -221,12 +337,12 @@ class ApiService {
     );
   }
 
-  // Find nearby medical facilities
   Future<FacilitySearchResponse> findNearbyFacilities({
-    required double latitude,
-    required double longitude,
-    required String facilityType,
-    required String severity,
+    required String scenario,
+    String? severity,
+    String? facilityType,
+    double? latitude,
+    double? longitude,
   }) async {
     final Uri url = Uri.parse('$_facilityBaseUrl/find_facilities');
     try {
@@ -234,41 +350,84 @@ class ApiService {
           .post(
             url,
             headers: {'Content-Type': 'application/json; charset=UTF-8'},
-            body: jsonEncode({
-              'latitude': latitude,
-              'longitude': longitude,
-              'facility_type': facilityType,
-              'severity': severity,
-            }),
+            body: jsonEncode(
+              buildFindFacilitiesPayload(
+                scenario: scenario,
+                severity: severity,
+                facilityType: facilityType,
+                latitude: latitude,
+                longitude: longitude,
+              ),
+            ),
           )
           .timeout(const Duration(seconds: 30));
 
-      if (response.statusCode == 200) {
-        final responseBody = utf8.decode(response.bodyBytes);
-        final data = jsonDecode(responseBody);
-
+      final responseBody = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(responseBody);
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
         if (data.containsKey('error')) {
           throw Exception('API Error: ${data['error']}');
         }
-
         return FacilitySearchResponse.fromJson(data);
-      } else {
-        // Attempt to decode error message if available
-        String errorMessage = response.body;
-        try {
-          final errorData = jsonDecode(utf8.decode(response.bodyBytes));
-          if (errorData.containsKey('error')) {
-            errorMessage = errorData['error'];
-          }
-        } catch (_) {
-          // Keep original body if not JSON
-        }
-        throw Exception(
-            'Failed to find facilities. Status: ${response.statusCode}, Message: $errorMessage');
       }
+      throw Exception(
+          'Failed to find facilities. Status: ${response.statusCode}, Message: $responseBody');
     } catch (e) {
-      print('ApiService Error (findNearbyFacilities): $e');
       throw Exception('ไม่สามารถค้นหาสถานพยาบาลได้: ${e.toString()}');
+    }
+  }
+
+  Future<CallScriptResponse> getCallScript({
+    required String scenario,
+    String? guidance,
+    String? severity,
+    String? facilityType,
+    String? callerUserId,
+    String? targetUserId,
+    double? latitude,
+    double? longitude,
+    Map<String, dynamic>? medicalContext,
+  }) async {
+    final Uri url = Uri.parse('$_facilityBaseUrl/call_script');
+    final user = FirebaseAuth.instance.currentUser;
+    final effectiveCaller = (callerUserId != null && callerUserId.isNotEmpty)
+        ? callerUserId
+        : user?.uid;
+    final effectiveTarget = (targetUserId != null && targetUserId.isNotEmpty)
+        ? targetUserId
+        : user?.uid;
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: await _authHeaders(),
+            body: jsonEncode(
+              buildCallScriptPayload(
+                scenario: scenario,
+                guidance: guidance,
+                severity: severity,
+                facilityType: facilityType,
+                callerUserId: effectiveCaller,
+                targetUserId: effectiveTarget,
+                latitude: latitude,
+                longitude: longitude,
+                medicalContext: medicalContext,
+              ),
+            ),
+          )
+          .timeout(const Duration(seconds: 30));
+      final responseBody = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(responseBody);
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        if (data.containsKey('error')) {
+          throw Exception('API Error: ${data['error']}');
+        }
+        return CallScriptResponse.fromJson(data);
+      }
+      throw Exception(
+          'Failed to get call script. Status: ${response.statusCode}, Message: $responseBody');
+    } catch (e) {
+      throw Exception('ไม่สามารถสร้างบทสนทนาโทรฉุกเฉินได้: ${e.toString()}');
     }
   }
 }
