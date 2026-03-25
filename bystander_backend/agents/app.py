@@ -121,8 +121,10 @@ def find_facilities():
         data = request.get_json() or {}
         latitude = _safe_float(data.get("latitude"))
         longitude = _safe_float(data.get("longitude"))
-        if latitude is not None and longitude is not None and (
-            not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180)
+        if (
+            latitude is not None
+            and longitude is not None
+            and (not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180))
         ):
             return _corsify_actual_response(
                 jsonify({"error": "Invalid latitude or longitude values"})

@@ -360,7 +360,9 @@ class GuidanceAgent:
                 continue
             conditions = [
                 _normalize_text(x)
-                for x in (item.get("conditions") if isinstance(item.get("conditions"), list) else [])
+                for x in (
+                    item.get("conditions") if isinstance(item.get("conditions"), list) else []
+                )
                 if _normalize_text(x)
             ]
             allergies = [
@@ -397,7 +399,8 @@ class GuidanceAgent:
         if not GuidanceAgent._extract_relevant_conditions(medical_context):
             return ""
         lines = [
-            "The following individuals are involved. Apply their conditions when generating first-aid guidance:"
+            "The following individuals are involved. Apply their conditions "
+            "when generating first-aid guidance:"
         ]
         for item in entries:
             relation = _normalize_text(item.get("relationship"))
@@ -424,7 +427,9 @@ class GuidanceAgent:
         return out
 
     @staticmethod
-    def _find_unaddressed_conditions(rag_context: str, medical_context: dict[str, Any] | None) -> list[str]:
+    def _find_unaddressed_conditions(
+        rag_context: str, medical_context: dict[str, Any] | None
+    ) -> list[str]:
         rag_lower = _normalize_text(rag_context).lower()
         if not rag_lower:
             return GuidanceAgent._extract_relevant_conditions(medical_context)
@@ -486,7 +491,8 @@ class GuidanceAgent:
             return "", triggered
         print(f"[medical_web_fallback] triggered_conditions={triggered}")
         return (
-            "Use the following external medical-condition notes only when they are relevant and consistent with first-aid best practices:\n"
+            "Use the following external medical-condition notes only when they are relevant" 
+            "and consistent with first-aid best practices:\n"
             + "\n".join(summaries),
             triggered,
         )
@@ -523,10 +529,7 @@ class GuidanceAgent:
         )
         medical_prompt = self._format_medical_context_prompt(medical_context)
         web_context_prompt, _ = self._build_web_fallback_context(rag_context, medical_context)
-        user_prompt = (
-            f"Scenario: {scenario}\n\n"
-            f"Retrieved contexts (cleaned):\n{snippets}\n\n"
-        )
+        user_prompt = f"Scenario: {scenario}\n\nRetrieved contexts (cleaned):\n{snippets}\n\n"
         if medical_prompt:
             user_prompt += f"{medical_prompt}\n\n"
         if web_context_prompt:
@@ -601,7 +604,8 @@ class GuidanceAgent:
             "- Use concise numbered Thai steps\n"
             "- Include immediate call to 1669 when emergency\n"
             "- facility_type must be one of hospital|clinic|none\n"
-            "- If a medical condition changes safe handling, mention the contraindication explicitly\n"
+            "- If a medical condition changes safe handling, "
+            "mention the contraindication explicitly\n"
             "Output JSON only."
         )
         # Moderate/non-critical: prefer DeepSeek when configured; otherwise Gemini
@@ -665,7 +669,8 @@ class ScriptAgent:
         if medical_history:
             medical_history_prompt = (
                 f"Their known medical history: {medical_history}. "
-                "Always include one short line about known conditions in the call script if any exist, "
+                "Always include one short line about "
+                "known conditions in the call script if any exist, "
                 "and mention the most relevant risks or precautions naturally.\n"
             )
         caller_json = ""

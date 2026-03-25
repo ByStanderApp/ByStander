@@ -1,4 +1,3 @@
-import asyncio
 import time
 import unittest
 
@@ -21,11 +20,11 @@ class WorkflowLatencyTests(unittest.IsolatedAsyncioTestCase):
 
         def slow_profile(_user_id):
             time.sleep(0.2)
-            return {'firstName': 'Amy'}
+            return {"firstName": "Amy"}
 
         def slow_network(_user_id):
             time.sleep(0.2)
-            return {'owner': {}, 'friends': []}
+            return {"owner": {}, "friends": []}
 
         def slow_facilities(*_args, **_kwargs):
             time.sleep(0.2)
@@ -37,65 +36,71 @@ class WorkflowLatencyTests(unittest.IsolatedAsyncioTestCase):
 
         started = time.perf_counter()
         result = await workflow._prime_support_context(
-            caller_user_id='caller',
-            target_user_id='target',
-            scenario='test',
-            severity='moderate',
-            facility_type='clinic',
+            caller_user_id="caller",
+            target_user_id="target",
+            scenario="test",
+            severity="moderate",
+            facility_type="clinic",
             latitude=13.75,
             longitude=100.5,
         )
         elapsed = time.perf_counter() - started
 
         self.assertLess(elapsed, 0.45)
-        self.assertIn('patient_profile', result)
-        self.assertIn('medical_network', result)
+        self.assertIn("patient_profile", result)
+        self.assertIn("medical_network", result)
 
     async def test_find_facilities_async_handles_null_gps(self):
         workflow = ByStanderWorkflow()
-        result = await workflow.find_facilities_async({'scenario': 'เจ็บหน้าอก'})
-        self.assertEqual(result['total'], 0)
-        self.assertTrue(result['pending_location'])
+        result = await workflow.find_facilities_async({"scenario": "เจ็บหน้าอก"})
+        self.assertEqual(result["total"], 0)
+        self.assertTrue(result["pending_location"])
 
     async def test_run_async_skips_medical_fetch_when_no_history(self):
         workflow = ByStanderWorkflow()
-        workflow._triage_async = lambda scenario: WorkflowLatencyTests._awaitable({
-            'is_emergency': True,
-            'severity': 'moderate',
-            'facility_type': 'clinic',
-            'reason_th': '',
-        })
-        workflow._retrieve_rag_async = lambda scenario, severity: WorkflowLatencyTests._awaitable((
-            {'source': 'none', 'count': 0},
-            'context',
-        ))
-        workflow.guidance_agent.run = lambda scenario, severity, rag_context, medical_context=None: {
-            'guidance': 'test guidance',
-            'facility_type': 'clinic',
+        workflow._triage_async = lambda scenario: WorkflowLatencyTests._awaitable(
+            {
+                "is_emergency": True,
+                "severity": "moderate",
+                "facility_type": "clinic",
+                "reason_th": "",
+            }
+        )
+        workflow._retrieve_rag_async = lambda scenario, severity: WorkflowLatencyTests._awaitable(
+            (
+                {"source": "none", "count": 0},
+                "context",
+            )
+        )
+        workflow.guidance_agent.run = lambda scenario, severity, rag_context, medical_context=None:{
+            "guidance": "test guidance",
+            "facility_type": "clinic",
         }
 
         async def should_not_run(*args, **kwargs):
-            raise AssertionError('_prime_support_context should not run without medical history')
+            raise AssertionError("_prime_support_context should not run without medical history")
 
         workflow._prime_support_context = should_not_run
-        result = await workflow.run_async({
-            'scenario': 'เจ็บหน้าอก',
-            'caller_user_id': 'caller-1',
-            'target_user_id': 'target-1',
-            'medical_context': {
-                'individuals': [
-                    {
-                        'uid': 'target-1',
-                        'name': 'Target',
-                        'relationship': 'friend',
-                        'conditions': [],
-                        'allergies': [],
-                        'immunizations': [],
-                    }
-                ]
+        result = await workflow.run_async(
+            {
+                "scenario": "เจ็บหน้าอก",
+                "caller_user_id": "caller-1",
+                "target_user_id": "target-1",
+                "medical_context": {
+                    "individuals": [
+                        {
+                            "uid": "target-1",
+                            "name": "Target",
+                            "relationship": "friend",
+                            "conditions": [],
+                            "allergies": [],
+                            "immunizations": [],
+                        }
+                    ]
+                },
             }
-        })
-        self.assertEqual(result['guidance'], 'test guidance')
+        )
+        self.assertEqual(result["guidance"], "test guidance")
 
     @staticmethod
     async def _awaitable(value):
@@ -106,56 +111,58 @@ class PromptInjectionTests(unittest.TestCase):
     def test_script_prompt_includes_relationship_pronoun_and_history(self):
         agent = ScriptAgent(_FakeLlm())
         prompt = agent._build_user_prompt(
-            scenario='ผู้ป่วยหายใจลำบาก',
-            guidance='โทร 1669',
-            user_profile={'firstName': 'Nok'},
-            location_context='ใกล้ตลาด',
+            scenario="ผู้ป่วยหายใจลำบาก",
+            guidance="โทร 1669",
+            user_profile={"firstName": "Nok"},
+            location_context="ใกล้ตลาด",
             latitude=None,
             longitude=None,
             caller_profile=None,
-            patient_relationship='แม่',
-            patient_pronoun='she',
-            patient_medical_history=['asthma'],
+            patient_relationship="แม่",
+            patient_pronoun="she",
+            patient_medical_history=["asthma"],
         )
         self.assertIn("user's แม่", prompt)
-        self.assertIn('referred to as she', prompt)
-        self.assertIn('Their known medical history: asthma', prompt)
-        self.assertIn('include one short line about known conditions', prompt)
+        self.assertIn("referred to as she", prompt)
+        self.assertIn("Their known medical history: asthma", prompt)
+        self.assertIn("include one short line about known conditions", prompt)
 
     def test_rag_miss_triggers_search_fallback_context(self):
         agent = GuidanceAgent(_FakeLlm())
-        agent._search_condition_guidance = lambda condition: f'{condition} summary'
+        agent._search_condition_guidance = lambda condition: f"{condition} summary"
         context, triggered = agent._build_web_fallback_context(
-            rag_context='context about burns only',
+            rag_context="context about burns only",
             medical_context={
-                'individuals': [
+                "individuals": [
                     {
-                        'name': 'Amy',
-                        'conditions': ['asthma'],
-                        'allergies': [],
-                        'relationship': 'self',
+                        "name": "Amy",
+                        "conditions": ["asthma"],
+                        "allergies": [],
+                        "relationship": "self",
                     }
                 ]
             },
         )
-        self.assertEqual(triggered, ['asthma'])
-        self.assertIn('asthma summary', context)
+        self.assertEqual(triggered, ["asthma"])
+        self.assertIn("asthma summary", context)
 
     def test_empty_medical_context_does_not_expand_prompt(self):
         agent = GuidanceAgent(_FakeLlm())
-        prompt = agent._format_medical_context_prompt({
-            'individuals': [
-                {
-                    'name': 'Amy',
-                    'relationship': 'self',
-                    'conditions': [],
-                    'allergies': [],
-                    'immunizations': [],
-                }
-            ]
-        })
-        self.assertEqual(prompt, '')
+        prompt = agent._format_medical_context_prompt(
+            {
+                "individuals": [
+                    {
+                        "name": "Amy",
+                        "relationship": "self",
+                        "conditions": [],
+                        "allergies": [],
+                        "immunizations": [],
+                    }
+                ]
+            }
+        )
+        self.assertEqual(prompt, "")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,5 @@
-import csv
 import asyncio
+import csv
 import json
 import math
 import os
@@ -1126,7 +1126,9 @@ class FirebaseProfileService:
         friends: list[dict[str, Any]] = []
         try:
             db = self.firestore.client()
-            friend_docs = db.collection("users").document(user_id).collection("friends").limit(10).stream()
+            friend_docs = (
+                db.collection("users").document(user_id).collection("friends").limit(10).stream()
+            )
             for doc in friend_docs:
                 data = doc.to_dict() or {}
                 friend_uid = _normalize_text(doc.id)
@@ -1533,8 +1535,7 @@ class ByStanderWorkflow:
                     target_user_id=target_user_id,
                     scenario=scenario,
                     severity=severity,
-                    facility_type=_normalize_text(triage.get("facility_type")).lower()
-                    or "clinic",
+                    facility_type=_normalize_text(triage.get("facility_type")).lower() or "clinic",
                     latitude=latitude,
                     longitude=longitude,
                 )
@@ -1751,7 +1752,8 @@ class ByStanderWorkflow:
         )
         facilities = (
             facilities_result.get("facilities")
-            if isinstance(facilities_result, dict) and isinstance(facilities_result.get("facilities"), list)
+            if isinstance(facilities_result, dict)
+            and isinstance(facilities_result.get("facilities"), list)
             else []
         )
         location_context = self.map_agent.build_location_context(
@@ -1769,7 +1771,9 @@ class ByStanderWorkflow:
             longitude,
             timeout=15.0,
             default="",
-            caller_profile=caller_profile if isinstance(caller_profile, dict) and caller_profile else None,
+            caller_profile=caller_profile
+            if isinstance(caller_profile, dict) and caller_profile
+            else None,
             patient_relationship=_normalize_text(target_person.get("relationship")),
             patient_pronoun=_normalize_text(target_person.get("pronoun")) or "they",
             patient_medical_history=patient_medical_history,
