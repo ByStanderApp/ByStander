@@ -2,10 +2,25 @@ import json
 import os
 import re
 import sys
+import types as py_types
 import warnings
 from typing import Any
 
 from dotenv import load_dotenv
+
+try:
+    import requests
+except Exception:  # pragma: no cover
+    requests = py_types.SimpleNamespace()  # type: ignore[assignment]
+
+    class _RequestException(Exception):
+        pass
+
+    def _missing_requests(*args, **kwargs):
+        raise _RequestException("requests is unavailable")
+
+    requests.RequestException = _RequestException  # type: ignore[attr-defined]
+    requests.get = _missing_requests  # type: ignore[attr-defined]
 
 try:
     from google import genai
@@ -332,8 +347,157 @@ class GuidanceAgent:
             merged = merged[:max_chars].rsplit(" ", 1)[0].strip()
         return merged
 
+    @staticmethod
+    def _normalize_medical_entries(medical_context: dict[str, Any] | None) -> list[dict[str, Any]]:
+        if not isinstance(medical_context, dict):
+            return []
+        raw = medical_context.get("individuals")
+        if not isinstance(raw, list):
+            return []
+        out: list[dict[str, Any]] = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            conditions = [
+                _normalize_text(x)
+                for x in (item.get("conditions") if isinstance(item.get("conditions"), list) else [])
+                if _normalize_text(x)
+            ]
+            allergies = [
+                _normalize_text(x)
+                for x in (item.get("allergies") if isinstance(item.get("allergies"), list) else [])
+                if _normalize_text(x)
+            ]
+            immunizations = [
+                _normalize_text(x)
+                for x in (
+                    item.get("immunizations") if isinstance(item.get("immunizations"), list) else []
+                )
+                if _normalize_text(x)
+            ]
+            out.append(
+                {
+                    "uid": _normalize_text(item.get("uid")),
+                    "name": _normalize_text(item.get("name")) or "Unknown",
+                    "relationship": _normalize_text(item.get("relationship")),
+                    "conditions": conditions,
+                    "allergies": allergies,
+                    "immunizations": immunizations,
+                    "is_target": bool(item.get("is_target")),
+                    "is_caller": bool(item.get("is_caller")),
+                }
+            )
+        return out
+
+    @staticmethod
+    def _format_medical_context_prompt(medical_context: dict[str, Any] | None) -> str:
+        entries = GuidanceAgent._normalize_medical_entries(medical_context)
+        if not entries:
+            return ""
+        if not GuidanceAgent._extract_relevant_conditions(medical_context):
+            return ""
+        lines = [
+            "The following individuals are involved. Apply their conditions when generating first-aid guidance:"
+        ]
+        for item in entries:
+            relation = _normalize_text(item.get("relationship"))
+            label = item["name"]
+            if relation:
+                label = f"{label} ({relation})"
+            conditions = item["conditions"] or item["allergies"]
+            condition_text = ", ".join(conditions) if conditions else "none"
+            lines.append(f"- {label}: {condition_text}")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _extract_relevant_conditions(medical_context: dict[str, Any] | None) -> list[str]:
+        entries = GuidanceAgent._normalize_medical_entries(medical_context)
+        seen: set[str] = set()
+        out: list[str] = []
+        for item in entries:
+            for value in item["conditions"] + item["allergies"]:
+                lower = value.lower()
+                if lower in seen:
+                    continue
+                seen.add(lower)
+                out.append(value)
+        return out
+
+    @staticmethod
+    def _find_unaddressed_conditions(rag_context: str, medical_context: dict[str, Any] | None) -> list[str]:
+        rag_lower = _normalize_text(rag_context).lower()
+        if not rag_lower:
+            return GuidanceAgent._extract_relevant_conditions(medical_context)
+        out: list[str] = []
+        for condition in GuidanceAgent._extract_relevant_conditions(medical_context):
+            condition_lower = condition.lower()
+            if condition_lower and condition_lower not in rag_lower:
+                out.append(condition)
+        return out
+
     @observe()
-    def _run_noncritical_deepseek(self, scenario: str, rag_context: str) -> dict[str, Any]:
+    def _search_condition_guidance(self, condition: str) -> str:
+        query = f"first aid emergency response for patient with {condition}"
+        try:
+            response = requests.get(
+                "https://api.duckduckgo.com/",
+                params={
+                    "q": query,
+                    "format": "json",
+                    "no_html": 1,
+                    "skip_disambig": 1,
+                },
+                timeout=6,
+            )
+            response.raise_for_status()
+            payload = response.json() if response.content else {}
+            abstract = _normalize_text(payload.get("AbstractText"))
+            if abstract:
+                return abstract
+            related = payload.get("RelatedTopics")
+            if isinstance(related, list):
+                snippets: list[str] = []
+                for item in related:
+                    if not isinstance(item, dict):
+                        continue
+                    text = _normalize_text(item.get("Text"))
+                    if text:
+                        snippets.append(text)
+                    if len(snippets) >= 2:
+                        break
+                if snippets:
+                    return " ".join(snippets)
+        except Exception as exc:
+            record_exception(exc)
+        return ""
+
+    def _build_web_fallback_context(
+        self, rag_context: str, medical_context: dict[str, Any] | None
+    ) -> tuple[str, list[str]]:
+        triggered = self._find_unaddressed_conditions(rag_context, medical_context)
+        if not triggered:
+            return "", []
+        summaries: list[str] = []
+        for condition in triggered:
+            summary = self._search_condition_guidance(condition)
+            if summary:
+                summaries.append(f"- {condition}: {summary}")
+        if not summaries:
+            return "", triggered
+        print(f"[medical_web_fallback] triggered_conditions={triggered}")
+        return (
+            "Use the following external medical-condition notes only when they are relevant and consistent with first-aid best practices:\n"
+            + "\n".join(summaries),
+            triggered,
+        )
+
+    @observe()
+    def _run_noncritical_deepseek(
+        self,
+        scenario: str,
+        rag_context: str,
+        medical_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         default = {
             "guidance": (
                 "สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
@@ -353,11 +517,21 @@ class GuidanceAgent:
             "Use retrieved medical snippets as the highest-priority source. "
             'Return strict JSON only: {"guidance":"...","facility_type":'
             '"hospital|clinic|none"}. '
-            "Guidance must be concise, numbered Thai steps, readable by layperson."
+            "Guidance must be concise, numbered Thai steps, readable by layperson. "
+            "If medical context or fallback search notes are provided, use them conservatively "
+            "and never fabricate advice."
         )
+        medical_prompt = self._format_medical_context_prompt(medical_context)
+        web_context_prompt, _ = self._build_web_fallback_context(rag_context, medical_context)
         user_prompt = (
             f"Scenario: {scenario}\n\n"
             f"Retrieved contexts (cleaned):\n{snippets}\n\n"
+        )
+        if medical_prompt:
+            user_prompt += f"{medical_prompt}\n\n"
+        if web_context_prompt:
+            user_prompt += f"{web_context_prompt}\n\n"
+        user_prompt += (
             "Rules:\n"
             "- This is non-critical / moderate path.\n"
             "- Provide practical first-aid steps from retrieved contexts.\n"
@@ -384,7 +558,13 @@ class GuidanceAgent:
             return dict(default)
 
     @observe()
-    def run(self, scenario: str, severity: str, rag_context: str) -> dict[str, Any]:
+    def run(
+        self,
+        scenario: str,
+        severity: str,
+        rag_context: str,
+        medical_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         model_name = self.critical_model if severity == "critical" else self.moderate_model
         default = {
             "guidance": (
@@ -400,17 +580,28 @@ class GuidanceAgent:
             "You are GuidanceAgent for emergency first-aid in Thai. "
             "Use retrieved protocol context as primary source. "
             "Output strict JSON only with fields: guidance, facility_type. "
-            "Guidance must be step-by-step, no markdown."
+            "Guidance must be step-by-step, no markdown. "
+            "If medical context or fallback search notes are provided, use them conservatively, "
+            "flag contraindications explicitly, and never fabricate advice."
         )
+        medical_prompt = self._format_medical_context_prompt(medical_context)
+        web_context_prompt, _ = self._build_web_fallback_context(rag_context, medical_context)
         user_prompt = (
             f"Scenario: {scenario}\n"
             f"Severity: {severity}\n"
             f"Retrieved medical protocol context:\n{rag_context}\n\n"
+        )
+        if medical_prompt:
+            user_prompt += f"{medical_prompt}\n\n"
+        if web_context_prompt:
+            user_prompt += f"{web_context_prompt}\n\n"
+        user_prompt += (
             "Constraints:\n"
             "- If severe emergency, guidance should start with: สถานการณ์นี้เป็นเหตุฉุกเฉิน\n"
             "- Use concise numbered Thai steps\n"
             "- Include immediate call to 1669 when emergency\n"
             "- facility_type must be one of hospital|clinic|none\n"
+            "- If a medical condition changes safe handling, mention the contraindication explicitly\n"
             "Output JSON only."
         )
         # Moderate/non-critical: prefer DeepSeek when configured; otherwise Gemini
@@ -420,6 +611,7 @@ class GuidanceAgent:
             out = self._run_noncritical_deepseek(
                 scenario=scenario,
                 rag_context=rag_context,
+                medical_context=medical_context,
             )
         else:
             out = self.llm.generate_json(
@@ -444,6 +636,66 @@ class ScriptAgent:
         self.llm = llm
         self.model_name = _normalize_text(os.getenv("SCRIPT_MODEL")) or "gemini-2.5-flash"
 
+    @staticmethod
+    def _format_medical_history(history: list[str] | None) -> str:
+        items = [_normalize_text(x) for x in (history or []) if _normalize_text(x)]
+        return ", ".join(items)
+
+    def _build_user_prompt(
+        self,
+        scenario: str,
+        guidance: str,
+        user_profile: dict[str, Any],
+        location_context: str,
+        latitude: float | None,
+        longitude: float | None,
+        caller_profile: dict[str, Any] | None,
+        patient_relationship: str,
+        patient_pronoun: str,
+        patient_medical_history: list[str] | None,
+    ) -> str:
+        relationship_prompt = ""
+        if patient_relationship:
+            relationship_prompt = (
+                f"The person you are calling about is the user's {patient_relationship}, "
+                f"referred to as {patient_pronoun or 'they'}.\n"
+            )
+        medical_history_prompt = ""
+        medical_history = self._format_medical_history(patient_medical_history)
+        if medical_history:
+            medical_history_prompt = (
+                f"Their known medical history: {medical_history}. "
+                "Always include one short line about known conditions in the call script if any exist, "
+                "and mention the most relevant risks or precautions naturally.\n"
+            )
+        caller_json = ""
+        if caller_profile:
+            caller_json = (
+                f"Caller/reporter profile (person using app): "
+                f"{json.dumps(caller_profile, ensure_ascii=False)}\n\n"
+            )
+        return (
+            f"{relationship_prompt}"
+            f"{medical_history_prompt}"
+            f"Scenario: {scenario}\n"
+            f"Guidance: {guidance}\n"
+            f"{caller_json}"
+            f"PATIENT medical profile (person the emergency is about): "
+            f"{json.dumps(user_profile, ensure_ascii=False)}\n\n"
+            f"Latitude: {latitude}\n"
+            f"Longitude: {longitude}\n"
+            f"Location context from maps:\n{location_context}\n\n"
+            "Build a Thai phone script the user can read to emergency operator.\n"
+            "Requirements:\n"
+            "- Follow protocol steps 1-9 in order.\n"
+            "- If known medical history exists, include one short spoken line about it.\n"
+            "- Include a direct sentence about location using address/place names "
+            "from map context.\n"
+            "- If location context exists, mention at least 1-2 nearby landmarks/place names.\n"
+            "- Never read out raw latitude/longitude numbers to operator.\n"
+            "- Keep it short, urgent, and easy to read out loud."
+        )
+
     @observe()
     def run(
         self,
@@ -454,6 +706,9 @@ class ScriptAgent:
         latitude: float | None = None,
         longitude: float | None = None,
         caller_profile: dict[str, Any] | None = None,
+        patient_relationship: str = "",
+        patient_pronoun: str = "",
+        patient_medical_history: list[str] | None = None,
     ) -> str:
         default = {
             "call_script": (
@@ -495,29 +750,17 @@ class ScriptAgent:
             "Do NOT tell operator raw latitude/longitude values. "
             "Output JSON only with key: call_script."
         )
-        caller_json = ""
-        if caller_profile:
-            caller_json = (
-                f"Caller/reporter profile (person using app): "
-                f"{json.dumps(caller_profile, ensure_ascii=False)}\n\n"
-            )
-        user_prompt = (
-            f"Scenario: {scenario}\n"
-            f"Guidance: {guidance}\n"
-            f"{caller_json}"
-            f"PATIENT medical profile (person the emergency is about): "
-            f"{json.dumps(user_profile, ensure_ascii=False)}\n\n"
-            f"Latitude: {latitude}\n"
-            f"Longitude: {longitude}\n"
-            f"Location context from maps:\n{location_context}\n\n"
-            "Build a Thai phone script the user can read to emergency operator.\n"
-            "Requirements:\n"
-            "- Follow protocol steps 1-9 in order.\n"
-            "- Include a direct sentence about location using address/place names "
-            "from map context.\n"
-            "- If location context exists, mention at least 1-2 nearby landmarks/place names.\n"
-            "- Never read out raw latitude/longitude numbers to operator.\n"
-            "- Keep it short, urgent, and easy to read out loud."
+        user_prompt = self._build_user_prompt(
+            scenario=scenario,
+            guidance=guidance,
+            user_profile=user_profile,
+            location_context=location_context,
+            latitude=latitude,
+            longitude=longitude,
+            caller_profile=caller_profile,
+            patient_relationship=patient_relationship,
+            patient_pronoun=patient_pronoun,
+            patient_medical_history=patient_medical_history,
         )
         out = self.llm.generate_json(
             model_name=self.model_name,

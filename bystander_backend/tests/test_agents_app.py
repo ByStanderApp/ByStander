@@ -27,10 +27,14 @@ class _StubWorkflow:
         self.retriever = _StubRetriever()
         self.map_agent = self
 
-    def run(self, data):
+    async def run_async(self, data):
         return {"route": "general_info", "is_emergency": False}
 
-    def search_nearby_facilities(self, latitude, longitude, facility_type, severity, scenario=""):
+    async def find_facilities_async(self, data):
+        latitude = data.get("latitude")
+        longitude = data.get("longitude")
+        if latitude is None or longitude is None:
+            return {"facilities": [], "total": 0, "pending_location": True}
         return {
             "facilities": [
                 {
@@ -43,6 +47,14 @@ class _StubWorkflow:
                 }
             ],
             "total": 1,
+        }
+
+    async def generate_call_script_async(self, data):
+        return {
+            "call_script": "test call script",
+            "used_medical_history": ["asthma"],
+            "location_context": "",
+            "facilities": [],
         }
 
 
@@ -80,6 +92,19 @@ class AgentAppTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.get_json()
         self.assertEqual(data["total"], 1)
+
+    def test_find_facilities_endpoint_handles_missing_location(self):
+        resp = self.client.post("/find_facilities", json={"scenario": "เจ็บหน้าอก"})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertTrue(data["pending_location"])
+
+    def test_call_script_endpoint(self):
+        resp = self.client.post("/call_script", json={"scenario": "test"})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["call_script"], "test call script")
+        self.assertEqual(data["used_medical_history"], ["asthma"])
 
 
 if __name__ == "__main__":

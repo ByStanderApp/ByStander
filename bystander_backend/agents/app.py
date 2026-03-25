@@ -1,7 +1,21 @@
+import asyncio
 import os
 import sys
+import types
 
-import requests
+try:
+    import requests
+except Exception:  # pragma: no cover
+    requests = types.SimpleNamespace()  # type: ignore[assignment]
+
+    class _RequestException(Exception):
+        pass
+
+    def _missing_requests(*args, **kwargs):
+        raise _RequestException("requests is unavailable")
+
+    requests.RequestException = _RequestException  # type: ignore[attr-defined]
+    requests.post = _missing_requests  # type: ignore[attr-defined]
 from flask import Flask, jsonify, make_response, request
 
 if __package__:
@@ -88,7 +102,7 @@ def agent_workflow():
 
     try:
         data = request.get_json() or {}
-        result = workflow.run(data)
+        result = asyncio.run(workflow.run_async(data))
         return _corsify_actual_response(jsonify(result))
     except ValueError as exc:
         return _corsify_actual_response(jsonify({"error": str(exc)})), 400
@@ -107,31 +121,34 @@ def find_facilities():
         data = request.get_json() or {}
         latitude = _safe_float(data.get("latitude"))
         longitude = _safe_float(data.get("longitude"))
-        if latitude is None or longitude is None:
-            return _corsify_actual_response(
-                jsonify({"error": "latitude and longitude are required"})
-            ), 400
-
-        if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+        if latitude is not None and longitude is not None and (
+            not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180)
+        ):
             return _corsify_actual_response(
                 jsonify({"error": "Invalid latitude or longitude values"})
             ), 400
-
-        facility_type = str(data.get("facility_type") or "hospital").strip().lower()
-        severity = str(data.get("severity") or "none").strip().lower()
-        scenario = str(data.get("scenario") or "").strip()
-        result = workflow.map_agent.search_nearby_facilities(
-            latitude=latitude,
-            longitude=longitude,
-            facility_type=facility_type,
-            severity=severity,
-            scenario=scenario,
-        )
-        status = 503 if isinstance(result, dict) and "error" in result else 200
-        return _corsify_actual_response(jsonify(result)), status
+        result = asyncio.run(workflow.find_facilities_async(data))
+        return _corsify_actual_response(jsonify(result))
     except Exception as exc:
         return _corsify_actual_response(
             jsonify({"error": "find facilities failed", "detail": str(exc)})
+        ), 500
+
+
+@app.route("/call_script", methods=["POST", "OPTIONS"])
+def call_script():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+
+    try:
+        data = request.get_json() or {}
+        result = asyncio.run(workflow.generate_call_script_async(data))
+        return _corsify_actual_response(jsonify(result))
+    except ValueError as exc:
+        return _corsify_actual_response(jsonify({"error": str(exc)})), 400
+    except Exception as exc:
+        return _corsify_actual_response(
+            jsonify({"error": "call script failed", "detail": str(exc)})
         ), 500
 
 
