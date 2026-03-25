@@ -491,9 +491,8 @@ class GuidanceAgent:
             return "", triggered
         print(f"[medical_web_fallback] triggered_conditions={triggered}")
         return (
-            "Use the following external medical-condition notes only when they are relevant" 
-            "and consistent with first-aid best practices:\n"
-            + "\n".join(summaries),
+            "Use the following external medical-condition notes only when they are relevant"
+            "and consistent with first-aid best practices:\n" + "\n".join(summaries),
             triggered,
         )
 

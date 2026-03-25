@@ -72,10 +72,19 @@ class WorkflowLatencyTests(unittest.IsolatedAsyncioTestCase):
                 "context",
             )
         )
-        workflow.guidance_agent.run = lambda scenario, severity, rag_context, medical_context=None:{
-            "guidance": "test guidance",
-            "facility_type": "clinic",
-        }
+
+        def guidance_run(
+            scenario,
+            severity,
+            rag_context,
+            medical_context=None,
+        ):
+            return {
+                "guidance": "test guidance",
+                "facility_type": "clinic",
+            }
+
+        workflow.guidance_agent.run = guidance_run
 
         async def should_not_run(*args, **kwargs):
             raise AssertionError("_prime_support_context should not run without medical history")
