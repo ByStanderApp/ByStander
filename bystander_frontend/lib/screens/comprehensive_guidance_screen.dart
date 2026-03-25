@@ -16,6 +16,22 @@ class EmergencyService {
       {required this.name, required this.phone, required this.icon});
 }
 
+String _normalizeGuidanceBulletLines(String text) {
+  var normalized = text.replaceAll('\r', '').trim();
+  if (normalized.isEmpty) {
+    return '';
+  }
+  normalized = normalized.replaceAllMapped(
+    RegExp(r'(?<!\n)\s+-\s+'),
+    (_) => '\n- ',
+  );
+  normalized = normalized.replaceAllMapped(
+    RegExp(r'(?<!\n)\s+•\s+'),
+    (_) => '\n• ',
+  );
+  return normalized;
+}
+
 class ComprehensiveGuidanceScreen extends StatefulWidget {
   final String guidanceText;
   final String originalQuery;
@@ -23,6 +39,8 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
   final String facilityType;
   final List<AgentFacility> facilities;
   final String callScript;
+  final Future<FacilitySearchResponse>? facilitiesFuture;
+  final Future<CallScriptResponse>? callScriptFuture;
   final double? userLatitude;
   final double? userLongitude;
 
@@ -34,6 +52,8 @@ class ComprehensiveGuidanceScreen extends StatefulWidget {
     required this.facilityType,
     this.facilities = const [],
     this.callScript = '',
+    this.facilitiesFuture,
+    this.callScriptFuture,
     this.userLatitude,
     this.userLongitude,
   });
@@ -51,6 +71,11 @@ class _ComprehensiveGuidanceScreenState
   int _currentSectionIndex = 0; // 0: Guidance, 1: Nearby, 2: Call Script
   final TtsService _ttsService = TtsService();
   bool _isSpeaking = false;
+  late List<AgentFacility> _facilities;
+  late String _callScript;
+  late List<String> _usedMedicalHistory;
+  bool _isLoadingFacilities = false;
+  bool _isLoadingCallScript = false;
   List<Map<String, dynamic>> _videoRules = [];
   String? _matchedVideoUrl;
   String? _matchedVideoKeyword;
@@ -89,8 +114,45 @@ class _ComprehensiveGuidanceScreenState
   @override
   void initState() {
     super.initState();
+    _facilities = widget.facilities;
+    _callScript = widget.callScript;
+    _usedMedicalHistory = const [];
     _ttsService.initialize();
     _loadVideoRules();
+    _loadDeferredSections();
+  }
+
+  void _loadDeferredSections() {
+    if (widget.facilitiesFuture != null && _facilities.isEmpty) {
+      _isLoadingFacilities = true;
+      widget.facilitiesFuture!.then((response) {
+        if (!mounted) return;
+        setState(() {
+          _facilities = response.facilities;
+          _isLoadingFacilities = false;
+        });
+      }).catchError((_) {
+        if (!mounted) return;
+        setState(() => _isLoadingFacilities = false);
+      });
+    }
+    if (widget.callScriptFuture != null && _callScript.trim().isEmpty) {
+      _isLoadingCallScript = true;
+      widget.callScriptFuture!.then((response) {
+        if (!mounted) return;
+        setState(() {
+          _callScript = response.callScript;
+          _usedMedicalHistory = response.usedMedicalHistory;
+          if (_facilities.isEmpty && response.facilities.isNotEmpty) {
+            _facilities = response.facilities;
+          }
+          _isLoadingCallScript = false;
+        });
+      }).catchError((_) {
+        if (!mounted) return;
+        setState(() => _isLoadingCallScript = false);
+      });
+    }
   }
 
   Future<void> _loadVideoRules() async {
@@ -171,7 +233,7 @@ class _ComprehensiveGuidanceScreenState
   }
 
   String _extractGuidanceIntro(String text) {
-    final normalized = text.replaceAll('\r', '').trim();
+    final normalized = _normalizeGuidanceBulletLines(text);
     final firstStepMatch = RegExp(r'\d+[\.\)]\s+').firstMatch(normalized);
     if (firstStepMatch == null || firstStepMatch.start == 0) {
       return '';
@@ -180,7 +242,8 @@ class _ComprehensiveGuidanceScreenState
   }
 
   List<String> _parseGuidanceSteps(String text) {
-    final normalized = text.replaceAll('\r', ' ').replaceAll('\n', ' ').trim();
+    final normalized =
+        _normalizeGuidanceBulletLines(text).replaceAll('\n', ' ').trim();
     if (normalized.isEmpty) return [];
 
     final hasNumberedSteps = RegExp(r'\d+[\.\)]\s+').hasMatch(normalized);
@@ -196,14 +259,19 @@ class _ComprehensiveGuidanceScreenState
         .split(RegExp(r'(?=\d+[\.\)]\s+)'))
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
-        .map((e) => e.replaceFirst(RegExp(r'^\d+[\.\)]\s*'), '').trim())
+        .map(
+          (e) => e
+              .replaceFirst(RegExp(r'^\d+[\.\)]\s*'), '')
+              .replaceAllMapped(RegExp(r'\s+-\s+'), (_) => '\n- ')
+              .trim(),
+        )
         .where((e) => e.isNotEmpty)
         .toList();
     return parts;
   }
 
   Future<void> _openNearbyFacilitiesMap() async {
-    final mapped = widget.facilities
+    final mapped = _facilities
         .map(
           (f) => Facility(
             placeId: '${f.latitude ?? 0}_${f.longitude ?? 0}_${f.name}',
@@ -527,6 +595,37 @@ class _ComprehensiveGuidanceScreenState
             const Divider(),
             _buildSectionTitle('แนะนำบทสนทนาเมื่อคุณโทรศัพท์',
                 key: _callScriptKey, context: context),
+            if (_usedMedicalHistory.isNotEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Known Medical History',
+                        style: appTextTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: appColorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ..._usedMedicalHistory.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('- '),
+                              Expanded(child: Text(item)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             _buildCallScriptSection(context),
             const SizedBox(height: 16),
             Center(
@@ -598,37 +697,107 @@ class _ComprehensiveGuidanceScreenState
   Widget _buildNearbyServicesSection(BuildContext context) {
     final TextTheme appTextTheme = Theme.of(context).textTheme;
     final ColorScheme appColorScheme = Theme.of(context).colorScheme;
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _emergencyServices.length,
-      itemBuilder: (context, index) {
-        final service = _emergencyServices[index];
-        return Card(
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: appColorScheme.primary,
-              child: Icon(service.icon, color: appColorScheme.onPrimary),
+    return Column(
+      children: [
+        if (_isLoadingFacilities)
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(child: Text('กำลังค้นหาสถานพยาบาลใกล้เคียง...')),
+                ],
+              ),
             ),
-            title: Text(service.name,
-                style: appTextTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            subtitle:
-                Text('โทร: ${service.phone}', style: appTextTheme.bodyMedium),
-            trailing: IconButton(
-              icon: Icon(Icons.call, color: appColorScheme.primary),
-              onPressed: () => _makePhoneCall(service.phone),
-            ),
-            onTap: () => _makePhoneCall(service.phone),
           ),
-        );
-      },
+        if (_facilities.isNotEmpty)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _facilities
+                    .take(3)
+                    .map(
+                      (facility) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              facility.name,
+                              style: appTextTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            if (facility.address.isNotEmpty)
+                              Text(
+                                facility.address,
+                                style: appTextTheme.bodyMedium,
+                              ),
+                            Text(
+                              'ระยะทาง ${facility.distanceKm.toStringAsFixed(1)} กม.',
+                              style: appTextTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ),
+        ..._emergencyServices.map((service) {
+          return Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: appColorScheme.primary,
+                child: Icon(service.icon, color: appColorScheme.onPrimary),
+              ),
+              title: Text(service.name,
+                  style: appTextTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600)),
+              subtitle:
+                  Text('โทร: ${service.phone}', style: appTextTheme.bodyMedium),
+              trailing: IconButton(
+                icon: Icon(Icons.call, color: appColorScheme.primary),
+                onPressed: () => _makePhoneCall(service.phone),
+              ),
+              onTap: () => _makePhoneCall(service.phone),
+            ),
+          );
+        }),
+      ],
     );
   }
 
   Widget _buildCallScriptSection(BuildContext context) {
-    if (widget.callScript.trim().isNotEmpty) {
-      final lines = widget.callScript
+    if (_isLoadingCallScript && _callScript.trim().isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 12),
+              Expanded(child: Text('กำลังสร้างบทสนทนาโทรฉุกเฉิน...')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_callScript.trim().isNotEmpty) {
+      final lines = _callScript
           .split('\n')
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)

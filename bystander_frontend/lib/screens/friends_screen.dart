@@ -54,8 +54,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return {'firstName': '', 'lastName': ''};
 
-    final snap =
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     final data = snap.data() ?? {};
 
     final first = (data['firstName'] as String?)?.trim() ?? '';
@@ -67,7 +69,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     // Fallback if user never saved profile fields.
     final display = (user.displayName ?? '').trim();
-    final parts = display.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final parts =
+        display.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     final firstFallback = parts.isNotEmpty ? parts.first : display;
     final lastFallback = parts.length > 1 ? parts.sublist(1).join(' ') : '';
     return {'firstName': firstFallback, 'lastName': lastFallback};
@@ -102,10 +105,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
       firstName: f.firstName.isNotEmpty ? f.firstName : lookup['firstName']!,
       lastName: f.lastName.isNotEmpty ? f.lastName : lookup['lastName']!,
       otherEmail: f.otherEmail,
+      relationship: f.relationship,
     );
   }
 
-  Future<_IncomingFriendRequest> _enrichIncoming(_IncomingFriendRequest r) async {
+  Future<_IncomingFriendRequest> _enrichIncoming(
+      _IncomingFriendRequest r) async {
     if (r.requesterEmail.isEmpty) return r;
     final lookup = await _lookupNameFromUserLookup(r.requesterEmail);
     return _IncomingFriendRequest(
@@ -133,15 +138,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
       final uid = user.uid;
       final firestore = FirebaseFirestore.instance;
 
-      final friendSnap =
-          await firestore.collection('users').doc(uid).collection('friends').get();
+      final friendSnap = await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('friends')
+          .get();
       final friends = friendSnap.docs.map((d) {
-        final data = d.data() ?? {};
+        final data = d.data();
         return _FriendRow(
           otherUid: d.id,
           firstName: (data['otherFirstName'] as String?)?.trim() ?? '',
           lastName: (data['otherLastName'] as String?)?.trim() ?? '',
           otherEmail: (data['otherEmail'] as String?)?.trim() ?? '',
+          relationship: (data['relationship'] as String?)?.trim() ?? '',
         );
       }).toList();
 
@@ -151,7 +160,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           .collection('incoming_friend_requests')
           .get();
       final incoming = incomingSnap.docs.map((d) {
-        final data = d.data() ?? {};
+        final data = d.data();
         return _IncomingFriendRequest(
           requesterUid: d.id,
           requesterFirstName:
@@ -163,8 +172,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       }).toList();
 
       final enrichedFriends = await Future.wait(friends.map(_enrichFriendRow));
-      final enrichedIncoming =
-          await Future.wait(incoming.map(_enrichIncoming));
+      final enrichedIncoming = await Future.wait(incoming.map(_enrichIncoming));
 
       setState(() {
         _friends
@@ -318,6 +326,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         'otherFirstName': theirFirst,
         if (theirLast.isNotEmpty) 'otherLastName': theirLast,
         if (theirEmail.isNotEmpty) 'otherEmail': theirEmail,
+        'relationship': '',
         'acceptedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
@@ -331,6 +340,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         'otherFirstName': myFirst,
         if (myLast.isNotEmpty) 'otherLastName': myLast,
         if (myEmail.isNotEmpty) 'otherEmail': myEmail,
+        'relationship': '',
         'acceptedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
@@ -396,10 +406,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
       final batch = firestore.batch();
       batch.delete(
-        firestore.collection('users').doc(myUid).collection('friends').doc(otherUid),
+        firestore
+            .collection('users')
+            .doc(myUid)
+            .collection('friends')
+            .doc(otherUid),
       );
       batch.delete(
-        firestore.collection('users').doc(otherUid).collection('friends').doc(myUid),
+        firestore
+            .collection('users')
+            .doc(otherUid)
+            .collection('friends')
+            .doc(myUid),
       );
       await batch.commit();
 
@@ -436,6 +454,59 @@ class _FriendsScreenState extends State<FriendsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('ปฏิเสธไม่สำเร็จ: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _editRelationship(_FriendRow friend) async {
+    var draftValue = friend.relationship;
+    final updated = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ความสัมพันธ์กับเพื่อน'),
+        content: TextFormField(
+          initialValue: friend.relationship,
+          autofocus: true,
+          onChanged: (value) => draftValue = value,
+          decoration: const InputDecoration(
+            labelText: 'เช่น พ่อ แม่ ญาติผู้ใหญ่ เพื่อน',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('ยกเลิก'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(draftValue.trim()),
+            child: const Text('บันทึก'),
+          ),
+        ],
+      ),
+    );
+    if (updated == null) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('friends')
+          .doc(friend.otherUid)
+          .set({'relationship': updated}, SetOptions(merge: true));
+      await _reload();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('บันทึกความสัมพันธ์แล้ว')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('บันทึกไม่สำเร็จ: ${e.toString()}')),
         );
       }
     }
@@ -482,7 +553,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                   ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
                                     )
                                   : const Text('ส่งคำขอเพื่อน'),
                             ),
@@ -508,24 +580,42 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         itemCount: _friends.length,
                         itemBuilder: (context, i) {
                           final f = _friends[i];
-                          final fullName = _formatFullName(f.firstName, f.lastName);
+                          final fullName =
+                              _formatFullName(f.firstName, f.lastName);
                           final titleText =
                               fullName.isNotEmpty ? fullName : 'เพื่อน';
                           return Card(
                             child: ListTile(
                               title: Text(titleText),
-                              subtitle: f.otherEmail.isNotEmpty
-                                  ? Text(f.otherEmail)
-                                  : null,
-                              trailing: IconButton(
-                                tooltip: 'ลบเพื่อน',
-                                icon: Icon(
-                                  Icons.person_remove_outlined,
-                                  color: theme.colorScheme.error,
+                              subtitle: Text(
+                                [
+                                  if (f.relationship.isNotEmpty)
+                                    'ความสัมพันธ์: ${f.relationship}',
+                                  if (f.otherEmail.isNotEmpty) f.otherEmail,
+                                ].join('\n'),
+                              ),
+                              trailing: SizedBox(
+                                width: 96,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'แก้ไขความสัมพันธ์',
+                                      icon: const Icon(Icons.edit_outlined),
+                                      onPressed: () => _editRelationship(f),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'ลบเพื่อน',
+                                      icon: Icon(
+                                        Icons.person_remove_outlined,
+                                        color: theme.colorScheme.error,
+                                      ),
+                                      onPressed: _isRemovingFriend
+                                          ? null
+                                          : () => _confirmRemoveFriend(f),
+                                    ),
+                                  ],
                                 ),
-                                onPressed: _isRemovingFriend
-                                    ? null
-                                    : () => _confirmRemoveFriend(f),
                               ),
                             ),
                           );
@@ -553,33 +643,39 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             req.requesterFirstName,
                             req.requesterLastName,
                           );
-                          final titleText = incomingName.isNotEmpty
-                              ? incomingName
-                              : 'ผู้ขอ';
+                          final titleText =
+                              incomingName.isNotEmpty ? incomingName : 'ผู้ขอ';
                           return Card(
                             child: ListTile(
                               title: Text(titleText),
                               subtitle: req.requesterEmail.isNotEmpty
                                   ? Text(req.requesterEmail)
                                   : null,
-                              trailing: Wrap(
-                                spacing: 8,
-                                children: [
-                                  IconButton(
-                                    tooltip: 'ยืนยัน',
-                                    icon: const Icon(Icons.check_circle_outline,
-                                        color: Colors.green),
-                                    onPressed: _isAccepting
-                                        ? null
-                                        : () => _acceptRequest(req),
-                                  ),
-                                  IconButton(
-                                    tooltip: 'ปฏิเสธ',
-                                    icon: Icon(Icons.cancel_outlined,
-                                        color: theme.colorScheme.error),
-                                    onPressed: () => _rejectRequest(req),
-                                  ),
-                                ],
+                              trailing: SizedBox(
+                                width: 96,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'ยืนยัน',
+                                      icon: const Icon(
+                                        Icons.check_circle_outline,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: _isAccepting
+                                          ? null
+                                          : () => _acceptRequest(req),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'ปฏิเสธ',
+                                      icon: Icon(
+                                        Icons.cancel_outlined,
+                                        color: theme.colorScheme.error,
+                                      ),
+                                      onPressed: () => _rejectRequest(req),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
@@ -598,11 +694,13 @@ class _FriendRow {
   final String firstName;
   final String lastName;
   final String otherEmail;
+  final String relationship;
   _FriendRow({
     required this.otherUid,
     required this.firstName,
     this.lastName = '',
     this.otherEmail = '',
+    this.relationship = '',
   });
 }
 
@@ -618,4 +716,3 @@ class _IncomingFriendRequest {
     this.requesterEmail = '',
   });
 }
-
