@@ -1,6 +1,8 @@
+import asyncio
 import importlib.util
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 MODULE_PATH = (
@@ -76,13 +78,51 @@ class EvalPipelineTests(unittest.TestCase):
             },
             "script": {"rule_scores": [1, 0.5]},
         }
+        source_facilities = [{"name": "A"}]
 
-        result = module.coerce_judge_output(payload)
+        result = module.coerce_judge_output(payload, source_facilities)
 
         self.assertEqual(result["guidance"], {"compliance": 5, "correctness": 1, "readability": 4})
-        self.assertEqual(result["facilities"]["total_score_percent"], 20.0)
+        self.assertEqual(result["facilities"]["facility_scores"][0]["facility_name"], "A")
+        self.assertEqual(result["facilities"]["total_score_percent"], 10.0)
         self.assertEqual(result["script"]["rule_scores"][:3], [1.0, 0.5, 0.0])
         self.assertEqual(result["script"]["total_compliance"], 1.5)
+
+    def test_coerce_judge_output_zero_fills_missing_or_mismatched_facilities(self) -> None:
+        payload = {
+            "facilities": {
+                "facility_scores": [
+                    {
+                        "facility_name": "Wrong Hospital",
+                        "relevance_score": 1,
+                        "open_score": 1,
+                        "weighted_score_percent": 20,
+                    }
+                ]
+            }
+        }
+        source_facilities = [{"name": "Hospital A"}, {"name": "Hospital B"}]
+
+        result = module.coerce_judge_output(payload, source_facilities)
+
+        self.assertEqual(
+            result["facilities"]["facility_scores"],
+            [
+                {
+                    "facility_name": "Hospital A",
+                    "relevance_score": 0.0,
+                    "open_score": 0.0,
+                    "weighted_score_percent": 0.0,
+                },
+                {
+                    "facility_name": "Hospital B",
+                    "relevance_score": 0.0,
+                    "open_score": 0.0,
+                    "weighted_score_percent": 0.0,
+                },
+            ],
+        )
+        self.assertEqual(result["facilities"]["total_score_percent"], 0.0)
 
     def test_build_judge_prompt_lists_script_protocol_rules(self) -> None:
         row = {
@@ -152,6 +192,89 @@ class EvalPipelineTests(unittest.TestCase):
         self.assertEqual(merged["guidance"], existing["guidance"])
         self.assertEqual(merged["script"], existing["script"])
         self.assertEqual(merged["facilities"], new["facilities"])
+
+    def test_build_failed_judge_output_zeroes_current_facilities_without_stale_scores(self) -> None:
+        existing = {
+            "guidance": {"compliance": 4, "correctness": 4, "readability": 4},
+            "facilities": {
+                "facility_scores": [{"facility_name": "Old", "relevance_score": 1, "open_score": 1, "weighted_score_percent": 20}],
+                "total_score_percent": 20,
+            },
+            "script": {"rule_scores": [1.0] * 9, "total_compliance": 9.0},
+        }
+
+        failed = module.build_failed_judge_output(
+            [{"name": "New A"}, {"name": "New B"}],
+            existing_judge=existing,
+            evaluation_scope="facilities-only",
+        )
+
+        self.assertEqual(failed["guidance"], existing["guidance"])
+        self.assertEqual(failed["script"], existing["script"])
+        self.assertEqual(
+            failed["facilities"]["facility_scores"],
+            [
+                {
+                    "facility_name": "New A",
+                    "relevance_score": 0.0,
+                    "open_score": 0.0,
+                    "weighted_score_percent": 0.0,
+                },
+                {
+                    "facility_name": "New B",
+                    "relevance_score": 0.0,
+                    "open_score": 0.0,
+                    "weighted_score_percent": 0.0,
+                },
+            ],
+        )
+        self.assertEqual(failed["facilities"]["total_score_percent"], 0.0)
+
+    def test_infer_facility_type_prefers_reference_seed(self) -> None:
+        row = {"severity": "moderate"}
+        seed = ScenarioSeed("moderate", "topic", "", "instructions", "", "hospital")
+        self.assertEqual(module.infer_facility_type(row, seed), "hospital")
+        self.assertEqual(module.infer_facility_type({"severity": "critical"}, None), "hospital")
+        self.assertEqual(module.infer_facility_type({"severity": "none"}, None), "none")
+
+    def test_fetch_bystander_response_facilities_only_calls_find_facilities_directly(self) -> None:
+        row = {
+            "id": "001-test-panic",
+            "severity": "critical",
+            "prompt_style": "panic",
+            "scenario_topic": "topic",
+            "prompt_text": "help",
+        }
+        seed = ScenarioSeed("critical", "topic", "", "instructions", "", "hospital")
+        seen_endpoints = []
+
+        async def fake_call(base_url, endpoint, payload, timeout_s, retries):
+            del base_url, timeout_s, retries
+            seen_endpoints.append((endpoint, payload))
+            if endpoint == "/find_facilities":
+                return {"facilities": [{"name": "Hospital A", "open_now": True}]}
+            raise AssertionError(f"Unexpected endpoint: {endpoint}")
+
+        with patch.object(module, "call_bystander_endpoint", side_effect=fake_call):
+            result = asyncio.run(
+                module.fetch_bystander_response(
+                    row,
+                    base_url="http://127.0.0.1:5003",
+                    latitude=13.7,
+                    longitude=100.5,
+                    timeout_s=5,
+                    retries=1,
+                    evaluation_scope="facilities-only",
+                    reference_seed=seed,
+                )
+            )
+
+        self.assertEqual([item["name"] for item in result["facilities"]], ["Hospital A"])
+        self.assertEqual(result["guidance_text"], "")
+        self.assertEqual(result["script_text"], "")
+        self.assertEqual([endpoint for endpoint, _payload in seen_endpoints], ["/find_facilities"])
+        self.assertEqual(seen_endpoints[0][1]["severity"], "critical")
+        self.assertEqual(seen_endpoints[0][1]["facility_type"], "hospital")
 
 
 if __name__ == "__main__":

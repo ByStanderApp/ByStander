@@ -288,6 +288,15 @@ def build_openai_model_candidates(primary_model: str) -> list[str]:
     )
 
 
+def build_claude_model_candidates(primary_model: str) -> list[str]:
+    return dedupe_nonempty(
+        [
+            primary_model,
+            ANTHROPIC_JUDGE_MODEL,
+        ]
+    )
+
+
 def post_json_with_retry(
     url: str,
     *,
@@ -401,41 +410,59 @@ def call_claude_tool(
     timeout_s: float,
     retries: int,
 ) -> dict[str, Any]:
-    payload = {
-        "model": model,
-        "max_tokens": 4000,
-        "temperature": 0,
-        "system": system_prompt,
-        "messages": [{"role": "user", "content": user_prompt}],
-        "tools": [
-            {
-                "name": tool_name,
-                "description": "Return the evaluation strictly as structured JSON.",
-                "input_schema": tool_schema,
-            }
-        ],
-        "tool_choice": {"type": "tool", "name": tool_name},
-    }
-    response = post_json_with_retry(
-        "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
-        payload=payload,
-        timeout_s=timeout_s,
-        retries=retries,
-        retry_label=f"claude:{tool_name}",
-    )
-    content = response.get("content") or []
-    if isinstance(content, list):
-        for block in content:
-            if isinstance(block, dict) and block.get("type") == "tool_use":
-                tool_input = block.get("input")
-                if isinstance(tool_input, dict):
-                    return tool_input
-    raise RuntimeError(f"Claude did not return tool output: {response}")
+    last_error: Exception | None = None
+    for candidate_model in build_claude_model_candidates(model):
+        payload = {
+            "model": candidate_model,
+            "max_tokens": 4000,
+            "temperature": 0,
+            "system": system_prompt,
+            "messages": [{"role": "user", "content": user_prompt}],
+            "tools": [
+                {
+                    "name": tool_name,
+                    "description": "Return the evaluation strictly as structured JSON.",
+                    "input_schema": tool_schema,
+                }
+            ],
+            "tool_choice": {"type": "tool", "name": tool_name},
+        }
+        try:
+            response = post_json_with_retry(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                payload=payload,
+                timeout_s=timeout_s,
+                retries=retries,
+                retry_label=f"claude:{tool_name}:{candidate_model}",
+            )
+            content = response.get("content") or []
+            if isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "tool_use":
+                        tool_input = block.get("input")
+                        if isinstance(tool_input, dict):
+                            return tool_input
+            raise RuntimeError(f"Claude did not return tool output: {response}")
+        except RuntimeError as exc:
+            last_error = exc
+            error_text = normalize_text(exc).lower()
+            if candidate_model != model:
+                print(f"[claude:{tool_name}] fallback model failed: {candidate_model}: {exc}")
+            if (
+                " 404" in error_text
+                or "does not exist" in error_text
+                or "not found" in error_text
+                or "model:" in error_text
+            ):
+                print(f"[claude:{tool_name}] falling back from {candidate_model}")
+                continue
+            raise
+    raise RuntimeError(f"Claude structured call failed for all models: {last_error}")
 
 
 def build_prompt_row_id(seed: ScenarioSeed, scenario_index: int, prompt_style: str) -> str:
@@ -534,6 +561,18 @@ def build_bystander_payload(row: dict[str, str], latitude: float | None, longitu
     return payload
 
 
+def infer_facility_type(row: dict[str, str], reference_seed: ScenarioSeed | None) -> str:
+    seeded = normalize_text(reference_seed.facility_type if reference_seed else "").lower()
+    if seeded in {"hospital", "clinic", "none"}:
+        return seeded
+    severity = normalize_text(row.get("severity")).lower()
+    if severity == "critical":
+        return "hospital"
+    if severity == "none":
+        return "none"
+    return "clinic"
+
+
 def coordinate_context_for_row(
     row_id: str,
     *,
@@ -580,8 +619,31 @@ async def fetch_bystander_response(
     timeout_s: float,
     retries: int,
     evaluation_scope: str,
+    reference_seed: ScenarioSeed | None,
 ) -> dict[str, Any]:
     workflow_payload = build_bystander_payload(row, latitude, longitude)
+    if evaluation_scope == "facilities-only":
+        facilities_payload = {
+            **workflow_payload,
+            "severity": normalize_text(row.get("severity")).lower() or "moderate",
+            "facility_type": infer_facility_type(row, reference_seed),
+        }
+        facilities_result = await call_bystander_endpoint(
+            base_url,
+            "/find_facilities",
+            facilities_payload,
+            timeout_s,
+            retries,
+        )
+        facilities = facilities_result.get("facilities") if isinstance(facilities_result, dict) else []
+        if not isinstance(facilities, list):
+            facilities = []
+        return {
+            "guidance_text": "",
+            "facilities": facilities,
+            "script_text": "",
+        }
+
     workflow_result = await call_bystander_endpoint(
         base_url,
         "/agent_workflow",
@@ -602,14 +664,10 @@ async def fetch_bystander_response(
     facilities_task = asyncio.create_task(
         call_bystander_endpoint(base_url, "/find_facilities", followup_payload, timeout_s, retries)
     )
-    if evaluation_scope == "facilities-only":
-        facilities_result = await facilities_task
-        script_result: dict[str, Any] = {}
-    else:
-        script_task = asyncio.create_task(
-            call_bystander_endpoint(base_url, "/call_script", followup_payload, timeout_s, retries)
-        )
-        facilities_result, script_result = await asyncio.gather(facilities_task, script_task)
+    script_task = asyncio.create_task(
+        call_bystander_endpoint(base_url, "/call_script", followup_payload, timeout_s, retries)
+    )
+    facilities_result, script_result = await asyncio.gather(facilities_task, script_task)
     facilities = facilities_result.get("facilities") if isinstance(facilities_result, dict) else []
     if not isinstance(facilities, list):
         facilities = []
@@ -752,6 +810,10 @@ def build_judge_prompt(
             f"Reference facility type: {reference_facility}",
             location_note,
             facilities_note,
+            "For facilities, you must score only the facilities explicitly listed in Facilities JSON.",
+            "Copy each facility_name exactly from Facilities JSON. Do not rename, normalize, or substitute alternatives.",
+            "If Facilities JSON has N facilities, return exactly N facility_scores entries in the same order.",
+            "If a facility seems poor or irrelevant, keep its exact name and give it a low score instead of replacing it.",
             "Guidance rubric: score compliance, correctness, readability from 1-5.",
             "Facilities rubric: up to 5 facilities. relevance_score and open_score are each 0-1. weighted_score_percent = (relevance_score * 10) + (open_score * 10). total_score_percent = sum of facility weighted scores.",
             "Script rubric: score these 9 protocol rules as 0-1 each, allow partial credit, and total_compliance must equal the sum:",
@@ -798,6 +860,10 @@ def build_facilities_only_judge_prompt(
             location_note,
             "Treat facility fields `is_open` or `open_now` as evidence for whether the facility is currently open.",
             "If neither field is present, give 0 for open_score for that facility.",
+            "You must score only the facilities explicitly listed in Facilities JSON.",
+            "Copy each facility_name exactly from Facilities JSON. Do not rename, normalize, or substitute alternatives.",
+            "If Facilities JSON has N facilities, return exactly N facility_scores entries in the same order.",
+            "If a facility seems poor or irrelevant, keep its exact name and give it a low score instead of replacing it.",
             "Score only the facilities section.",
             "Facilities rubric: up to 5 facilities. relevance_score and open_score are each 0-1. weighted_score_percent = (relevance_score * 10) + (open_score * 10). total_score_percent = sum of facility weighted scores.",
             f"Facilities JSON: {json.dumps(ai_response['facilities'], ensure_ascii=False)}",
@@ -878,31 +944,80 @@ async def run_claude_judge(
     )
 
 
-def coerce_judge_output(payload: dict[str, Any]) -> dict[str, Any]:
+def build_zero_facility_scores(source_facilities: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    zero_scores = []
+    for facility in source_facilities[:5]:
+        name = normalize_text(facility.get("name"))
+        if not name:
+            continue
+        zero_scores.append(
+            {
+                "facility_name": name,
+                "relevance_score": 0.0,
+                "open_score": 0.0,
+                "weighted_score_percent": 0.0,
+            }
+        )
+    return zero_scores
+
+
+def coerce_judge_output(
+    payload: dict[str, Any],
+    source_facilities: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    source_facilities = source_facilities or []
     guidance = payload.get("guidance") if isinstance(payload.get("guidance"), dict) else {}
     facilities = payload.get("facilities") if isinstance(payload.get("facilities"), dict) else {}
     script = payload.get("script") if isinstance(payload.get("script"), dict) else {}
 
+    expected_names = [
+        normalize_text(item.get("name"))
+        for item in source_facilities[:5]
+        if normalize_text(item.get("name"))
+    ]
+    expected_name_set = set(expected_names)
     facility_scores = facilities.get("facility_scores")
     if not isinstance(facility_scores, list):
         facility_scores = []
-    normalized_facilities = []
-    total_score = 0.0
-    for item in facility_scores[:5]:
+    normalized_by_name: dict[str, dict[str, Any]] = {}
+    for item in facility_scores:
         if not isinstance(item, dict):
+            continue
+        facility_name = normalize_text(item.get("facility_name"))
+        if expected_name_set and facility_name not in expected_name_set:
+            continue
+        if not facility_name:
             continue
         relevance_score = max(0.0, min(1.0, float(item.get("relevance_score", 0) or 0)))
         open_score = max(0.0, min(1.0, float(item.get("open_score", 0) or 0)))
-        weighted_score = round(max(0.0, min(20.0, float(item.get("weighted_score_percent", 0) or 0))), 2)
-        normalized_facilities.append(
-            {
-                "facility_name": normalize_text(item.get("facility_name")),
-                "relevance_score": round(relevance_score, 2),
-                "open_score": round(open_score, 2),
-                "weighted_score_percent": weighted_score,
-            }
-        )
-        total_score += weighted_score
+        weighted_score = round((relevance_score * 10.0) + (open_score * 10.0), 2)
+        normalized_by_name[facility_name] = {
+            "facility_name": facility_name,
+            "relevance_score": round(relevance_score, 2),
+            "open_score": round(open_score, 2),
+            "weighted_score_percent": weighted_score,
+        }
+
+    normalized_facilities: list[dict[str, Any]] = []
+    if expected_names:
+        for facility_name in expected_names:
+            normalized_facilities.append(
+                normalized_by_name.get(
+                    facility_name,
+                    {
+                        "facility_name": facility_name,
+                        "relevance_score": 0.0,
+                        "open_score": 0.0,
+                        "weighted_score_percent": 0.0,
+                    },
+                )
+            )
+    else:
+        normalized_facilities = list(normalized_by_name.values())[:5]
+    total_score = round(
+        max(0.0, min(100.0, sum(item["weighted_score_percent"] for item in normalized_facilities))),
+        2,
+    )
 
     raw_rule_scores = script.get("rule_scores") if isinstance(script.get("rule_scores"), list) else []
     rule_scores = [round(max(0.0, min(1.0, float(value or 0))), 2) for value in raw_rule_scores[:9]]
@@ -938,6 +1053,22 @@ def merge_judge_output(
     return merged
 
 
+def build_failed_judge_output(
+    source_facilities: list[dict[str, Any]],
+    *,
+    existing_judge: dict[str, Any] | None,
+    evaluation_scope: str,
+) -> dict[str, Any] | None:
+    if evaluation_scope == "facilities-only":
+        merged = dict(existing_judge) if isinstance(existing_judge, dict) else {}
+        merged["facilities"] = {
+            "facility_scores": build_zero_facility_scores(source_facilities),
+            "total_score_percent": 0.0,
+        }
+        return merged
+    return None
+
+
 async def evaluate_row(
     row: dict[str, str],
     *,
@@ -958,6 +1089,7 @@ async def evaluate_row(
     print(f"Evaluating {row['id']}")
     latitude = coordinate_context.get("latitude")
     longitude = coordinate_context.get("longitude")
+    reference_seed = find_reference_seed(row, reference_lookup, all_seeds)
     bystander_ai_response = await fetch_bystander_response(
         row,
         base_url=base_url,
@@ -966,8 +1098,8 @@ async def evaluate_row(
         timeout_s=request_timeout_s,
         retries=retries,
         evaluation_scope=evaluation_scope,
+        reference_seed=reference_seed,
     )
-    reference_seed = find_reference_seed(row, reference_lookup, all_seeds)
     existing_evaluation = (
         existing_result.get("evaluation")
         if isinstance(existing_result, dict) and isinstance(existing_result.get("evaluation"), dict)
@@ -1007,25 +1139,47 @@ async def evaluate_row(
     print(f"Finished {row['id']}")
     evaluation: dict[str, Any] = {}
     if isinstance(gpt_judge_raw, Exception):
-        evaluation["gpt_judge"] = existing_evaluation.get("gpt_judge")
+        evaluation["gpt_judge"] = build_failed_judge_output(
+            bystander_ai_response.get("facilities") or [],
+            existing_judge=(
+                existing_evaluation.get("gpt_judge")
+                if isinstance(existing_evaluation.get("gpt_judge"), dict)
+                else None
+            ),
+            evaluation_scope=evaluation_scope,
+        )
         evaluation["gpt_judge_error"] = str(gpt_judge_raw)
     else:
         evaluation["gpt_judge"] = merge_judge_output(
             existing_evaluation.get("gpt_judge")
             if isinstance(existing_evaluation.get("gpt_judge"), dict)
             else None,
-            coerce_judge_output(gpt_judge_raw),
+            coerce_judge_output(
+                gpt_judge_raw,
+                bystander_ai_response.get("facilities") or [],
+            ),
             evaluation_scope,
         )
     if isinstance(claude_judge_raw, Exception):
-        evaluation["claude_judge"] = existing_evaluation.get("claude_judge")
+        evaluation["claude_judge"] = build_failed_judge_output(
+            bystander_ai_response.get("facilities") or [],
+            existing_judge=(
+                existing_evaluation.get("claude_judge")
+                if isinstance(existing_evaluation.get("claude_judge"), dict)
+                else None
+            ),
+            evaluation_scope=evaluation_scope,
+        )
         evaluation["claude_judge_error"] = str(claude_judge_raw)
     else:
         evaluation["claude_judge"] = merge_judge_output(
             existing_evaluation.get("claude_judge")
             if isinstance(existing_evaluation.get("claude_judge"), dict)
             else None,
-            coerce_judge_output(claude_judge_raw),
+            coerce_judge_output(
+                claude_judge_raw,
+                bystander_ai_response.get("facilities") or [],
+            ),
             evaluation_scope,
         )
     return {
