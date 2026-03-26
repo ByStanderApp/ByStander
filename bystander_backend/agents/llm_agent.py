@@ -237,6 +237,97 @@ class GeminiJSONAgent:
         return dict(default)
 
 
+class OpenAIJSONAgent:
+    def __init__(self) -> None:
+        self.api_key = _normalize_text(os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY"))
+        self.enabled = bool(self.api_key and OpenAI is not None)
+        self.client = OpenAI(api_key=self.api_key) if self.enabled and OpenAI else None
+
+    @staticmethod
+    def _response_text(response: Any) -> str:
+        text = _normalize_text(getattr(response, "output_text", ""))
+        if text:
+            return text
+        return _normalize_text(str(response))
+
+    @observe()
+    def _generate_json_with_responses(
+        self,
+        model_name: str,
+        system_prompt: str,
+        user_prompt: str,
+    ) -> str:
+        if not self.enabled or self.client is None:
+            raise RuntimeError("OpenAI client is unavailable")
+        response = self.client.responses.create(
+            model=model_name,
+            reasoning={"effort": "minimal"},
+            input=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        return self._response_text(response)
+
+    @observe()
+    def _generate_json_with_chat_completions(
+        self,
+        model_name: str,
+        system_prompt: str,
+        user_prompt: str,
+    ) -> str:
+        if not self.enabled or self.client is None:
+            raise RuntimeError("OpenAI client is unavailable")
+        chat = self.client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format={"type": "json_object"},
+        )
+        if getattr(chat, "choices", None):
+            message = chat.choices[0].message
+            text = _normalize_text(getattr(message, "content", ""))
+            if text:
+                return text
+        return _normalize_text(str(chat))
+
+    @observe()
+    def generate_json(
+        self,
+        model_name: str,
+        system_prompt: str,
+        user_prompt: str,
+        default: dict[str, Any],
+        temperature: float = 0.0,
+    ) -> dict[str, Any]:
+        del temperature
+        if not self.enabled or self.client is None:
+            return dict(default)
+
+        try:
+            text = self._generate_json_with_responses(
+                model_name=model_name,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+            )
+            return _parse_json_fallback(text, default)
+        except Exception as exc:
+            record_exception(exc)
+
+        try:
+            text = self._generate_json_with_chat_completions(
+                model_name=model_name,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+            )
+            return _parse_json_fallback(text, default)
+        except Exception as exc:
+            record_exception(exc)
+        return dict(default)
+
+
 class TriageAgent:
     """llmAgent: Gemini 2.5 Flash triage agent."""
 
@@ -692,10 +783,13 @@ class ScriptAgent:
             "Build a Thai phone script the user can read to emergency operator.\n"
             "Requirements:\n"
             "- Follow protocol steps 1-9 in order.\n"
+            "- Make every line specific to this scenario, the patient's condition, "
+            "and the provided guidance. Avoid generic filler.\n"
             "- If known medical history exists, include one short spoken line about it.\n"
             "- Include a direct sentence about location using address/place names "
             "from map context.\n"
             "- If location context exists, mention at least 1-2 nearby landmarks/place names.\n"
+            "- If a detail is unknown, say it is not yet known instead of inventing it.\n"
             "- Never read out raw latitude/longitude numbers to operator.\n"
             "- Keep it short, urgent, and easy to read out loud."
         )
@@ -716,15 +810,15 @@ class ScriptAgent:
     ) -> str:
         default = {
             "call_script": (
-                "สวัสดีค่ะ/ครับ แจ้งเหตุฉุกเฉิน โทร 1669\n"
-                "1) ขณะนี้เกิดเหตุ: ...\n"
-                "2) สถานที่เกิดเหตุชัดเจน: ... (จุดสังเกตใกล้เคียง: ...)\n"
-                "3) ผู้ป่วยเพศ... อายุประมาณ... จำนวน... อาการหลัก...\n"
-                "4) ระดับความรู้สึกตัว: รู้สึกตัว/ซึม/ไม่รู้สึกตัว\n"
-                "5) ความเสี่ยงที่อาจเกิดซ้ำ: เช่น ไฟไหม้/ไฟฟ้ารั่ว/รถวิ่งผ่าน\n"
-                "6) ชื่อผู้แจ้ง... เบอร์ติดต่อกลับ...\n"
-                "7) ได้ช่วยเหลือเบื้องต้นแล้ว: ...\n"
-                "8) ขอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาลโดยด่วน"
+                "1) ตั้งสติ และโทรแจ้ง 1669\n"
+                "2) ให้ข้อมูลว่าเกิดเหตุฉุกเฉินกับผู้ป่วยตามอาการที่พบ\n"
+                "3) บอกสถานที่เกิดเหตุให้ชัดเจน พร้อมจุดสังเกตใกล้เคียง\n"
+                "4) บอกเพศ อายุ อาการ จำนวนผู้ป่วยเท่าที่ทราบ\n"
+                "5) บอกระดับความรู้สึกตัวในตอนนี้\n"
+                "6) บอกความเสี่ยงที่อาจเกิดซ้ำในพื้นที่\n"
+                "7) บอกชื่อผู้แจ้ง + เบอร์โทรศัพท์\n"
+                "8) ช่วยเหลือเบื้องต้นเท่าที่ปลอดภัย\n"
+                "9) รอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาล"
             )
         }
         caller_note = ""
@@ -739,7 +833,8 @@ class ScriptAgent:
         system_prompt = (
             "You are ScriptAgent for emergency operator call assistance in Thai. "
             f"{caller_note}"
-            "Generate concise speaking script following this exact call protocol in order:\n"
+            "Generate a concise, scenario-relevant speaking script following this exact "
+            "call protocol in order:\n"
             "1) ตั้งสติ และโทรแจ้ง 1669\n"
             "2) ให้ข้อมูลว่าเกิดเหตุอะไร\n"
             "3) บอกสถานที่เกิดเหตุให้ชัดเจน\n"

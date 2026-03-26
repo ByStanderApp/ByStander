@@ -1,0 +1,452 @@
+{
+  "models": {
+    "gpt_judge": {
+      "overall:all": {
+        "guidance_compliance": {
+          "count": 225,
+          "mean": 4.0267,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 225,
+          "mean": 4.0044,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 225,
+          "mean": 4.28,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 225,
+          "mean": 47.8933,
+          "median": 65.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 225,
+          "mean": 6.7904,
+          "median": 8.0,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "prompt_style:panic": {
+        "guidance_compliance": {
+          "count": 75,
+          "mean": 4.0667,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 75,
+          "mean": 4.04,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 75,
+          "mean": 4.3733,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 46.7733,
+          "median": 65.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 75,
+          "mean": 7.0367,
+          "median": 8.0,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "prompt_style:calm": {
+        "guidance_compliance": {
+          "count": 75,
+          "mean": 3.8933,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 75,
+          "mean": 3.8667,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 75,
+          "mean": 4.1067,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 46.2933,
+          "median": 65.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 75,
+          "mean": 6.7133,
+          "median": 8.0,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "prompt_style:misspelled": {
+        "guidance_compliance": {
+          "count": 75,
+          "mean": 4.12,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 75,
+          "mean": 4.1067,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 75,
+          "mean": 4.36,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 50.6133,
+          "median": 70.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 75,
+          "mean": 6.6213,
+          "median": 8.0,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "severity_group:critical": {
+        "guidance_compliance": {
+          "count": 108,
+          "mean": 4.2685,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 108,
+          "mean": 4.2315,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 108,
+          "mean": 4.5,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 108,
+          "mean": 52.5,
+          "median": 70.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 108,
+          "mean": 7.2602,
+          "median": 8.0,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "severity_group:non-critical": {
+        "guidance_compliance": {
+          "count": 117,
+          "mean": 3.8034,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 117,
+          "mean": 3.7949,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 117,
+          "mean": 4.0769,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 117,
+          "mean": 43.641,
+          "median": 50.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 117,
+          "mean": 6.3568,
+          "median": 8.0,
+          "min": 0.0,
+          "max": 9.0
+        }
+      }
+    },
+    "claude_judge": {
+      "overall:all": {
+        "guidance_compliance": {
+          "count": 190,
+          "mean": 4.1526,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 190,
+          "mean": 4.1579,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 190,
+          "mean": 4.3842,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 190,
+          "mean": 84.7053,
+          "median": 100.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 190,
+          "mean": 6.5539,
+          "median": 7.5,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "prompt_style:panic": {
+        "guidance_compliance": {
+          "count": 64,
+          "mean": 4.0625,
+          "median": 4.0,
+          "min": 2.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 64,
+          "mean": 4.0469,
+          "median": 4.0,
+          "min": 2.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 64,
+          "mean": 4.3438,
+          "median": 4.0,
+          "min": 3.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 64,
+          "mean": 88.4375,
+          "median": 100.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 64,
+          "mean": 6.6727,
+          "median": 7.55,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "prompt_style:calm": {
+        "guidance_compliance": {
+          "count": 63,
+          "mean": 4.254,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 63,
+          "mean": 4.2381,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 63,
+          "mean": 4.4921,
+          "median": 5.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 63,
+          "mean": 80.8095,
+          "median": 100.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 63,
+          "mean": 6.4762,
+          "median": 7.5,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "prompt_style:misspelled": {
+        "guidance_compliance": {
+          "count": 63,
+          "mean": 4.1429,
+          "median": 4.0,
+          "min": 2.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 63,
+          "mean": 4.1905,
+          "median": 4.0,
+          "min": 2.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 63,
+          "mean": 4.3175,
+          "median": 4.0,
+          "min": 3.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 63,
+          "mean": 84.8095,
+          "median": 100.0,
+          "min": 28.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 63,
+          "mean": 6.5111,
+          "median": 7.5,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "severity_group:critical": {
+        "guidance_compliance": {
+          "count": 108,
+          "mean": 4.213,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 108,
+          "mean": 4.2315,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 108,
+          "mean": 4.4259,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 108,
+          "mean": 92.4907,
+          "median": 100.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 108,
+          "mean": 6.8412,
+          "median": 7.5,
+          "min": 0.0,
+          "max": 9.0
+        }
+      },
+      "severity_group:non-critical": {
+        "guidance_compliance": {
+          "count": 82,
+          "mean": 4.0732,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_correctness": {
+          "count": 82,
+          "mean": 4.061,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "guidance_readability": {
+          "count": 82,
+          "mean": 4.3293,
+          "median": 4.0,
+          "min": 1.0,
+          "max": 5.0
+        },
+        "facilities_total_score_percent": {
+          "count": 82,
+          "mean": 74.4512,
+          "median": 100.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 82,
+          "mean": 6.1756,
+          "median": 7.55,
+          "min": 0.0,
+          "max": 9.0
+        }
+      }
+    }
+  }
+}

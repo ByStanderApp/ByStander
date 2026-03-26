@@ -263,6 +263,8 @@ class AsyncJudgeService:
             "7) บอกชื่อผู้แจ้ง + เบอร์โทรศัพท์\n"
             "8) ช่วยเหลือเบื้องต้น\n"
             "9) รอทีมกู้ชีพมารับเพื่อนำส่งโรงพยาบาล\n"
+            "If location context is available in the script, it should be converted "
+            "into a human place description rather than raw coordinates.\n"
             "Score from 1 to 3 only (1 bad, 3 excellent). Return JSON only."
         )
         user_prompt = (

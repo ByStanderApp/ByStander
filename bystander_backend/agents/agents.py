@@ -27,14 +27,20 @@ except Exception:  # pragma: no cover
 
 if __package__:
     from .judge_service import AsyncJudgeService
-    from .llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
+    from .llm_agent import (
+        GeminiJSONAgent,
+        GuidanceAgent,
+        OpenAIJSONAgent,
+        ScriptAgent,
+        TriageAgent,
+    )
     from .observability import observe, record_exception
 else:  # pragma: no cover
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
     from judge_service import AsyncJudgeService
-    from llm_agent import GeminiJSONAgent, GuidanceAgent, ScriptAgent, TriageAgent
+    from llm_agent import GeminiJSONAgent, GuidanceAgent, OpenAIJSONAgent, ScriptAgent, TriageAgent
     from observability import observe, record_exception
 
 try:
@@ -509,9 +515,13 @@ class ProtocolRetriever:
 
 class MapAgent:
     def __init__(self) -> None:
-        self.validator_llm = GeminiJSONAgent()
-        self.validator_model = (
-            _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or "gemini-2.0-flash-lite"
+        self.openai_validator_llm = OpenAIJSONAgent()
+        self.gemini_validator_llm = GeminiJSONAgent()
+        self.validator_provider = _normalize_text(os.getenv("MAP_VALIDATOR_PROVIDER") or "openai").lower()
+        default_model = "gpt-4.1-mini" if self.validator_provider == "openai" else "gemini-2.5-flash"
+        self.validator_model = _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or default_model
+        self.validator_fallback_model = (
+            _normalize_text(os.getenv("MAP_VALIDATOR_FALLBACK_MODEL")) or "gemini-2.5-flash"
         )
 
     def _get_google_api_key(self) -> str | None:
@@ -596,6 +606,302 @@ class MapAgent:
                 "keyword": "clinic คลินิก outpatient",
             },
         ]
+
+    @staticmethod
+    def _is_hospital_subdepartment(place: dict[str, Any]) -> bool:
+        name = _normalize_text(place.get("name")).lower()
+        if not name:
+            return False
+        hospital_markers = ("hospital", "โรงพยาบาล", "รพ.")
+        if not any(marker in name for marker in hospital_markers):
+            return False
+        explicit_tokens = (
+            "department",
+            "dept",
+            "ward",
+            "unit",
+            "room",
+            "lab",
+            "laboratory",
+            "outpatient",
+            "opd",
+            "checkup",
+            "wellness",
+            "hearing",
+            "audiology",
+            "venipuncture",
+            "blood draw",
+            "imaging",
+            "x-ray",
+            "mri",
+            "ct scan",
+            "dialysis",
+            "physio",
+            "physiotherapy",
+            "rehab",
+            "traditional medicine",
+            "ห้อง",
+            "แผนก",
+            "หน่วย",
+            "หอผู้ป่วย",
+            "ห้องตรวจ",
+            "ห้องเจาะเลือด",
+            "ศูนย์ตรวจ",
+            "ศูนย์สุขภาพ",
+            "เวชศาสตร์ฟื้นฟู",
+            "กายภาพ",
+            "แพทย์แผนไทย",
+        )
+        if any(token in name for token in explicit_tokens):
+            return True
+        return name.startswith(("ศูนย์", "center", "centre", "clinic", "คลินิก", "แผนก", "หน่วย", "ห้อง"))
+
+    @staticmethod
+    def _is_full_hospital(place: dict[str, Any]) -> bool:
+        name = _normalize_text(place.get("name")).lower()
+        types_list = {str(t).lower() for t in place.get("types", [])}
+        hospital_markers = ("hospital", "โรงพยาบาล", "รพ.")
+        return (
+            "hospital" in types_list
+            and any(marker in name for marker in hospital_markers)
+            and not MapAgent._is_hospital_subdepartment(place)
+        )
+
+    @staticmethod
+    def _scenario_specialty_tags(scenario: str) -> set[str]:
+        text = _normalize_text(scenario).lower()
+        tag_map = {
+            "eye": ("eye", "vision", "ตา", "มอง", "คันตา", "ตาพร่า", "สารเคมีเข้าตา"),
+            "dental": ("dental", "dent", "tooth", "teeth", "ฟัน", "เหงือก"),
+            "women": ("pregnan", "obgyn", "gyne", "สูติ", "นรี", "ตั้งครรภ์", "ครรภ์", "คลอด"),
+            "child": ("child", "children", "infant", "baby", "เด็ก", "ทารก"),
+            "ent": ("ear", "nose", "throat", "ent", "หู", "จมูก", "คอ"),
+            "ortho": ("fracture", "sprain", "bone", "joint", "ortho", "กระดูก", "ข้อ", "แพลง", "เคล็ด"),
+            "skin": ("rash", "skin", "derma", "ผื่น", "ผิว", "คัน"),
+            "mental": ("mental", "psy", "panic", "suicid", "จิต", "เครียด", "ฆ่าตัวตาย"),
+        }
+        tags: set[str] = set()
+        for tag, keywords in tag_map.items():
+            if any(keyword in text for keyword in keywords):
+                tags.add(tag)
+        return tags
+
+    @staticmethod
+    def _place_specialty_tags(place: dict[str, Any]) -> set[str]:
+        name = _normalize_text(place.get("name")).lower()
+        tag_map = {
+            "eye": ("eye", "ophthalm", "จักษุ", "ตา"),
+            "dental": ("dental", "dent", "ทันต", "ฟัน"),
+            "women": ("obgyn", "สูติ", "นรี", "ฝากครรภ์"),
+            "child": ("pediatric", "paediatric", "เด็ก", "ทารก"),
+            "ent": ("ent", "หูคอจมูก", "otolaryng"),
+            "ortho": ("ortho", "orthopedic", "กระดูก", "ข้อ"),
+            "skin": ("derma", "skin", "ผิว"),
+            "mental": ("psy", "mental", "จิต"),
+        }
+        tags: set[str] = set()
+        for tag, keywords in tag_map.items():
+            if any(keyword in name for keyword in keywords):
+                tags.add(tag)
+        return tags
+
+    @staticmethod
+    def _is_general_clinic(place: dict[str, Any]) -> bool:
+        if MapAgent._is_hospital_subdepartment(place) or MapAgent._is_full_hospital(place):
+            return False
+        types_list = {str(t).lower() for t in place.get("types", [])}
+        if "doctor" not in types_list and "health" not in types_list:
+            return False
+        if MapAgent._place_specialty_tags(place):
+            return False
+        return MapAgent._is_human_medical_signal(place)
+
+    def _specialty_fit_score(
+        self,
+        scenario: str,
+        place: dict[str, Any],
+        severity: str,
+        requested_facility_type: str,
+    ) -> float:
+        if self._is_hospital_subdepartment(place):
+            return 0.05
+        if severity == "critical":
+            return 1.0 if self._is_full_hospital(place) else 0.0
+
+        scenario_tags = self._scenario_specialty_tags(scenario)
+        place_tags = self._place_specialty_tags(place)
+        if self._is_full_hospital(place):
+            return 0.95
+        if scenario_tags and scenario_tags.intersection(place_tags):
+            return 0.95
+        if self._is_general_clinic(place):
+            return 0.85 if requested_facility_type == "clinic" else 0.8
+        if place_tags:
+            return 0.25
+        if self._is_human_medical_signal(place):
+            return 0.45
+        return 0.0
+
+    @staticmethod
+    def _hospital_confidence(place: dict[str, Any]) -> float:
+        if MapAgent._is_hospital_subdepartment(place):
+            return 0.0
+        if MapAgent._is_full_hospital(place):
+            return 1.0
+        if MapAgent._is_general_clinic(place):
+            return 0.75
+        return 0.35 if MapAgent._is_human_medical_signal(place) else 0.0
+
+    @staticmethod
+    def _fallback_eta_minutes(distance_km: float, severity: str) -> float:
+        speed_kmh = 32.0 if severity == "critical" else 26.0
+        base_delay = 3.0 if severity == "critical" else 5.0
+        return round(base_delay + ((max(distance_km, 0.0) / speed_kmh) * 60.0), 1)
+
+    @staticmethod
+    def _eta_score(eta_minutes: float, severity: str) -> float:
+        if eta_minutes <= 0:
+            return 0.0
+        if severity == "critical":
+            if eta_minutes <= 10:
+                return 1.0
+            if eta_minutes <= 18:
+                return 0.85
+            if eta_minutes <= 28:
+                return 0.65
+            if eta_minutes <= 40:
+                return 0.4
+            return 0.15
+        if eta_minutes <= 12:
+            return 1.0
+        if eta_minutes <= 22:
+            return 0.85
+        if eta_minutes <= 35:
+            return 0.65
+        if eta_minutes <= 50:
+            return 0.4
+        return 0.2
+
+    def _estimate_route_eta_minutes(
+        self,
+        origin_latitude: float,
+        origin_longitude: float,
+        facilities: list[dict[str, Any]],
+    ) -> dict[str, float]:
+        api_key = self._get_google_api_key()
+        if not api_key or not facilities:
+            return {}
+
+        eta_by_place_id: dict[str, float] = {}
+        for start in range(0, len(facilities), 20):
+            chunk = facilities[start : start + 20]
+            destinations = "|".join(
+                f"{item['latitude']},{item['longitude']}"
+                for item in chunk
+                if _safe_float(item.get("latitude")) is not None
+                and _safe_float(item.get("longitude")) is not None
+            )
+            if not destinations:
+                continue
+            params = {
+                "origins": f"{origin_latitude},{origin_longitude}",
+                "destinations": destinations,
+                "mode": "driving",
+                "departure_time": "now",
+                "traffic_model": "best_guess",
+                "language": "th",
+                "key": api_key,
+            }
+            try:
+                response = requests.get(
+                    "https://maps.googleapis.com/maps/api/distancematrix/json",
+                    params=params,
+                    timeout=10,
+                )
+                response.raise_for_status()
+                payload = response.json() if response.content else {}
+                if _normalize_text(payload.get("status")) != "OK":
+                    continue
+                rows = payload.get("rows") or []
+                elements = rows[0].get("elements", []) if rows else []
+                for item, element in zip(chunk, elements):
+                    if _normalize_text(element.get("status")) != "OK":
+                        continue
+                    duration = element.get("duration_in_traffic") or element.get("duration") or {}
+                    seconds = _safe_float(duration.get("value"))
+                    place_id = _normalize_text(item.get("place_id"))
+                    if seconds is None or not place_id:
+                        continue
+                    eta_by_place_id[place_id] = round(seconds / 60.0, 1)
+            except requests.RequestException as exc:
+                record_exception(exc)
+            except Exception as exc:
+                record_exception(exc)
+        return eta_by_place_id
+
+    def _compute_selection_score(
+        self,
+        scenario: str,
+        severity: str,
+        requested_facility_type: str,
+        facility: dict[str, Any],
+    ) -> float:
+        eta_minutes = _safe_float(facility.get("eta_minutes")) or 0.0
+        rating = min(max((_safe_float(facility.get("rating")) or 0.0) / 5.0, 0.0), 1.0)
+        hospital_confidence = self._hospital_confidence(facility)
+        scenario_tags = self._scenario_specialty_tags(scenario)
+        place_tags = self._place_specialty_tags(facility)
+        specialty_fit = self._specialty_fit_score(
+            scenario=scenario,
+            place=facility,
+            severity=severity,
+            requested_facility_type=requested_facility_type,
+        )
+        eta_score = self._eta_score(eta_minutes, severity)
+        penalty = 0.55 if self._is_hospital_subdepartment(facility) else 0.0
+        if (
+            severity != "critical"
+            and place_tags
+            and not self._is_full_hospital(facility)
+            and not scenario_tags.intersection(place_tags)
+        ):
+            penalty += 0.35
+
+        if severity == "critical":
+            if not self._is_full_hospital(facility):
+                return 0.0
+            score = (0.6 * eta_score) + (0.3 * hospital_confidence) + (0.1 * rating)
+        else:
+            score = (
+                (0.55 * specialty_fit)
+                + (0.25 * eta_score)
+                + (0.15 * rating)
+                + (0.05 * hospital_confidence)
+            )
+        score = max(0.0, min(1.0, score - penalty))
+        return round(score, 4)
+
+    @staticmethod
+    def _minimum_selection_score(severity: str) -> float:
+        return 0.6 if severity == "critical" else 0.45
+
+    def _validator_chain(self) -> list[tuple[Any, str]]:
+        openai_available = bool(getattr(self.openai_validator_llm, "enabled", False))
+        gemini_available = bool(
+            getattr(self.gemini_validator_llm, "vertex_enabled", False)
+            or getattr(self.gemini_validator_llm, "client", None)
+        )
+        if self.validator_provider == "openai":
+            chain = [
+                (self.openai_validator_llm, self.validator_model) if openai_available else None,
+                (self.gemini_validator_llm, self.validator_fallback_model) if gemini_available else None,
+            ]
+        else:
+            chain = [
+                (self.gemini_validator_llm, self.validator_model) if gemini_available else None,
+                (self.openai_validator_llm, self.validator_fallback_model) if openai_available else None,
+            ]
+        return [item for item in chain if item is not None]
 
     def _nearby_search(
         self,
@@ -760,23 +1066,27 @@ class MapAgent:
                 parts.append(f"สถานพยาบาลใกล้เคียง: {', '.join(nearby_refs)}")
         return "\n".join(parts)
 
-    def _strict_filter(self, place: dict[str, Any], requested_facility_type: str) -> str:
+    def _strict_filter(self, place: dict[str, Any], requested_facility_type: str, severity: str) -> str:
         if self._is_veterinary_place(place):
             return "reject"
         if self._is_non_treatment_business(place):
             return "reject"
+        if self._is_hospital_subdepartment(place):
+            return "reject"
 
         types_list = {str(t).lower() for t in place.get("types", [])}
         if requested_facility_type == "hospital":
-            if "hospital" in types_list and self._is_human_medical_signal(place):
+            if self._is_full_hospital(place):
                 return "accept"
+            if severity == "critical":
+                return "reject"
             if "doctor" in types_list and self._is_human_medical_signal(place):
                 return "ambiguous"
             return "reject"
 
         if "doctor" in types_list and self._is_human_medical_signal(place):
             return "accept"
-        if "hospital" in types_list and self._is_human_medical_signal(place):
+        if self._is_full_hospital(place):
             return "accept"
         if self._is_human_medical_signal(place):
             return "ambiguous"
@@ -864,48 +1174,50 @@ class MapAgent:
         system_prompt = (
             "You are MapAgent validation model for an emergency app. "
             "Classify ONLY true human treatment facilities. "
-            "Reject veterinary clinics/hospitals, pharmacies, medical companies, and offices. "
+            "Reject veterinary clinics/hospitals, pharmacies, medical companies, offices, "
+            "and hospital sub-departments or rooms. "
             "Return strict JSON only."
         )
         user_prompt = (
             f"Scenario: {scenario}\n"
             f"Requested facility type: {requested_facility_type}\n"
             f"Severity: {severity}\n\n"
-            "For requested type hospital, only hospitals are valid.\n"
-            "For requested type clinic, hospitals and doctor/clinic facilities are valid.\n"
+            "For requested type hospital, only full hospitals are valid. "
+            "Reject emergency rooms, departments, units, wards, labs, or sub-centers inside hospitals.\n"
+            "For requested type clinic, full hospitals and true clinics are valid, but reject rooms, departments, "
+            "screening centers, and narrow non-treatment units.\n"
             "Return JSON schema exactly: "
             '{"items":[{"place_id":"...","is_valid":true|false,'
             '"facility_type":"hospital|clinic|other","reason":"short"}]}\n\n'
             f"Candidates:\n{json.dumps(serialized_places, ensure_ascii=False)}"
         )
-
-        out = self.validator_llm.generate_json(
-            model_name=self.validator_model,
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            default=default,
-            temperature=0.0,
-        )
-        parsed = self._parse_llm_validation(out)
-        if parsed:
-            return parsed
+        for llm, model_name in self._validator_chain():
+            out = llm.generate_json(
+                model_name=model_name,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                default=default,
+                temperature=0.0,
+            )
+            parsed = self._parse_llm_validation(out)
+            if parsed:
+                return parsed
         return rule_fallback()
 
     @observe()
-    def search_nearby_facilities(
+    def _search_nearby_facilities_once(
         self,
         latitude: float,
         longitude: float,
-        facility_type: str,
+        requested_facility_type: str,
         severity: str,
         scenario: str = "",
     ) -> dict[str, Any]:
-        requested = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
         map_severity = severity if severity in {"critical", "moderate", "mild", "none"} else "none"
 
         all_candidates: list[dict[str, Any]] = []
         errors: list[str] = []
-        for q in self._build_query_plan(requested, map_severity):
+        for q in self._build_query_plan(requested_facility_type, map_severity):
             result = self._nearby_search(
                 latitude=latitude,
                 longitude=longitude,
@@ -934,7 +1246,11 @@ class MapAgent:
         strict_accept: list[dict[str, Any]] = []
         ambiguous: list[dict[str, Any]] = []
         for place in dedup.values():
-            decision = self._strict_filter(place, requested_facility_type=requested)
+            decision = self._strict_filter(
+                place,
+                requested_facility_type=requested_facility_type,
+                severity=map_severity,
+            )
             if decision == "accept":
                 strict_accept.append(place)
             elif decision == "ambiguous":
@@ -944,7 +1260,7 @@ class MapAgent:
         if ambiguous:
             llm_map = self._llm_validate_candidates(
                 scenario=scenario,
-                requested_facility_type=requested,
+                requested_facility_type=requested_facility_type,
                 severity=map_severity,
                 candidates=ambiguous,
             )
@@ -965,6 +1281,11 @@ class MapAgent:
             if f_lat is None or f_lon is None:
                 continue
             details = self._get_place_details(_normalize_text(place.get("place_id")))
+            details_open_now = (details.get("opening_hours") or {}).get("open_now", None)
+            place_open_now = (place.get("opening_hours") or {}).get("open_now", None)
+            open_now = details_open_now if details_open_now is not None else place_open_now
+            if open_now is not True:
+                continue
             facilities.append(
                 {
                     "place_id": _normalize_text(place.get("place_id")),
@@ -974,13 +1295,47 @@ class MapAgent:
                     "website": _normalize_text(details.get("website")),
                     "rating": float(place.get("rating", 0) or 0),
                     "user_ratings_total": int(place.get("user_ratings_total", 0) or 0),
-                    "open_now": (place.get("opening_hours") or {}).get("open_now", None),
+                    "open_now": open_now,
                     "latitude": f_lat,
                     "longitude": f_lon,
                     "types": place.get("types", []),
                 }
             )
         return {"facilities": facilities, "total": len(facilities)}
+
+    @observe()
+    def search_nearby_facilities(
+        self,
+        latitude: float,
+        longitude: float,
+        facility_type: str,
+        severity: str,
+        scenario: str = "",
+    ) -> dict[str, Any]:
+        requested = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        primary_result = self._search_nearby_facilities_once(
+            latitude=latitude,
+            longitude=longitude,
+            requested_facility_type=requested,
+            severity=severity,
+            scenario=scenario,
+        )
+        if "error" in primary_result:
+            return primary_result
+        if requested != "clinic" or int(primary_result.get("total", 0) or 0) > 0:
+            return primary_result
+
+        fallback_result = self._search_nearby_facilities_once(
+            latitude=latitude,
+            longitude=longitude,
+            requested_facility_type="hospital",
+            severity=severity,
+            scenario=scenario,
+        )
+        if "error" in fallback_result or int(fallback_result.get("total", 0) or 0) <= 0:
+            return primary_result
+        fallback_result["fallback_facility_type"] = "hospital"
+        return fallback_result
 
     def run(
         self,
@@ -994,11 +1349,13 @@ class MapAgent:
             return []
 
         map_severity = "critical" if severity == "critical" else "mild"
-        fac_type = facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        requested_facility_type = "hospital" if severity == "critical" else (
+            facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        )
         result = self.search_nearby_facilities(
             latitude=latitude,
             longitude=longitude,
-            facility_type=fac_type,
+            facility_type=requested_facility_type,
             severity=map_severity,
             scenario=scenario,
         )
@@ -1006,6 +1363,7 @@ class MapAgent:
             return []
 
         facilities = result.get("facilities", []) or []
+        fallback_facility_type = _normalize_text(result.get("fallback_facility_type")).lower()
         cleaned: list[dict[str, Any]] = []
         for f in facilities:
             f_lat = _safe_float(f.get("latitude"))
@@ -1015,26 +1373,65 @@ class MapAgent:
             distance_km = _haversine_km(latitude, longitude, f_lat, f_lon)
             cleaned.append(
                 {
+                    "place_id": _normalize_text(f.get("place_id")),
                     "name": _normalize_text(f.get("name")),
                     "address": _normalize_text(f.get("address")),
                     "phone_number": _normalize_text(f.get("phone_number")),
                     "rating": float(f.get("rating", 0) or 0),
                     "distance_km": round(distance_km, 2),
+                    "open_now": f.get("open_now"),
+                    "is_open": f.get("open_now"),
                     "latitude": f_lat,
                     "longitude": f_lon,
+                    "types": f.get("types", []),
                 }
             )
 
-        if severity == "critical":
-            cleaned.sort(key=lambda x: x["distance_km"])
-            reason = "critical: sorted by shortest distance"
-        else:
-            cleaned.sort(key=lambda x: (-x["rating"], x["distance_km"]))
-            reason = "moderate: sorted by rating then distance"
-
+        eta_by_place_id = self._estimate_route_eta_minutes(latitude, longitude, cleaned)
+        scored: list[dict[str, Any]] = []
         for item in cleaned:
+            eta_minutes = eta_by_place_id.get(_normalize_text(item.get("place_id")))
+            if eta_minutes is None:
+                eta_minutes = self._fallback_eta_minutes(
+                    distance_km=float(item["distance_km"]),
+                    severity=severity,
+                )
+            item["eta_minutes"] = eta_minutes
+            item["is_subdepartment"] = self._is_hospital_subdepartment(item)
+            item["hospital_confidence"] = round(self._hospital_confidence(item), 4)
+            item["specialty_fit_score"] = round(
+                self._specialty_fit_score(
+                    scenario=scenario,
+                    place=item,
+                    severity=severity,
+                    requested_facility_type=requested_facility_type,
+                ),
+                4,
+            )
+            item["selection_score"] = self._compute_selection_score(
+                scenario=scenario,
+                severity=severity,
+                requested_facility_type=requested_facility_type,
+                facility=item,
+            )
+            if severity == "critical" and not self._is_full_hospital(item):
+                continue
+            if item["selection_score"] < self._minimum_selection_score(severity):
+                continue
+            scored.append(item)
+
+        if severity == "critical":
+            scored.sort(key=lambda x: (-x["selection_score"], x["eta_minutes"], x["distance_km"]))
+            reason = "critical: ranked by ETA and full-hospital selection score"
+        else:
+            scored.sort(key=lambda x: (-x["selection_score"], x["eta_minutes"], x["distance_km"]))
+            reason = "moderate: ranked by specialty fit, ETA, and selection score"
+        if fallback_facility_type == "hospital":
+            reason = f"{reason}; clinic fallback to hospital"
+
+        for item in scored:
             item["selection_reason"] = reason
-        return cleaned[:5]
+        return scored[:5]
 
 
 class FirebaseProfileService:

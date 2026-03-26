@@ -1,0 +1,4506 @@
+========================================================================================================================
+1. 010-แผลหน-งเป-ด-ถลอกล-ก-panic | critical | panic | แผลหนังเปิด/ถลอกลึก
+Selection: bucket:critical:panic
+Prompt: รถล้มค่ะ แผลถลอกลึกมาก หนังเหมือนหลุด เห็นเนื้อแดงๆ เลือดซึมตลอด กลัวติดเชื้อทำไงดี!
+
+Guidance:
+1. ขอความช่วยเหลือจากคนรอบข้างหรือโทร 1669 หากเลือดออกมากหรืออาการรุนแรงขึ้น
+2. สวมถุงมือป้องกันติดเชื้อ (ถ้ามี) ก่อนทำแผล
+3. หยุดเลือดโดยใช้ผ้าสะอาดหรือผ้ากอซกดเบาๆ บนแผลจนเลือดซึมน้อยลง
+4. ล้างแผลเบาๆ ด้วยสบู่อ่อนและน้ำสะอาดเพื่อขจัดสิ่งสกปรก (อย่าขัดแรง)
+5. ทายาฆ่าเชื้อ เช่น โพวิโดนไอโอดีน ตามคำแนะนำบนฉลาก
+6. ปิดแผลด้วยผ้าพันแผลหรือผ้าปิดแผลที่สะอาดเพื่อป้องกันสิ่งสกปรก
+7. เปลี่ยนผ้าพันแผลเป็นประจำหากเปียกหรือสกปรก
+8. สังเกตอาการติดเชื้อ เช่น บวมแดงเพิ่ม มีหนอง มีไข้ - หากมีให้ไปพบแพทย์ทันที
+
+Facilities:
+[
+  {
+    "address": "1 ซอย 5 ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 1.1,
+    "is_open": true,
+    "latitude": 7.0160569,
+    "longitude": 100.4683809,
+    "name": "ศูนย์บริการสาธารณสุข โรงเรียนเทศบาล1",
+    "open_now": true,
+    "phone_number": "074 246 148",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "2F89+P3V ถนน นิพัทธ์สงเคราะห์ 1 ซอย 5 ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 1.22,
+    "is_open": true,
+    "latitude": 7.016862499999999,
+    "longitude": 100.467669,
+    "name": "ห้องตรวจการได้ยินสาวสวยแห่งพื้นที่เขต12",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "โรงพยาบาลสงขลานครินทร์, ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 2.25,
+    "is_open": true,
+    "latitude": 7.0062348,
+    "longitude": 100.4949384,
+    "name": "ห้องเจาะเลือด Venipuncture room",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "มหาวิทยาลัยสงขลานครินทร์ 15 ถ.กาญจนวณิชย์ ตำบล คอหงส์ อำเภอหาดใหญ่",
+    "distance_km": 2.76,
+    "is_open": true,
+    "latitude": 7.0020574,
+    "longitude": 100.4988955,
+    "name": "โรงพยาบาลการแพทย์แผนไทย มหาวิทยาลัยสงขลานครินทร์",
+    "open_now": true,
+    "phone_number": "074 282 710",
+    "rating": 4.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "48 13 ซอย ๑๙ คลองแห-คูเต่า อำเภอหาดใหญ่",
+    "distance_km": 5.31,
+    "is_open": true,
+    "latitude": 7.0561075,
+    "longitude": 100.4759742,
+    "name": "โรงพยาบาลหาดใหญ่ สาขาคลองแห",
+    "open_now": true,
+    "phone_number": "074 300 340",
+    "rating": 4.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "ศูนย์บริการสาธารณสุข โรงเรียนเทศบาล1",
+        "relevance_score": 0.2,
+        "open_score": 1.0,
+        "weighted_score_percent": 12.0
+      },
+      {
+        "facility_name": "ห้องตรวจการได้ยินสาวสวยแห่งพื้นที่เขต12",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "ห้องเจาะเลือด Venipuncture room",
+        "relevance_score": 0.2,
+        "open_score": 1.0,
+        "weighted_score_percent": 12.0
+      },
+      {
+        "facility_name": "โรงพยาบาลการแพทย์แผนไทย มหาวิทยาลัยสงขลานครินทร์",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหาดใหญ่ สาขาคลองแห",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 64.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.5
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลไอเอ็มเอช สีลม",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลเจ้าพระยา",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "แผนกฉุกเฉิน โรงพยาบาลบำรุงราษฎร์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลบีเอ็นเอช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 6.5
+  }
+}
+
+========================================================================================================================
+2. 013-ช-กเกร-ง-panic | critical | panic | ชักเกร็ง
+Selection: bucket:critical:panic
+Prompt: คนไข้ที่วอร์ดอยู่ๆ ชักกระตุกทั้งตัว ตาลอย น้ำลายฟูมปากเหมือนกัดลิ้น! เราควรทำยังไงตอนนี้ ต้องจับนอนตะแคงไหม แล้วถ้าชักไม่หยุดต้องทำยังไง?
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. ห้ามนำสิ่งของใดๆ ก็ตามยัดปากผู้ป่วย หรือพยายามงัดปากผู้ป่วย
+2. จับผู้ป่วยนอนตะแคง หันศีรษะไปด้านใดด้านหนึ่ง เพื่อป้องกันการสำลักน้ำลายหรือสิ่งคัดหลั่ง
+3. หาหมอนหรือสิ่งของนุ่มๆ มารองศีรษะผู้ป่วย เพื่อป้องกันการกระแทก
+4. คลายเสื้อผ้าที่รัดแน่นบริเวณคอและหน้าอกให้หลวม เพื่อให้ผู้ป่วยหายใจได้สะดวก
+5. หากผู้ป่วยใส่แว่น ให้ถอดออกเพื่อป้องกันการบาดเจ็บ
+6. จับเวลาการชัก หากผู้ป่วยชักนานเกิน 3 นาที หรือชักต่อเนื่อง ให้รีบแจ้งทีมแพทย์ หรือโทร 1669 ทันที
+
+Facilities:
+[
+  {
+    "address": "218, 1 ถ. ภูเก็ต Taladyai Subdistrict, Muang",
+    "distance_km": 0.12,
+    "is_open": true,
+    "latitude": 7.8793392,
+    "longitude": 98.3923547,
+    "name": "PULSE CLINIC - Phuket Town",
+    "open_now": true,
+    "phone_number": "064 059 1495",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "18 20 ถนน อนุภาษภูเก็ตการ ตำบลตลาดใหญ่ อำเภอเมืองภูเก็ต",
+    "distance_km": 1.4,
+    "is_open": true,
+    "latitude": 7.881066000000001,
+    "longitude": 98.404991,
+    "name": "โรงพยาบาลองค์การบริหารส่วนจังหวัดภูเก็ต",
+    "open_now": true,
+    "phone_number": "076 358 888",
+    "rating": 3.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "381/3 Soi Lorong Ranong Road. Amphur อำเภอเมืองภูเก็ต",
+    "distance_km": 1.49,
+    "is_open": true,
+    "latitude": 7.881186599999999,
+    "longitude": 98.3788297,
+    "name": "AR Internatinal Medical Center",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 0.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "41/7-8 ถ. แม่หลวน ตำบลตลาดเหนือ อำเภอเมืองภูเก็ต",
+    "distance_km": 1.99,
+    "is_open": true,
+    "latitude": 7.887234800000001,
+    "longitude": 98.3756332,
+    "name": "ภูเก็ต เมดิคอล คลินิก (สาขาเมืองภูเก็ต)",
+    "open_now": true,
+    "phone_number": "096 228 2449",
+    "rating": 4.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "353 ถ. เยาวราช ตำบลตลาดใหญ่ อำเภอเมืองภูเก็ต",
+    "distance_km": 2.04,
+    "is_open": true,
+    "latitude": 7.8967544,
+    "longitude": 98.3838207,
+    "name": "โรงพยาบาลวชิระภูเก็ต",
+    "open_now": true,
+    "phone_number": "076 361 234",
+    "rating": 2.9,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "PULSE CLINIC - Phuket Town",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลองค์การบริหารส่วนจังหวัดภูเก็ต",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "AR Internatinal Medical Center",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "ภูเก็ต เมดิคอล คลินิก (สาขาเมืองภูเก็ต)",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลวชิระภูเก็ต",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 70.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.5
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.75,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.25
+  }
+}
+
+========================================================================================================================
+3. 006-ห-วใจวาย-ขาดเล-อด-panic | critical | panic | หัวใจวาย/ขาดเลือด
+Selection: bucket:critical:panic
+Prompt: ผู้ใหญ่ที่บ้านเจ็บแน่นหน้าอกมาก เหงื่อแตก ปวดร้าวลงแขน เขาบอกหายใจไม่ทั่วท้อง! ต้องให้เขานั่งหรือนอน แล้วควรโทรเรียกรถพยาบาลยังไงเร็วที่สุด
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. ติดต่อ 1669 หรือโรงพยาบาล หรือทีมกู้ภัยใกล้เคียงทันที เพื่อขอความช่วยเหลือฉุกเฉิน
+2. ในขณะที่รอรถพยาบาล ให้จัดท่าผู้ป่วยในท่านั่ง หรือนอนราบกับพื้นในท่าที่สบายที่สุด
+3. ปลดเสื้อผ้าให้คลายออก เพื่อให้ผู้ป่วยหายใจได้สะดวก
+
+Facilities:
+[
+  {
+    "address": "161 27 ถนน แสงศรี ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 0.11,
+    "is_open": true,
+    "latitude": 7.0090571,
+    "longitude": 100.4754565,
+    "name": "โรงพยาบาลมิตรภาพสามัคคี",
+    "open_now": true,
+    "phone_number": "074 801 900",
+    "rating": 4.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "103 ถนน จิระนคร ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 0.74,
+    "is_open": true,
+    "latitude": 7.013300699999999,
+    "longitude": 100.4792154,
+    "name": "ศูนย์บริการสาธารณสุขสามชัย",
+    "open_now": true,
+    "phone_number": "074 262 818",
+    "rating": 3.9,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "2F8C+M65 ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 1.02,
+    "is_open": true,
+    "latitude": 7.016638899999999,
+    "longitude": 100.4706011,
+    "name": "คลินิคแพทย์เฉพาะทางนอกเวลาราชการ",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 3.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "48/108 Supasarnrangsan Road, ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 1.03,
+    "is_open": true,
+    "latitude": 7.0166429,
+    "longitude": 100.4705098,
+    "name": "คลินิกเวชปฏิบัติครอบครัวโรงพยาบาลหาดใหญ่",
+    "open_now": true,
+    "phone_number": "074 273 100",
+    "rating": 2.5,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "119 ราษฎร์ยินดี ตำบล หาดใหญ่ อำเภอหาดใหญ่",
+    "distance_km": 1.07,
+    "is_open": true,
+    "latitude": 7.0006339,
+    "longitude": 100.4804957,
+    "name": "โรงพยาบาลธนบุรี ราษฎร์ยินดี",
+    "open_now": true,
+    "phone_number": "074 200 200",
+    "rating": 4.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลมิตรภาพสามัคคี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์บริการสาธารณสุขสามชัย",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "คลินิคแพทย์เฉพาะทางนอกเวลาราชการ",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "คลินิกเวชปฏิบัติครอบครัวโรงพยาบาลหาดใหญ่",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลธนบุรี ราษฎร์ยินดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 85.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.0
+    ],
+    "total_compliance": 7.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      0.5,
+      1.0,
+      0.0
+    ],
+    "total_compliance": 5.5
+  }
+}
+
+========================================================================================================================
+4. 028-ข-อเท-าห-ก-panic | critical | panic | ข้อเท้าหัก
+Selection: bucket:critical:panic
+Prompt: ข้อเท้าพลิกแล้วเหมือนบิดผิดรูป เดินไม่ได้เลย เจ็บมาก! ต้องดามยังไง ห้ามขยับใช่ไหม!
+
+Guidance:
+1. หยุดเดินหรือลงน้ำหนักบนขาข้างที่เจ็บทันที 2. หาอุปกรณ์ดามชั่วคราว เช่น ไม้กระดานแบนหรือกระดาษแข็ง พันด้วยผ้าทั้งด้านข้างและด้านล่างเพื่อไม่ให้ข้อเท้าเคลื่อน 3. ประคบเย็นบริเวณที่เจ็บประมาณ 15 นาที ทุก 2 ชั่วโมง เพื่อลดบวม 4. ยกขาข้างที่เจ็บให้สูงขึ้นขณะนั่งหรือนอน 5. ห้ามขยับ ลงน้ำหนัก ประคบร้อน หรือนวดข้อเท้า 6. หากอาการไม่ดีขึ้นหรือปวดมาก ให้โทร 1669 หรือไปโรงพยาบาลทันที
+
+Facilities:
+[
+  {
+    "address": "ตำบล แม่สอด อำเภอแม่สอด",
+    "distance_km": 0.37,
+    "is_open": true,
+    "latitude": 16.7158836,
+    "longitude": 98.57078,
+    "name": "MT Lab คลินิกเทคนิคการแพทย์ ตรวจเลือด",
+    "open_now": true,
+    "phone_number": "055 532 229",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "175/16 ตึก OPD ชั้น 3 ถ ถนนศรีพานิช อำเภอแม่สอด",
+    "distance_km": 0.77,
+    "is_open": true,
+    "latitude": 16.7099841,
+    "longitude": 98.572168,
+    "name": "คลินิกตรวจสุขภาพประจำปี&คลินิกโรคจากการทำงาน รพ.แม่สอด",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "ตำบล ท่าสายลวด อำเภอแม่สอด",
+    "distance_km": 4.93,
+    "is_open": true,
+    "latitude": 16.699093,
+    "longitude": 98.5315842,
+    "name": "โรงพยาบาลจุฬารัตน์แม่สอด",
+    "open_now": true,
+    "phone_number": "055 564 440",
+    "rating": 4.8,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "222, ตำบล แม่ปะ อำเภอแม่สอด",
+    "distance_km": 2.09,
+    "is_open": true,
+    "latitude": 16.735264,
+    "longitude": 98.5710962,
+    "name": "รพ.นครแม่สอด อินเตอร์เนชั่นแนล Nakornmaesot International Hospital",
+    "open_now": true,
+    "phone_number": "055 518 200",
+    "rating": 4.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "68 68 ถนน ชิดวนา ตำบล แม่สอด อำเภอแม่สอด",
+    "distance_km": 0.31,
+    "is_open": true,
+    "latitude": 16.7187612,
+    "longitude": 98.57212439999999,
+    "name": "คลีนิกหมอธิดารัตน์(ใหม่)",
+    "open_now": true,
+    "phone_number": "088 278 7850",
+    "rating": 4.3,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "MT Lab คลินิกเทคนิคการแพทย์ ตรวจเลือด",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "คลินิกตรวจสุขภาพประจำปี&คลินิกโรคจากการทำงาน รพ.แม่สอด",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลจุฬารัตน์แม่สอด",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "รพ.นครแม่สอด อินเตอร์เนชั่นแนล Nakornmaesot International Hospital",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "คลีนิกหมอธิดารัตน์(ใหม่)",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      }
+    ],
+    "total_score_percent": 80.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลไอเอ็มเอช สีลม",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลเจ้าพระยา",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "แผนกฉุกเฉิน โรงพยาบาลบำรุงราษฎร์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลบีเอ็นเอช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.0
+  }
+}
+
+========================================================================================================================
+5. 033-ส-ดดมก-าซพ-ษ-panic | critical | panic | สูดดมก๊าซพิษ
+Selection: bucket:critical:panic
+Prompt: ในรถเหม็นแก๊สแรงมาก แล้วเขามึนหัวจะเป็นลม หายใจไม่ออก แสบคอแสบจมูก ทำไงเดี๋ยวนี้!
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน 1. รีบพาผู้ป่วยออกจากรถไปยังบริเวณที่มีอากาศบริสุทธิ์และถ่ายเทได้ดีทันที 2. โทรแจ้ง 1669 เพื่อขอความช่วยเหลือทางการแพทย์ฉุกเฉินและแจ้งอาการทั้งหมด 3. ประเมินการหายใจและระดับความรู้สึกตัวของผู้ป่วย หากผู้ป่วยหมดสติหรือไม่หายใจ ให้ปฏิบัติตามคำแนะนำของเจ้าหน้าที่ 1669 4. ห้ามทำให้อาเจียน หรือให้ดื่มน้ำและนมโดยไม่ปรึกษาแพทย์
+
+Facilities:
+[
+  {
+    "address": "89/9 ถ. สิงหวัฒน์ ตำบล ธานี อำเภอเมืองสุโขทัย",
+    "distance_km": 0.52,
+    "is_open": true,
+    "latitude": 17.0083919,
+    "longitude": 99.8224532,
+    "name": "โรงพยาบาลพัฒนเวชสุโขทัย",
+    "open_now": true,
+    "phone_number": "055 621 502",
+    "rating": 2.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "137/3 ถ. สิงหวัฒน์ ตำบล ธานี อำเภอเมืองสุโขทัย",
+    "distance_km": 0.66,
+    "is_open": true,
+    "latitude": 17.0101768,
+    "longitude": 99.8302873,
+    "name": "โรงพยาบาลทั่วไปขนาดเล็กหมออาคม",
+    "open_now": true,
+    "phone_number": "055 612 708",
+    "rating": 4.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "kingdom Thailand of Pasific Combinaion ตำบล บ้านกล้วย อำเภอเมืองสุโขทัย",
+    "distance_km": 2.83,
+    "is_open": true,
+    "latitude": 17.0085179,
+    "longitude": 99.7999196,
+    "name": "โรงพยาบาลรวมแพทย์สุโขทัย",
+    "open_now": true,
+    "phone_number": "055 612 189",
+    "rating": 3.3,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "2/1 หมู่ที่ 12 ถ. จรดวิถีถ่อง ตำบล บ้านกล้วย อำเภอเมืองสุโขทัย",
+    "distance_km": 3.28,
+    "is_open": true,
+    "latitude": 17.0108475,
+    "longitude": 99.7960459,
+    "name": "โรงพยาบาลสุโขทัย",
+    "open_now": true,
+    "phone_number": "055 611 333",
+    "rating": 3.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "หมู่ 1, ตำบลยางซ้าย อำเภอเมือง จังหวัดสุโขทัย, 64220",
+    "distance_km": 5.3,
+    "is_open": true,
+    "latitude": 16.9582283,
+    "longitude": 99.8321055,
+    "name": "โรงพยาบาลส่งเสริมสุขภาพตำบลยางซ้าย",
+    "open_now": true,
+    "phone_number": "055 944 229",
+    "rating": 3.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลพัฒนเวชสุโขทัย",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลทั่วไปขนาดเล็กหมออาคม",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลรวมแพทย์สุโขทัย",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลสุโขทัย",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลส่งเสริมสุขภาพตำบลยางซ้าย",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      }
+    ],
+    "total_score_percent": 95.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 9.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.75,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.25
+  }
+}
+
+========================================================================================================================
+6. 024-โรคหลอดเล-อดสมอง-misspelled | critical | misspelled | โรคหลอดเลือดสมอง
+Selection: bucket:critical:misspelled
+Prompt: พ่อจู่ๆปากเบี้ยว พูดไม่ชัด แขนขาข้างนึงแรงหายคะ น่าจะเริ่มเมื่อกี้แต่ไม่ชัวร์ ตอนนี้ยังรู้เรื่องแต่น้ำลายไหลกลืนยาก ต้องจัดท่าพักฟื้นยังไง แล้วต้องคอยดูหายใจ/การตอบสนองแบบไหน
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน โทร 1669 ทันที
+1. ระบุช่วงเวลาที่เริ่มมีอาการปากเบี้ยว พูดไม่ชัด แขนขาอ่อนแรง หรือช่วงเวลาสุดท้ายที่ทราบว่าพ่อมีสุขภาพดี
+2. เนื่องจากพ่อมีน้ำลายไหลและกลืนลำบาก ให้จัดให้อยู่ในท่าพักฟื้น เพื่อป้องกันการสำลัก
+3. เฝ้าระวังการเปลี่ยนแปลงของอาการอย่างต่อเนื่อง โดยเฉพาะการหายใจและการตอบสนอง
+4. ระวังอย่าให้พ่อหนาวหรือร้อนเกินไป
+5. อยู่กับพ่อตลอดเวลา
+6. ให้การดูแลรักษาอาการช็อกหากจำเป็น
+
+Facilities:
+[
+  {
+    "address": "479 ถ. ราชดำเนิน ตำบล ในเมือง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 1.52,
+    "is_open": true,
+    "latitude": 8.4168481,
+    "longitude": 99.96509979999999,
+    "name": "โรงพยาบาลเทศบาลนครนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "075 356 014",
+    "rating": 3.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "103 ถ. พัฒนาการคูขวาง ตำบล ท่าวัง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 1.67,
+    "is_open": true,
+    "latitude": 8.4438525,
+    "longitude": 99.9697609,
+    "name": "ศูนย์บริการสาธารณสุขคูขวาง (คลินิกหมอใกล้บ้าน) เทศบาลนครนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 2.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "129 541 ตำบล ปากนคร เมือง",
+    "distance_km": 1.79,
+    "is_open": true,
+    "latitude": 8.428536900000001,
+    "longitude": 99.97927170000001,
+    "name": "Aura clinic by dr. Kitti",
+    "open_now": true,
+    "phone_number": "091 845 0685",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "61 Aomkaiwachirawut Road ตำบล ท่าวัง Thawang Muang",
+    "distance_km": 2.85,
+    "is_open": true,
+    "latitude": 8.455757199999999,
+    "longitude": 99.9671702,
+    "name": "โรงพยาบาลนครินทร์",
+    "open_now": true,
+    "phone_number": "075 312 800",
+    "rating": 3.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "หมู่ ที่ 3, อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 3.94,
+    "is_open": true,
+    "latitude": 8.4478067,
+    "longitude": 99.93189300000002,
+    "name": "โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านทุ่งโหนด",
+    "open_now": true,
+    "phone_number": "083 506 3865",
+    "rating": 4.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลเทศบาลนครนครศรีธรรมราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์บริการสาธารณสุขคูขวาง (คลินิกหมอใกล้บ้าน) เทศบาลนครนครศรีธรรมราช",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "Aura clinic by dr. Kitti",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลนครินทร์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านทุ่งโหนด",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 70.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.5
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.8,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.3
+  }
+}
+
+========================================================================================================================
+7. 021-แมวก-ด-ข-วน-misspelled | critical | misspelled | แมวกัด/ข่วน
+Selection: bucket:critical:misspelled
+Prompt: โดนแมวกัด/ข่วนที่มือคะ เหมือนมีรอยเขี้ยวลึกๆนิดนึง ต้องล้างด้วยน้ำสบู่แรงๆใช่มั้ย แล้วทาเบตาดีนรอบๆแผลได้ปะ ปิดก๊อซยังไงดี
+
+Guidance:
+1. ล้างแผลด้วยน้ำสบู่และน้ำไหลแรง ๆ ให้ทั่วถึง อย่างน้อย 15 นาที เพื่อชะล้างสิ่งสกปรกและน้ำลายแมวออก 2. เช็ดแผลให้แห้งด้วยผ้าสะอาด 3. ทายาฆ่าเชื้อ เช่น เบตาดีน (โพวิโดนไอโอดีน) เฉพาะบริเวณรอบ ๆ แผล หลีกเลี่ยงการทาลงบนแผลเปิดโดยตรง 4. ปิดแผลด้วยผ้าก๊อซสะอาดและยึดด้วยเทปพันแผล เปลี่ยนผ้าพันแผลทุกวันหรือเมื่อเปื้อน 5. สังเกตอาการติดเชื้อ เช่น บวม แดง ร้อน ปวด มีหนอง หากมีอาการเหล่านี้ หรือแผลลึก เลือดออกมาก แมวไม่มีประวัติวัคซีนพิษสุนัขบ้า หรือคุณมีโรคประจำตัว (เช่น เบาหวาน) ให้รีบไปพบแพทย์
+
+Facilities:
+[
+  {
+    "address": "หมอไพโรจน์คลินิกเวชกรรม เทศบาลตำบลหนองบัว อำเภอเมืองอุดรธานี",
+    "distance_km": 2.4,
+    "is_open": true,
+    "latitude": 17.4348094,
+    "longitude": 102.7922701,
+    "name": "หมอไพโรจน์คลินิกเวชกรรม อุดร",
+    "open_now": true,
+    "phone_number": "086 344 0408",
+    "rating": 4.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "76 19-20 ถ. พิบูลย์ ตำบล บ้านเลื่อม อำเภอเมืองอุดรธานี",
+    "distance_km": 1.06,
+    "is_open": true,
+    "latitude": 17.4225546,
+    "longitude": 102.7829881,
+    "name": "The Library Clinic",
+    "open_now": true,
+    "phone_number": "042 111 351",
+    "rating": 4.3,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "555/5 ถ. โพศรี ตำบลหมากแข้ง อำเภอเมืองอุดรธานี",
+    "distance_km": 2.47,
+    "is_open": true,
+    "latitude": 17.3977711,
+    "longitude": 102.803113,
+    "name": "โรงพยาบาลเอกอุดร",
+    "open_now": true,
+    "phone_number": "042 342 555",
+    "rating": 4.3,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "CR43+PC4 111 ทองใหญ่ ตำบลหมากแข้ง อำเภอเมืองอุดรธานี",
+    "distance_km": 1.95,
+    "is_open": true,
+    "latitude": 17.4063393,
+    "longitude": 102.8036403,
+    "name": "โรงพยาบาลกรุงเทพอุดร",
+    "open_now": true,
+    "phone_number": "042 188 999",
+    "rating": 4.1,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "หมอไพโรจน์คลินิกเวชกรรม อุดร",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "The Library Clinic",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลเอกอุดร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลกรุงเทพอุดร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 60.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.7,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.7
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "Craft clinic คราฟ คลินิก BTSพญาไท",
+        "relevance_score": 0.7,
+        "open_score": 0.0,
+        "weighted_score_percent": 7.0
+      },
+      {
+        "facility_name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า",
+        "relevance_score": 0.5,
+        "open_score": 0.0,
+        "weighted_score_percent": 5.0
+      },
+      {
+        "facility_name": "คลินิกวัณโรค โรงพยาบาลพระมงกุฎเกล้า",
+        "relevance_score": 0.3,
+        "open_score": 0.0,
+        "weighted_score_percent": 3.0
+      },
+      {
+        "facility_name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "relevance_score": 0.6,
+        "open_score": 0.0,
+        "weighted_score_percent": 6.0
+      },
+      {
+        "facility_name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic",
+        "relevance_score": 0.7,
+        "open_score": 0.0,
+        "weighted_score_percent": 7.0
+      }
+    ],
+    "total_score_percent": 28.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      0.8,
+      0.7,
+      1.0,
+      0.8,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.8
+  }
+}
+
+========================================================================================================================
+8. 006-ห-วใจวาย-ขาดเล-อด-misspelled | critical | misspelled | หัวใจวาย/ขาดเลือด
+Selection: bucket:critical:misspelled
+Prompt: คนที่บ้านแน่นหน้าอกมาก เหงื่อแตก ปวดร้าวลงแขน หายใจไม่อิ่ม ต้องให้นั่งหรือนอนดี แล้วโทร1669ต้องบอกอะไรบ้าง
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. รีบโทรแจ้ง 1669 ทันที
+2. เมื่อโทรแจ้ง 1669 ให้แจ้งอาการของผู้ป่วยอย่างละเอียดว่ามีอาการแน่นหน้าอกมาก เหงื่อแตก ปวดร้าวลงแขน และหายใจไม่อิ่ม
+3. หากผู้ป่วยยังมีสติและหายใจได้ ให้จัดท่าผู้ป่วยในท่านั่ง หรือนอนราบกับพื้นในท่าที่สบายที่สุด
+4. ปลดเสื้อผ้าที่รัดแน่นบริเวณคอ หน้าอก และเอวให้หลวม เพื่อให้ผู้ป่วยหายใจได้สะดวก
+5. รอรถพยาบาลมาถึง โดยสังเกตอาการของผู้ป่วยอย่างใกล้ชิด
+
+Facilities:
+[
+  {
+    "address": "479 ถ. ราชดำเนิน ตำบล ในเมือง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 1.52,
+    "is_open": true,
+    "latitude": 8.4168481,
+    "longitude": 99.96509979999999,
+    "name": "โรงพยาบาลเทศบาลนครนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "075 356 014",
+    "rating": 3.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "103 ถ. พัฒนาการคูขวาง ตำบล ท่าวัง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 1.67,
+    "is_open": true,
+    "latitude": 8.4438525,
+    "longitude": 99.9697609,
+    "name": "ศูนย์บริการสาธารณสุขคูขวาง (คลินิกหมอใกล้บ้าน) เทศบาลนครนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 2.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "129 541 ตำบล ปากนคร เมือง",
+    "distance_km": 1.79,
+    "is_open": true,
+    "latitude": 8.428536900000001,
+    "longitude": 99.97927170000001,
+    "name": "Aura clinic by dr. Kitti",
+    "open_now": true,
+    "phone_number": "091 845 0685",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "61 Aomkaiwachirawut Road ตำบล ท่าวัง Thawang Muang",
+    "distance_km": 2.85,
+    "is_open": true,
+    "latitude": 8.455757199999999,
+    "longitude": 99.9671702,
+    "name": "โรงพยาบาลนครินทร์",
+    "open_now": true,
+    "phone_number": "075 312 800",
+    "rating": 3.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "หมู่ ที่ 3, อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 3.94,
+    "is_open": true,
+    "latitude": 8.4478067,
+    "longitude": 99.93189300000002,
+    "name": "โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านทุ่งโหนด",
+    "open_now": true,
+    "phone_number": "083 506 3865",
+    "rating": 4.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลเทศบาลนครนครศรีธรรมราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์บริการสาธารณสุขคูขวาง (คลินิกหมอใกล้บ้าน) เทศบาลนครศรีธรรมราช",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "Aura clinic by dr. Kitti",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลนครินทร์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านทุ่งโหนด",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 70.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      0.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.5
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      0.8,
+      0.7,
+      1.0,
+      0.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.0
+  }
+}
+
+========================================================================================================================
+9. 032-ซ-โครงห-ก-misspelled | critical | misspelled | ซี่โครงหัก
+Selection: bucket:critical:misspelled
+Prompt: ล้มกระแทกอกข้างๆ เจ็บซี่โครงมาก หายใจเข้าลึกๆก้เจ็บ ไอแล้วเจ็บจี๊ด กลัวซี่โครงหัก ต้องทำไงบ้างคับ
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. โทรแจ้ง 1669 ทันทีเพื่อขอความช่วยเหลือทางการแพทย์ฉุกเฉิน
+2. หากมีอาการปวดมาก สามารถใช้ยาแก้ปวด เช่น พาราเซตามอล หรือยาไอบูโพรเฟน (หากไม่มีข้อห้าม)
+3. ประคบเย็นบริเวณซี่โครงที่เจ็บ โดยใช้ถุงน้ำแข็งหรือถุงถั่วลันเตาแช่แข็งที่ห่อด้วยผ้าขนหนู เพื่อช่วยลดอาการบวมและปวด
+4. พยายามหายใจตามปกติ และไอเมื่อรู้สึกอยากไอ โดยใช้หมอนแนบหน้าอกไว้เพื่อลดอาการเจ็บ
+5. พยายามเดินไปมาบ้าง และขยับไหล่เป็นครั้งคราว เพื่อช่วยให้ปอดโล่งและขับเสมหะ
+6. หายใจเข้าออกช้าๆ ลึกๆ เป็นประจำ เพื่อช่วยให้ปอดทำงานได้ดีขึ้น
+7. พักผ่อนให้เพียงพอ และในช่วงสองสามคืนแรก พยายามนอนในท่าที่เอนตัวไปข้างหน้ามากขึ้น
+
+Facilities:
+[
+  {
+    "address": "2 2 ถนน มหาราช ในเมือง อำเภอเมืองนครราชสีมา",
+    "distance_km": 0.62,
+    "is_open": true,
+    "latitude": 14.9848027,
+    "longitude": 102.0948895,
+    "name": "LooksHospital",
+    "open_now": true,
+    "phone_number": "087 875 3232",
+    "rating": 0.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "X3PX+4Q9 ตำบลในเมือง อำเภอเมืองนครราชสีมา",
+    "distance_km": 0.63,
+    "is_open": true,
+    "latitude": 14.9852878,
+    "longitude": 102.0994787,
+    "name": "อาคารเฉลิมพระเกียรติ",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 4.5,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "49 ถนน ช้างเผือก ตำบลในเมือง อำเภอเมืองนครราชสีมา",
+    "distance_km": 0.81,
+    "is_open": true,
+    "latitude": 14.9846923,
+    "longitude": 102.1034119,
+    "name": "โรงพยาบาลมหาราชนครราชสีมา",
+    "open_now": true,
+    "phone_number": "044 235 000",
+    "rating": 3.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "49 ถนน ช้างเผือก ตำบลในเมือง อำเภอเมืองนครราชสีมา",
+    "distance_km": 0.83,
+    "is_open": true,
+    "latitude": 14.9847782,
+    "longitude": 102.1035248,
+    "name": "อาคารผู้ป่วยนอกและอำนวยการ 7 ชั้น",
+    "open_now": true,
+    "phone_number": "044 235 000",
+    "rating": 4.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "34 ถนน มหาดไทย ตำบลในเมือง อำเภอเมืองนครราชสีมา",
+    "distance_km": 0.86,
+    "is_open": true,
+    "latitude": 14.9729799,
+    "longitude": 102.1013266,
+    "name": "โรงพยาบาลเดอะโกลเดนเกท",
+    "open_now": true,
+    "phone_number": "044 242 658",
+    "rating": 3.6,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 1,
+    "correctness": 1,
+    "readability": 1
+  },
+  "facilities": {
+    "facility_scores": [],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 9.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      0.8,
+      0.8,
+      0.7,
+      0.5,
+      0.5,
+      1.0,
+      0.8,
+      1.0
+    ],
+    "total_compliance": 7.1
+  }
+}
+
+========================================================================================================================
+10. 011-ส-น-ขก-ด-ไม-ม-แผล-misspelled | critical | misspelled | สุนัขกัด (ไม่มีแผล)
+Selection: bucket:critical:misspelled
+Prompt: โดนหมางับแต่ไม่เห็นมีแผลเลย แค่น้ำลายเลอะผิว กลัวพิษสุนัขบ้า ต้องล้างยังไง แล้วต้องไปฉีดวัคซีนมั้ยคะ
+
+Guidance:
+1. ล้างบริเวณที่สัมผัสน้ำลายสุนัขด้วยน้ำและสบู่ให้สะอาดทันที 2. ตามแนวทางการแพทย์ปัจจุบัน กรณีไม่มีแผลหรือรอยถลอก ไม่จำเป็นต้องฉีดวัคซีนทันที แต่ต้องเฝ้าสังเกตอาการของสุนัขอย่างน้อย 10 วัน 3. หากสุนัขมีอาการผิดปกติ เช่น ซึม ก้าวร้าว น้ำลายไหล หรือตายระหว่างการสังเกต ให้รีบไปโรงพยาบาลเพื่อฉีดวัคซีนป้องกันโรคพิษสุนัขบ้าทันที 4. หากคุณมีบาดแผลเปิดหรือรอยขีดข่วนที่ผิวหนัง แม้เล็กน้อย ให้ไปโรงพยาบาลเพื่อประเมินการฉีดวัคซีน
+
+Facilities:
+[
+  {
+    "address": "46 ต 185 ประตูชัย ตำบล ประตูชัย อำเภอ พระนครศรีอยุธยา",
+    "distance_km": 1.43,
+    "is_open": true,
+    "latitude": 14.3439375,
+    "longitude": 100.5596923,
+    "name": "อาคารศรีสรรเสริญ โรงพยาบาลพระนครศรีอยุธยา",
+    "open_now": true,
+    "phone_number": "035 211 888",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "88 ตำบล คานหาม อำเภออุทัย",
+    "distance_km": 5.98,
+    "is_open": true,
+    "latitude": 14.3346126,
+    "longitude": 100.6209737,
+    "name": "โรงพยาบาลรังสีรักษา ราชธานี",
+    "open_now": true,
+    "phone_number": "035 922 967",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "55/5 ถนน เทศบาลเมืองอโยธยา ตำบลหันตรา อำเภอ พระนครศรีอยุธยา",
+    "distance_km": 5.24,
+    "is_open": true,
+    "latitude": 14.3825519,
+    "longitude": 100.6069887,
+    "name": "โรงพยาบาลพีรเวช",
+    "open_now": true,
+    "phone_number": "035 801 555",
+    "rating": 4.2,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "46 1 ถ. อู่ทอง ตำบล ประตูชัย อำเภอ พระนครศรีอยุธยา",
+    "distance_km": 1.39,
+    "is_open": true,
+    "latitude": 14.3437123,
+    "longitude": 100.5604679,
+    "name": "โรงพยาบาลพระนครศรีอยุธยา",
+    "open_now": true,
+    "phone_number": "035 958 666",
+    "rating": 3.1,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "200 ถนน องค์การบริหารส่วนจังหวัด พระนครศรีอยุธยา 2543 ตำบล บ่อโพง อำเภอนครหลวง",
+    "distance_km": 5.65,
+    "is_open": true,
+    "latitude": 14.3982949,
+    "longitude": 100.5929889,
+    "name": "โรงพยาบาลสมเด็จพระสังฆราชเจ้า กรมหลวงชินวราลงกรณ (วาสนมหาเถร)",
+    "open_now": true,
+    "phone_number": "035 200 910",
+    "rating": 2.8,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    "total_compliance": 5.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "Craft clinic คราฟ คลินิก BTSพญาไท",
+        "relevance_score": 0.6,
+        "open_score": 0.0,
+        "weighted_score_percent": 6.0
+      },
+      {
+        "facility_name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า",
+        "relevance_score": 0.8,
+        "open_score": 0.0,
+        "weighted_score_percent": 8.0
+      },
+      {
+        "facility_name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "relevance_score": 0.6,
+        "open_score": 0.0,
+        "weighted_score_percent": 6.0
+      },
+      {
+        "facility_name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic",
+        "relevance_score": 0.6,
+        "open_score": 0.0,
+        "weighted_score_percent": 6.0
+      },
+      {
+        "facility_name": "คณะแพทยศาสตร์ศิริราชพยาบาล มหาวิทยาลัยมหิดล",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 46.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_compliance": 0.0
+  }
+}
+
+========================================================================================================================
+11. 055-แพน-ค-ต-นตระหนก-panic | moderate | panic | แพนิค / ตื่นตระหนก
+Selection: bucket:moderate:panic
+Prompt: ช่วยด้วยค่ะ อยู่ดีๆเหมือนหายใจไม่ออก ใจสั่น มือจีบ กลัวจะตาย คุมตัวเองไม่ได้เลย ทำไงดี!
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. ประเมินชีพจรว่าผิดปกติหรือไม่ และสอบถามประวัติการมีโรคประจำตัว
+2. หากพบความผิดปกติ ให้รีบโทร 1669 ทันที
+3. หากไม่พบความผิดปกติ ให้พาผู้ป่วยไปยังที่สงบและอากาศถ่ายเท
+4. ให้ผู้ป่วยหายใจเข้าออกช้าๆ ลึกๆ (นับ 1-4 เข้า, นับ 1-4 ออก) เพื่อปรับสมดุลก๊าซในเลือด
+5. บอกผู้ป่วยสั้นๆ ว่า "นี่คืออาการแพนิค มันจะผ่านไป คุณปลอดภัย"
+6. ให้ผู้ป่วยบอกสิ่งที่มองเห็น 5 อย่าง, สิ่งที่สัมผัสได้ 4 อย่าง เพื่อดึงสติกลับมาอยู่กับปัจจุบัน
+7. หากอาการไม่ดีขึ้น ให้รีบโทร 1669 ทันที
+
+Facilities:
+[
+  {
+    "address": "18 20 ถนน อนุภาษภูเก็ตการ ตำบลตลาดใหญ่ อำเภอเมืองภูเก็ต",
+    "distance_km": 1.4,
+    "is_open": true,
+    "latitude": 7.881066000000001,
+    "longitude": 98.404991,
+    "name": "โรงพยาบาลองค์การบริหารส่วนจังหวัดภูเก็ต",
+    "open_now": true,
+    "phone_number": "076 358 888",
+    "rating": 3.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "381/3 Soi Lorong Ranong Road. Amphur อำเภอเมืองภูเก็ต",
+    "distance_km": 1.49,
+    "is_open": true,
+    "latitude": 7.881186599999999,
+    "longitude": 98.3788297,
+    "name": "AR Internatinal Medical Center",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 0.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "41/7-8 ถ. แม่หลวน ตำบลตลาดเหนือ อำเภอเมืองภูเก็ต",
+    "distance_km": 1.99,
+    "is_open": true,
+    "latitude": 7.887234800000001,
+    "longitude": 98.3756332,
+    "name": "ภูเก็ต เมดิคอล คลินิก (สาขาเมืองภูเก็ต)",
+    "open_now": true,
+    "phone_number": "096 228 2449",
+    "rating": 4.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "353 ถ. เยาวราช ตำบลตลาดใหญ่ อำเภอเมืองภูเก็ต",
+    "distance_km": 2.04,
+    "is_open": true,
+    "latitude": 7.8967544,
+    "longitude": 98.3838207,
+    "name": "โรงพยาบาลวชิระภูเก็ต",
+    "open_now": true,
+    "phone_number": "076 361 234",
+    "rating": 2.9,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "353 ถ. เยาวราช ต.ตลาดใหญ่ อ.เมือง",
+    "distance_km": 2.07,
+    "is_open": true,
+    "latitude": 7.897012599999999,
+    "longitude": 98.38387279999999,
+    "name": "ห้องเอกซเรย์ รพ.วชิระภูเก็ต",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 0.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลองค์การบริหารส่วนจังหวัดภูเก็ต",
+        "relevance_score": 0.8,
+        "open_score": 1.0,
+        "weighted_score_percent": 18.0
+      },
+      {
+        "facility_name": "AR Internatinal Medical Center",
+        "relevance_score": 0.4,
+        "open_score": 1.0,
+        "weighted_score_percent": 14.0
+      },
+      {
+        "facility_name": "ภูเก็ต เมดิคอล คลินิก (สาขาเมืองภูเก็ต)",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลวชิระภูเก็ต",
+        "relevance_score": 0.8,
+        "open_score": 1.0,
+        "weighted_score_percent": 18.0
+      },
+      {
+        "facility_name": "ห้องเอกซเรย์ รพ.วชิระภูเก็ต",
+        "relevance_score": 0.2,
+        "open_score": 1.0,
+        "weighted_score_percent": 12.0
+      }
+    ],
+    "total_score_percent": 77.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    "total_compliance": 5.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 3,
+    "correctness": 3,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 50.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_compliance": 0.0
+  }
+}
+
+========================================================================================================================
+12. 041-ภาวะต-วเย-นเก-น-panic | moderate | panic | ภาวะตัวเย็นเกิน
+Selection: bucket:moderate:panic
+Prompt: ช่วยด้วย เขาตัวเย็นมาก สั่นไม่หยุด ปากเริ่มม่วง หลังตกน้ำเย็น! ต้องทำอะไรก่อนเดี๋ยวนี้
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. ประเมินความปลอดภัยของพื้นที่
+2. โทร 1669 ทันที
+3. ปฐมพยาบาลตามอาการเท่าที่ปลอดภัย
+4. เฝ้าระวังอาการจนกว่าทีมแพทย์มาถึง
+
+Facilities:
+[
+  {
+    "address": "89/9 ถ. สิงหวัฒน์ ตำบล ธานี อำเภอเมืองสุโขทัย",
+    "distance_km": 0.52,
+    "is_open": true,
+    "latitude": 17.0083919,
+    "longitude": 99.8224532,
+    "name": "โรงพยาบาลพัฒนเวชสุโขทัย",
+    "open_now": true,
+    "phone_number": "055 621 502",
+    "rating": 2.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "137/3 ถ. สิงหวัฒน์ ตำบล ธานี อำเภอเมืองสุโขทัย",
+    "distance_km": 0.66,
+    "is_open": true,
+    "latitude": 17.0101768,
+    "longitude": 99.8302873,
+    "name": "โรงพยาบาลทั่วไปขนาดเล็กหมออาคม",
+    "open_now": true,
+    "phone_number": "055 612 708",
+    "rating": 4.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "kingdom Thailand of Pasific Combinaion ตำบล บ้านกล้วย อำเภอเมืองสุโขทัย",
+    "distance_km": 2.83,
+    "is_open": true,
+    "latitude": 17.0085179,
+    "longitude": 99.7999196,
+    "name": "โรงพยาบาลรวมแพทย์สุโขทัย",
+    "open_now": true,
+    "phone_number": "055 612 189",
+    "rating": 3.3,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "2/1 หมู่ที่ 12 ถ. จรดวิถีถ่อง ตำบล บ้านกล้วย อำเภอเมืองสุโขทัย",
+    "distance_km": 3.28,
+    "is_open": true,
+    "latitude": 17.0108475,
+    "longitude": 99.7960459,
+    "name": "โรงพยาบาลสุโขทัย",
+    "open_now": true,
+    "phone_number": "055 611 333",
+    "rating": 3.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "หมู่ 1, ตำบลยางซ้าย อำเภอเมือง จังหวัดสุโขทัย, 64220",
+    "distance_km": 5.3,
+    "is_open": true,
+    "latitude": 16.9582283,
+    "longitude": 99.8321055,
+    "name": "โรงพยาบาลส่งเสริมสุขภาพตำบลยางซ้าย",
+    "open_now": true,
+    "phone_number": "055 944 229",
+    "rating": 3.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลพัฒนเวชสุโขทัย",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      },
+      {
+        "facility_name": "โรงพยาบาลทั่วไปขนาดเล็กหมออาคม",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      },
+      {
+        "facility_name": "โรงพยาบาลรวมแพทย์สุโขทัย",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      },
+      {
+        "facility_name": "โรงพยาบาลสุโขทัย",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      },
+      {
+        "facility_name": "โรงพยาบาลส่งเสริมสุขภาพตำบลยางซ้าย",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      }
+    ],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 3,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.7,
+      0.8,
+      1.0,
+      0.5,
+      0.5,
+      1.0
+    ],
+    "total_compliance": 7.5
+  }
+}
+
+========================================================================================================================
+13. 053-แมงกะพร-นท-วไป-panic | moderate | panic | แมงกะพรุนทั่วไป
+Selection: bucket:moderate:panic
+Prompt: โดนแมงกะพรุนที่ทะเลค่ะ แสบคันเป็นผื่นแดงยาวๆ เลย! จะล้างด้วยน้ำเปล่าได้ไหม หรือทำยังไงด่วนๆ?
+
+Guidance:
+1. ออกจากน้ำทันที ระวังอาการแพ้รุนแรงจนจมน้ำ
+2. ห้ามล้างด้วยน้ำเปล่า น้ำอัดลม หรือน้ำปัสสาวะ
+3. ราดบริเวณที่โดนด้วยน้ำส้มสายชูครัวเรือน (4-6%) อย่างน้อย 30 วินาที ถ้าไม่มีให้ใช้น้ำทะเลแทน
+4. ห้ามถูหรือสัมผัสแผลด้วยมือเปล่า เพราะอาจมีเข็มพิษค้าง
+5. สังเกตอาการอย่างน้อย 1 ชั่วโมง หากมีอาการหอบ หายใจไม่ออก ให้โทร 1669 ทันที
+
+Facilities:
+[
+  {
+    "address": "เวียง 168/37 อำเภอเมืองเชียงราย",
+    "distance_km": 1.7,
+    "is_open": true,
+    "latitude": 19.9074618,
+    "longitude": 99.824704,
+    "name": "คลินิกวารีเวลเนส -โรคทั่วไป/วิตามินดริป/ฮอร์โมน WAREE WELLNESS CLINIC - primary care/certificate/IV vitamin/Hormone",
+    "open_now": true,
+    "phone_number": "096 242 6161",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "หมู่ที่ 5 22/2 ถ. พหลโยธิน อำเภอเมืองเชียงราย",
+    "distance_km": 2.55,
+    "is_open": true,
+    "latitude": 19.93311,
+    "longitude": 99.844489,
+    "name": "โพลิแล็บคลินิก Polylab",
+    "open_now": true,
+    "phone_number": "085 034 2655",
+    "rating": 4.3,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "คลินิกวารีเวลเนส -โรคทั่วไป/วิตามินดริป/ฮอร์โมน WAREE WELLNESS CLINIC - primary care/certificate/IV vitamin/Hormone",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      },
+      {
+        "facility_name": "โพลิแล็บคลินิก Polylab",
+        "relevance_score": 0.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 0.0
+      }
+    ],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.8,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.8
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า (Urology Department of Phramongkutklao Hospital)",
+        "relevance_score": 0.3,
+        "open_score": 0.0,
+        "weighted_score_percent": 3.0
+      },
+      {
+        "facility_name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "relevance_score": 0.7,
+        "open_score": 0.0,
+        "weighted_score_percent": 7.0
+      },
+      {
+        "facility_name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic（診所)",
+        "relevance_score": 0.8,
+        "open_score": 0.0,
+        "weighted_score_percent": 8.0
+      },
+      {
+        "facility_name": "คณะแพทยศาสตร์ศิริราชพยาบาล มหาวิทยาลัยมหิดล",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลประสานมิตร",
+        "relevance_score": 0.9,
+        "open_score": 0.0,
+        "weighted_score_percent": 9.0
+      }
+    ],
+    "total_score_percent": 47.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      0.8,
+      0.7,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+========================================================================================================================
+14. 052-บาดเจ-บอว-ยวะเพศ-panic | moderate | panic | บาดเจ็บอวัยวะเพศ
+Selection: bucket:moderate:panic
+Prompt: แฟนโดนเตะกระแทกหว่างขา ปวดจุกมาก แล้วเหมือนมีเลือดซึมตรงอวัยวะเพศค่ะ! กลัวจะหนัก ต้องทำไงเดี๋ยวนี้?
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน โปรดโทรแจ้ง 1669 ทันที
+1. ใช้เจลเย็นหรือน้ำแข็งห่อผ้าขนหนูประคบเบาๆ บริเวณที่บาดเจ็บเพื่อลดอาการบวมและบรรเทาความเจ็บปวด
+2. หากมีเลือดซึมออกมาจากอวัยวะเพศ ให้ใช้ผ้าสะอาดกดเบาๆ เพื่อห้ามเลือด
+3. สังเกตอาการอย่างใกล้ชิด หากพบว่ามีเลือดปนออกมากับปัสสาวะ ปัสสาวะไม่ออกเลย หรือถุงอัณฑะบวมโตอย่างรวดเร็ว (Hematoma) แสดงว่าอาจมีการบาดเจ็บภายในที่รุนแรงและต้องได้รับการตรวจจากแพทย์โดยเร็วที่สุด
+
+Facilities:
+[
+  {
+    "address": "129 ถ. เจริญประเทศ ตำบล เวียงเหนือ อำเภอเมืองลำปาง",
+    "distance_km": 0.46,
+    "is_open": true,
+    "latitude": 18.2921232,
+    "longitude": 99.4933271,
+    "name": "โรงพยาบาลแวนแซนด์วูร์ด",
+    "open_now": true,
+    "phone_number": "054 217 007",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "79 12 ถนน พหลโยธิน ตำบล สวนดอก อำเภอเมืองลำปาง",
+    "distance_km": 0.95,
+    "is_open": true,
+    "latitude": 18.2817898,
+    "longitude": 99.485599,
+    "name": "โรงพยาบาลเขลางค์นคร-ราม",
+    "open_now": true,
+    "phone_number": "054 019 619",
+    "rating": 3.6,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "280 ถนน พหลโยธิน ตำบล หัวเวียง อำเภอเมืองลำปาง",
+    "distance_km": 1.62,
+    "is_open": true,
+    "latitude": 18.2869216,
+    "longitude": 99.50597979999999,
+    "name": "โรงพยาบาลลำปาง",
+    "open_now": true,
+    "phone_number": "054 237 400",
+    "rating": 3.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "280 ถนน พหลโยธิน อำเภอเมืองลำปาง",
+    "distance_km": 1.63,
+    "is_open": true,
+    "latitude": 18.2855014,
+    "longitude": 99.50585939999999,
+    "name": "ศูนย์สุขภาพชุมชนหัวเวียง",
+    "open_now": true,
+    "phone_number": "054 237 400",
+    "rating": 4.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "7GP4+MCW ตำบล พระบาท อำเภอเมืองลำปาง",
+    "distance_km": 1.63,
+    "is_open": true,
+    "latitude": 18.2867427,
+    "longitude": 99.506075,
+    "name": "ตึกนวมินราชประชาภักดิ์ (จ่ายเงิน จ่ายยาชั้น1)",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 4.7,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลแวนแซนด์วูร์ด",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลเขลางค์นคร-ราม",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลลำปาง",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "ศูนย์สุขภาพชุมชนหัวเวียง",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "ตึกนวมินราชประชาภักดิ์ (จ่ายเงิน จ่ายยาชั้น1)",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 50.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.8,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 7.3
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+========================================================================================================================
+15. 038-หมดสต-หายใจอย-panic | moderate | panic | หมดสติ (หายใจอยู่)
+Selection: bucket:moderate:panic
+Prompt: เขาวูบล้มไปเลย ปลุกไม่ตื่น แต่มันยังหายใจอยู่นะคะ คนเริ่มมุงเต็มไปหมด ทำไงดี!
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน กรุณาโทร 1669 ทันทีเพื่อขอความช่วยเหลือทางการแพทย์ฉุกเฉิน
+1. ไม่ควรเคลื่อนย้ายผู้ป่วยเว้นแต่จะอยู่ในอันตรายร้ายแรง การเคลื่อนไหวที่ไม่จำเป็นอาจทำให้เกิดภาวะแทรกซ้อนที่รุนแรงขึ้นต่ออาการบาดเจ็บที่ศีรษะ กระดูกสันหลัง หรือการบาดเจ็บอื่นๆ ที่เกี่ยวข้อง หากศีรษะได้รับบาดเจ็บ คออาจได้รับบาดเจ็บด้วยเช่นกัน
+2. ปกป้องผู้บาดเจ็บจากอันตรายที่อาจเกิดขึ้น ณ ที่เกิดเหตุ
+3. เฝ้าสังเกตทางเดินหายใจและการหายใจของผู้ป่วยจนกว่ารถพยาบาลจะมาถึง หากการหายใจของบุคคลนั้นติดขัดเนื่องจากปัญหาเกี่ยวกับทางเดินหายใจ คุณอาจต้องค่อยๆ เอียงศีรษะของพวกเขาไปด้านหลัง (และประคองไว้) จนกว่าการหายใจจะกลับมาเป็นปกติ หากบุคคลนั้นหยุดหายใจหรือไม่มีชีพจรอาจจำเป็นต้องทำการ CPR
+4. ห้ามคนมุงดู เพื่อให้อากาศถ่ายเทสะดวก
+
+Facilities:
+[
+  {
+    "address": "33 ถ. เพาะนิยม ตำบล หมากเเข้ง อำเภอเมืองอุดรธานี",
+    "distance_km": 0.71,
+    "is_open": true,
+    "latitude": 17.4148709,
+    "longitude": 102.7804229,
+    "name": "โรงพยาบาลอุดรธานี",
+    "open_now": true,
+    "phone_number": "042 215 100",
+    "rating": 3.4,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "โรงพยาบาลอุดรธานี 33 ถ. เพาะนิยม ตำบล บ้านเลื่อม อำเภอเมืองอุดรธานี",
+    "distance_km": 0.8,
+    "is_open": true,
+    "latitude": 17.4152999,
+    "longitude": 102.7796021,
+    "name": "CT ER UDONTHANI HOSPITAL",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 0.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "CQ9R+XG2 ตำบลหมากแข้ง อำเภอเมืองอุดรธานี",
+    "distance_km": 0.81,
+    "is_open": true,
+    "latitude": 17.4198788,
+    "longitude": 102.7912618,
+    "name": "Udon Thani Municipal Hospital",
+    "open_now": true,
+    "phone_number": "042 242 647",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "214 ถนนอุดรดุษฎี ตำบลหมากแข้ง อำเภอเมืองอุดรธานี",
+    "distance_km": 0.81,
+    "is_open": true,
+    "latitude": 17.4198731,
+    "longitude": 102.791271,
+    "name": "โรงพยาบาลเทศบาลนครอุดรธานี",
+    "open_now": true,
+    "phone_number": "042 242 648",
+    "rating": 2.9,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "33 โรงพยาบาลอุดรธานี ถ. เพาะนิยม ตำบล บ้านเลื่อม อำเภอเมืองอุดรธานี",
+    "distance_km": 0.82,
+    "is_open": true,
+    "latitude": 17.4149633,
+    "longitude": 102.7793838,
+    "name": "ตึกเ****วชาญ ศูนย์โรค❤️",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 0.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      0.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 6.5
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 6.5
+  }
+}
+
+========================================================================================================================
+16. 072-มดค-นไฟก-ด-misspelled | moderate | misspelled | มดคันไฟกัด
+Selection: bucket:moderate:misspelled
+Prompt: โดนมดคันไฟกัด บวมแดง คันมากกก มีตุ่มเหมือนจะเป็นหนอง ต้องประคบเย็นไหม แล้วถ้ามีอาการแพ้ดูยังไงคะ
+
+Guidance:
+1. ล้างบริเวณที่ถูกกัดด้วยน้ำสะอาดและสบู่
+2. ประคบเย็นครั้งละประมาณ 10 นาที เพื่อลดอาการบวมและคัน
+3. หลีกเลี่ยงการเกาหรือแกะตุ่มหนอง เพื่อป้องกันการติดเชื้อ
+4. ทายาแก้คัน เช่น ไฮโดรคอร์ติโซน หรือรับประทานยาต้านฮีสตามีน
+5. สังเกตอาการแพ้รุนแรง: หายใจลำบาก, บวมที่ใบหน้า/คอ, เวียนศีรษะ, คลื่นไส้ หากมีอาการเหล่านี้ ให้โทร 1669 หรือไปโรงพยาบาลทันที
+6. หากอาการไม่ดีขึ้นใน 1-2 วัน หรือมีหนองเพิ่ม แนะนำไปพบแพทย์ที่คลินิก
+
+Facilities:
+[
+  {
+    "address": "3rd Floor, CP Tower B, ถ. พญาไท แขวงทุ่งพญาไท เขตราชเทวี",
+    "distance_km": 3.44,
+    "is_open": true,
+    "latitude": 13.7572891,
+    "longitude": 100.5335933,
+    "name": "Craft clinic คราฟ คลินิก BTSพญาไท",
+    "open_now": true,
+    "phone_number": "096 293 8891",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "315 ถ. ราชวิถี แขวงทุ่งพญาไท เขตราชเทวี",
+    "distance_km": 3.75,
+    "is_open": true,
+    "latitude": 13.7679787,
+    "longitude": 100.5343659,
+    "name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า (Urology Department of Phramongkutklao Hospital)",
+    "open_now": true,
+    "phone_number": "02 763 9300",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "2 ใกล้ ป.ป.ส 1 ห้อง101-02 ซ. ราชวิถี 2 แขวงสามเสนใน เขตพญาไท",
+    "distance_km": 4.54,
+    "is_open": true,
+    "latitude": 13.7633766,
+    "longitude": 100.5431735,
+    "name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic（診所)",
+    "open_now": true,
+    "phone_number": "02 644 9160",
+    "rating": 4.9,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "2 ถ. วังหลัง แขวงศิริราช เขตบางกอกน้อย",
+    "distance_km": 1.7,
+    "is_open": true,
+    "latitude": 13.7571504,
+    "longitude": 100.4861045,
+    "name": "คณะแพทยศาสตร์ศิริราชพยาบาล มหาวิทยาลัยมหิดล",
+    "open_now": true,
+    "phone_number": "02 419 7000",
+    "rating": 4.7,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "1281 ถ. พหลโยธิน แขวงพญาไท เขตพญาไท",
+    "distance_km": 5.74,
+    "is_open": true,
+    "latitude": 13.7847004,
+    "longitude": 100.5461793,
+    "name": "โรงพยาบาลประสานมิตร",
+    "open_now": true,
+    "phone_number": "02 279 9935",
+    "rating": 4.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "Craft clinic คราฟ คลินิก BTSพญาไท",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า (Urology Department of Phramongkutklao Hospital)",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic（診所)",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "คณะแพทยศาสตร์ศิริราชพยาบาล มหาวิทยาลัยมหิดล",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลประสานมิตร",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      }
+    ],
+    "total_score_percent": 80.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.5
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+17. 056-อาหารต-ดคอ-อย-คนเด-ยว-misspelled | moderate | misspelled | อาหารติดคอ (อยุ่คนเดียว)
+Selection: bucket:moderate:misspelled
+Prompt: กินแล้วติดคออะ อยุ่คนเดียว หายใจม่ออก ไอก็ม่ออก มือจับคอตลอด เหมือนจะเขียว ช่วยบอกวิธีหน่อย
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน โทร 1669 ทันที
+1. ใช้มืออีกข้างกำมือข้างหนึ่งไว้ แล้ววางไว้เหนือสะดือ
+2. ดันกำปั้นเข้าไปด้านในและขึ้นด้านบน ทำซ้ำจนกว่าวัตถุจะหลุดออกมา
+3. นอกจากนี้ คุณยังสามารถก้มตัวลงบนพื้นผิวแข็ง เช่น พนักพิงเก้าอี้ ใช้พื้นผิวแข็งนั้นในการออกแรงดันซ้ำๆ ที่หน้าท้อง ทำซ้ำจนกว่าวัตถุนั้นจะหลุดออกมา
+
+Facilities:
+[
+  {
+    "address": "137/2 ถนน ชนเกษม ตลาด อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 0.73,
+    "is_open": true,
+    "latitude": 9.143063399999999,
+    "longitude": 99.3259325,
+    "name": "ศูนย์บริการสาธารณสุข (ศูนย์ตาปี)",
+    "open_now": true,
+    "phone_number": "077 272 773",
+    "rating": 4.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "48XH+2Q4 ตลาด อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 1.35,
+    "is_open": true,
+    "latitude": 9.1475106,
+    "longitude": 99.3294494,
+    "name": "โรงพยาบาลองค์การบริหารส่วนจังหวัดสุราษฎร์ธานี",
+    "open_now": true,
+    "phone_number": "077 953 125",
+    "rating": 3.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "44/1 ศรีวิชัย ตำบลมะขามเตี้ย อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 1.36,
+    "is_open": true,
+    "latitude": 9.1285359,
+    "longitude": 99.3139728,
+    "name": "โรงพยาบาลจักษุสุราษฎร์ Surat Eye Hospital",
+    "open_now": true,
+    "phone_number": "077 276 999",
+    "rating": 4.3,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "309/2 ถ. ตลาดใหม่ ตลาด อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 1.67,
+    "is_open": true,
+    "latitude": 9.1481779,
+    "longitude": 99.3329196,
+    "name": "โรงพยาบาลทักษิณ",
+    "open_now": true,
+    "phone_number": "077 278 777",
+    "rating": 3.9,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "140 ศรีเกษม 14 ตำบลมะขามเตี้ย อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 1.68,
+    "is_open": true,
+    "latitude": 9.1233605,
+    "longitude": 99.3242631,
+    "name": "รักษ์เข่าคลินิก สาขาสุราษฎร์ธานี ศูนย์รักษาเข่าเสื่อมโดยไม่ต้องผ่าตัด",
+    "open_now": true,
+    "phone_number": "093 535 3565",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 1,
+    "correctness": 1,
+    "readability": 1
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "ศูนย์บริการสาธารณสุข (ศูนย์ตาปี)",
+        "relevance_score": 0.6,
+        "open_score": 1.0,
+        "weighted_score_percent": 16.0
+      },
+      {
+        "facility_name": "โรงพยาบาลองค์การบริหารส่วนจังหวัดสุราษฎร์ธานี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลจักษุสุราษฎร์ Surat Eye Hospital",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลทักษิณ",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "รักษ์เข่าคลินิก สาขาสุราษฎร์ธานี ศูนย์รักษาเข่าเสื่อมโดยไม่ต้องผ่าตัด",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 76.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_compliance": 0.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลกลาง สำนักการแพทย์ กรุงเทพมหานคร",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวเฉียว",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลศิริราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์อุบัติเหตุและเวชศาสตร์ฉุกเฉิน รพ.รามาธิบดี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลตากสิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      1.0,
+      0.5,
+      1.0
+    ],
+    "total_compliance": 7.0
+  }
+}
+
+========================================================================================================================
+18. 070-ถ-กทำร-ายร-างกาย-ไม-ม-แผลเป-ด-misspelled | moderate | misspelled | ถูกทำร้ายร่างกาย (ไม่มีแผลเปิด)
+Selection: bucket:moderate:misspelled
+Prompt: เพื่อนโดนซ้อมมา ไม่มีแผลเปิดแต่ช้ำๆ ปวดตัวมาก โดนหัวด้วย ควรประคบอะไร แล้วต้องสังเกตอาการไหนบ้างคะ
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน โทรแจ้ง 1669 ทันที
+1. ห้ามเคลื่อนย้ายผู้บาดเจ็บโดยไม่จำเป็น โดยเฉพาะศีรษะและคอ เนื่องจากอาจมีการบาดเจ็บที่กระดูกสันหลังได้
+2. ประคบเย็นบริเวณที่บวมช้ำและศีรษะที่ถูกกระแทก โดยใช้ผ้าห่อน้ำแข็งหรือถุงเจลเย็น ประคบครั้งละ 10-15 นาที ทุกชั่วโมง เพื่อลดอาการบวมและปวด
+3. สังเกตอาการอย่างใกล้ชิด หากพบอาการดังต่อไปนี้ ให้แจ้งเจ้าหน้าที่ 1669 ทันที: ซึมลง อาเจียน พูดไม่ชัด เวียนศีรษะ คลื่นไส้ ปวดศีรษะรุนแรง แขนขาอ่อนแรง มีเลือดหรือน้ำไหลจากหูหรือจมูก หรือมีอาการปวดท้องรุนแรง ท้องแข็งตึง ซึ่งอาจบ่งชี้ถึงการตกเลือดภายใน
+4. ห้ามให้ผู้บาดเจ็บดื่มน้ำ กินอาหาร หรือรับประทานยาใดๆ เอง เพราะอาจสำลักหรือทำให้อาการแย่ลงได้
+5. อยู่กับผู้บาดเจ็บและเฝ้าระวังอาการอย่างต่อเนื่องจนกว่าทีมแพทย์จะมาถึง
+
+Facilities:
+[
+  {
+    "address": "12°34'03.0\"N 99°57'26., 4",
+    "distance_km": 0.11,
+    "is_open": true,
+    "latitude": 12.5675,
+    "longitude": 99.957331,
+    "name": "งานบริการโลหิต สถานีกาชาดหัวหิน เฉลิมพระเกียรติ",
+    "open_now": true,
+    "phone_number": "032 512 370",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "96, 2 ถ. เพชรเกษม ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 0.13,
+    "is_open": true,
+    "latitude": 12.5695138,
+    "longitude": 99.95722599999999,
+    "name": "Hua Hin Medical Clinic หัวหินคลินิกเวชกรรม",
+    "open_now": true,
+    "phone_number": "032 513 901",
+    "rating": 2.8,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "222 ถ. เพชรเกษม ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 0.54,
+    "is_open": true,
+    "latitude": 12.5638876,
+    "longitude": 99.9596258,
+    "name": "โรงพยาบาลซานเปาโล",
+    "open_now": true,
+    "phone_number": "032 532 576",
+    "rating": 3.6,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "51 , NAEP Khe Hat Road ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 0.73,
+    "is_open": true,
+    "latitude": 12.574881,
+    "longitude": 99.9569168,
+    "name": "โรงพยาบาลหัวหิน 4 มหาการุณย์ convenient",
+    "open_now": true,
+    "phone_number": "032 515 331",
+    "rating": 2.8,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "888 ถ. เพชรเกษม ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 1.62,
+    "is_open": true,
+    "latitude": 12.5541702,
+    "longitude": 99.9609052,
+    "name": "โรงพยาบาลกรุงเทพหัวหิน",
+    "open_now": true,
+    "phone_number": "032 616 800",
+    "rating": 4.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "งานบริการโลหิต สถานีกาชาดหัวหิน เฉลิมพระเกียรติ",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "Hua Hin Medical Clinic หัวหินคลินิกเวชกรรม",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลซานเปาโล",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวหิน 4 มหาการุณย์ convenient",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลกรุงเทพหัวหิน",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 85.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      1.0,
+      0.5,
+      1.0
+    ],
+    "total_compliance": 6.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+19. 042-ก-างต-ดคอ-misspelled | moderate | misspelled | ก้างติดคอ
+Selection: bucket:moderate:misspelled
+Prompt: เหมือนก้างปลาติดคออะ เจ็บคอ กลืนเจ็บ ควรลองดื่มน้ำกลั้วคอแรงๆได้มั้ย ถ้าไม่หลุดทำไง
+
+Guidance:
+1. หากก้างปลามีขนาดเล็ก ให้ลองดื่มน้ำแล้วกลั้วคอแรง ๆ เพื่อให้ก้างหลุดออก
+2. หากกลั้วคอแล้วก้างไม่หลุด หรือยังเจ็บคอ/กลืนลำบาก ควรไปพบแพทย์ที่คลินิกหรือโรงพยาบาลทันที เพื่อป้องกันการติดเชื้อหรือภาวะแทรกซ้อน
+3. ห้ามใช้นิ้วหรือวัตถุอื่นแหย่คอเพื่อดึงก้างออกเอง เพราะอาจทำให้ก้างฝังลึกหรือบาดเจ็บมากขึ้น
+4. หากมีอาการหายใจลำบาก หายใจมีเสียงหวีด หรือหน้าเขียว ให้โทรเรียกรถพยาบาลทันทีที่หมายเลข 1669
+
+Facilities:
+[
+  {
+    "address": "15/23 ถนน สิโรรส ตำบลสุเทพ อำเภอเมืองเชียงใหม่",
+    "distance_km": 1.47,
+    "is_open": true,
+    "latitude": 18.7879035,
+    "longitude": 98.9713417,
+    "name": "ศูนย์โรคหัวใจ(Cardiac Center) ชั้น9 อาคารเฉลิพระเกียรติ 7 รอบพระชนมพรรษา",
+    "open_now": true,
+    "phone_number": "053 934 759",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "30/2-3 ถนนนิมมานเหมินท์ ตำบลสุเทพ Mueang",
+    "distance_km": 2.23,
+    "is_open": true,
+    "latitude": 18.7964305,
+    "longitude": 98.9659156,
+    "name": "PULSE CLINIC - Chiang Mai",
+    "open_now": true,
+    "phone_number": "099 479 7168",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "Q2X6+4GG ตำบลวัดเกต อำเภอเมืองเชียงใหม่",
+    "distance_km": 2.94,
+    "is_open": true,
+    "latitude": 18.7978194,
+    "longitude": 99.01132539999999,
+    "name": "คลินิกเด็ก-รพ.แมคคอร์มิค",
+    "open_now": true,
+    "phone_number": "053 921 777",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "Tawangtan 88/25 อำเภอ สารภี",
+    "distance_km": 5.47,
+    "is_open": true,
+    "latitude": 18.7417523,
+    "longitude": 99.00210760000002,
+    "name": "Boston Health Polyclinic Chiang Mai",
+    "open_now": true,
+    "phone_number": "052 082 888",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "155 28 หมู่ที่ 2 เจ็ดยอด-อยู่เย็น ซอย 10 ตำบลช้างเผือก อำเภอเมืองเชียงใหม่",
+    "distance_km": 3.2,
+    "is_open": true,
+    "latitude": 18.8110114,
+    "longitude": 98.966566,
+    "name": "ซีเอ็ม เมดิคลินิก",
+    "open_now": true,
+    "phone_number": "080 536 2362",
+    "rating": 4.8,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "ศูนย์โรคหัวใจ(Cardiac Center) ชั้น9 อาคารเฉลิพระเกียรติ 7 รอบพระชนมพรรษา",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "PULSE CLINIC - Chiang Mai",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "คลินิกเด็ก-รพ.แมคคอร์มิค",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "Boston Health Polyclinic Chiang Mai",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "ซีเอ็ม เมดิคลินิก",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 75.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 4
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "Craft clinic คราฟ คลินิก BTSพญาไท",
+        "relevance_score": 1.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า (Urology Department of Phramongkutklao Hospital)",
+        "relevance_score": 0.5,
+        "open_score": 0.0,
+        "weighted_score_percent": 5.0
+      },
+      {
+        "facility_name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "relevance_score": 1.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic（診所)",
+        "relevance_score": 1.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "คณะแพทยศาสตร์ศิริราชพยาบาล มหาวิทยาลัยมหิดล",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 55.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+========================================================================================================================
+20. 059-ฟกช-ำร-นแรง-misspelled | moderate | misspelled | ฟกช้ำรุนแรง
+Selection: bucket:moderate:misspelled
+Prompt: โดนชนแรงๆจนเขียวช้ำ บวมปูดเหมือนห้อเลือด เจ็บมาก ควรประคบไร ตอนนี้ห้ามนวดใช่มั้ย
+
+Guidance:
+1. ใน 48 ชั่วโมงแรก ให้ประคบเย็นเฉพาะจุดที่บวมช้ำ เพื่อลดปวดและลดบวม ห้ามประคบร้อน ห้ามนวด และห้ามทายาหม่องร้อน เพราะจะทำให้บวมมากขึ้น
+2. พยายามยกบริเวณที่บวมช้ำให้สูงกว่าระดับหัวใจ (เช่น ใช้หมอนหนุน) เพื่อลดการคั่งของเลือด
+3. หากมีผ้ายืด (Elastic Bandage) สามารถพันรอบเบาๆ เพื่อลดบวมได้ แต่ไม่ต้องรัดแน่น
+4. หลังจาก 48 ชั่วโมง หากบวมลดลงแล้ว จึงเริ่มประคบอุ่นเพื่อช่วยสลายห้อเลือด
+5. หากมีอาการปวดรุนแรงขึ้น บวมมากขึ้นเรื่อยๆ มีไข้ หรือรู้สึกชา ให้ไปพบแพทย์ที่คลินิกหรือโรงพยาบาลทันที
+
+Facilities:
+[
+  {
+    "address": "46 ต 185 ประตูชัย ตำบล ประตูชัย อำเภอ พระนครศรีอยุธยา",
+    "distance_km": 1.43,
+    "is_open": true,
+    "latitude": 14.3439375,
+    "longitude": 100.5596923,
+    "name": "อาคารศรีสรรเสริญ โรงพยาบาลพระนครศรีอยุธยา",
+    "open_now": true,
+    "phone_number": "035 211 888",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "88 ตำบล คานหาม อำเภออุทัย",
+    "distance_km": 5.98,
+    "is_open": true,
+    "latitude": 14.3346126,
+    "longitude": 100.6209737,
+    "name": "โรงพยาบาลรังสีรักษา ราชธานี",
+    "open_now": true,
+    "phone_number": "035 922 967",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "55/5 ถนน เทศบาลเมืองอโยธยา ตำบลหันตรา อำเภอ พระนครศรีอยุธยา",
+    "distance_km": 5.24,
+    "is_open": true,
+    "latitude": 14.3825519,
+    "longitude": 100.6069887,
+    "name": "โรงพยาบาลพีรเวช",
+    "open_now": true,
+    "phone_number": "035 801 555",
+    "rating": 4.2,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "46 1 ถ. อู่ทอง ตำบล ประตูชัย อำเภอ พระนครศรีอยุธยา",
+    "distance_km": 1.39,
+    "is_open": true,
+    "latitude": 14.3437123,
+    "longitude": 100.5604679,
+    "name": "โรงพยาบาลพระนครศรีอยุธยา",
+    "open_now": true,
+    "phone_number": "035 958 666",
+    "rating": 3.1,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  },
+  {
+    "address": "200 ถนน องค์การบริหารส่วนจังหวัด พระนครศรีอยุธยา 2543 ตำบล บ่อโพง อำเภอนครหลวง",
+    "distance_km": 5.65,
+    "is_open": true,
+    "latitude": 14.3982949,
+    "longitude": 100.5929889,
+    "name": "โรงพยาบาลสมเด็จพระสังฆราชเจ้า กรมหลวงชินวราลงกรณ (วาสนมหาเถร)",
+    "open_now": true,
+    "phone_number": "035 200 910",
+    "rating": 2.8,
+    "selection_reason": "moderate: sorted by rating then distance; clinic fallback to hospital"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "อาคารศรีสรรเสริญ โรงพยาบาลพระนครศรีอยุธยา",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลรังสีรักษา ราชธานี",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลพีรเวช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลพระนครศรีอยุธยา",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลสมเด็จพระสังฆราชเจ้า กรมหลวงชินวราลงกรณ (วาสนมหาเถร)",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.8,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.8
+  }
+}
+
+Claude judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "หน่วยศัลยกรรมระบบปัสสาวะ โรงพยาบาลพระมงกุฎเกล้า (Urology Department of Phramongkutklao Hospital)",
+        "relevance_score": 0.3,
+        "open_score": 0.0,
+        "weighted_score_percent": 3.0
+      },
+      {
+        "facility_name": "Femily Wellness Clinic เฟมิลี่ เวลเนส คลินิก",
+        "relevance_score": 0.7,
+        "open_score": 0.0,
+        "weighted_score_percent": 7.0
+      },
+      {
+        "facility_name": "คลินิกเวชกรรมดุสิตาการแพทย์ Dusita Medical Clinic（診所)",
+        "relevance_score": 0.8,
+        "open_score": 0.0,
+        "weighted_score_percent": 8.0
+      },
+      {
+        "facility_name": "คณะแพทยศาสตร์ศิริราชพยาบาล มหาวิทยาลัยมหิดล",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลประสานมิตร",
+        "relevance_score": 1.0,
+        "open_score": 0.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 48.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.7,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.2
+  }
+}
+
+========================================================================================================================
+21. 074-ตะคร-ว-misspelled | none | misspelled | ตะคริว
+Selection: bucket:none:any
+Prompt: เป็นตะคริวที่น่องอะค่ะ เกร็งมาก ปวดจนขยับม่ายได้ เหมือนขาล้อค ช่วยบอกวิธีคลายหน่อยคะ
+
+Guidance:
+
+
+Facilities:
+[]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 1,
+    "correctness": 1,
+    "readability": 1
+  },
+  "facilities": {
+    "facility_scores": [],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_compliance": 0.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+22. 073-เพล-ยแดด-misspelled | none | misspelled | เพลียแดด
+Selection: bucket:none:any
+Prompt: แม่ตากแดดนานมากๆแล้วหน้ามืด เหงื่อออกเยอะ ตัวเย็นๆเหมือนจะเปนลม ยังพอคุยได้แต่โซเซ ต้องทำงัยก่อนคะ
+
+Guidance:
+1. รีบพาแม่เข้าที่ร่มหรือห้องแอร์ทันที เปิดพัดลมให้อากาศถ่ายเท
+2. ให้ดื่มน้ำเย็น (ไม่ใช่ยาลดไข้หรือน้ำหวาน)
+3. ใช้ผ้าชุบน้ำเย็นเช็ดตัวหรือพ่นละอองน้ำแล้วใช้พัดลมเป่าเพื่อลดความร้อน
+4. จับตาดูอาการ หากหมดสติ อาเจียน ให้จับศีรษะหันด้านข้างป้องกันสำลัก
+5. หากอาการแย่ลง เช่น ตัวร้อนจัด ไม่มีเหงื่อ ชัก หรือหมดสติ โทร 1669 ทันที
+
+Facilities:
+[
+  {
+    "address": "เลขที่ 452/163-164 ถ. ตลาดใหม่ ตลาด อำเภอเมือง",
+    "distance_km": 1.39,
+    "is_open": true,
+    "latitude": 9.1462789,
+    "longitude": 99.3312187,
+    "name": "แพนคลินิก สาขา สุราษฎร์ธานี",
+    "open_now": true,
+    "phone_number": "077 272 829",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "305, ตลาด, 21 ถนน หน้าเมือง ตลาด อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 1.05,
+    "is_open": true,
+    "latitude": 9.145909099999999,
+    "longitude": 99.32694649999999,
+    "name": "ภักดีการแพทย์ - นพ.ภักดี เชียร์ศิริกุล",
+    "open_now": true,
+    "phone_number": "077 281 231",
+    "rating": 4.8,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "238, 114-115 ถ. ศรีเกษม ตำบลมะขามเตี้ย อำเภอเมืองสุราษฎร์ธานี",
+    "distance_km": 1.92,
+    "is_open": true,
+    "latitude": 9.1242931,
+    "longitude": 99.3318299,
+    "name": "The Aestheny Clinic by Dr. Parn - คลินิก หมอป่าน ศัลยกรรมตกแต่ง",
+    "open_now": true,
+    "phone_number": "062 695 6956",
+    "rating": 4.8,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 4,
+    "correctness": 4,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "แพนคลินิก สาขา สุราษฎร์ธานี",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "ภักดีการแพทย์ - นพ.ภักดี เชียร์ศิริกุล",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "The Aestheny Clinic by Dr. Parn - คลินิก หมอป่าน ศัลยกรรมตกแต่ง",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      }
+    ],
+    "total_score_percent": 30.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_compliance": 0.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+23. 074-ตะคร-ว-calm | none | calm | ตะคริว
+Selection: bucket:none:any
+Prompt: ตอนนี้มีตะคริวที่น่อง กล้ามเนื้อเกร็งและปวดจนขยับลำบาก อยากทราบวิธีช่วยยืด/คลายตะคริวอย่างถูกต้องค่ะ
+
+Guidance:
+
+
+Facilities:
+[]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 1,
+    "correctness": 1,
+    "readability": 1
+  },
+  "facilities": {
+    "facility_scores": [],
+    "total_score_percent": 0.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "total_compliance": 0.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+24. 068-ปวดประจำเด-อนร-นแรง-calm | moderate | calm | ปวดประจำเดือนรุนแรง
+Selection: top_disagreement_random
+Prompt: มีอาการปวดท้องประจำเดือนรุนแรงแบบปวดบิด หน้าซีดและรู้สึกจะเป็นลม ต้องการคำแนะนำการบรรเทาอาการเบื้องต้นและสัญญาณที่ควรไปพบแพทย์ทันที
+
+Guidance:
+1. วางถุงน้ำร้อนหรือกระเป๋าน้ำร้อนประคบบริเวณท้องน้อยเพื่อผ่อนคลายกล้ามเนื้อมดลูก 2. นอนตะแคงในท่าคู้เข่า (ท่าทารกในครรภ์) หรือนอนหงายชันเข่าเพื่อลดแรงตึงหน้าท้อง 3. รับประทานยาในกลุ่ม NSAIDs เช่น ไอบูโพรเฟน หรือเมเฟนามิกแอซิด ตามปริมาณที่กำหนดบนฉลาก 4. จิบน้ำหรือน้ำเกลือแร่ (ORS) ทีละน้อยหากมีอาการคลื่นไส้หรืออ่อนแรง 5. หลีกเลี่ยงชา กาแฟ น้ำอัดลม และอาหารไขมันสูง
+
+สัญญาณที่ต้องไปพบแพทย์ทันที: - ปวดจนเป็นลมหรือหน้ามืดมาก - ปวดเฉียบพลันรุนแรงเหมือนมีอะไรแตกในท้อง - อาเจียนหรือท้องเสียรุนแรงจนขาดน้ำ (ปัสสาวะสีเข้ม ปากแห้ง) - อาการไม่ดีขึ้นหลังใช้วิธีเบื้องต้น
+หากอาการแย่ลงฉับพลัน โทร 1669
+
+Facilities:
+[
+  {
+    "address": "199 6 ถนน กลางเมือง ในเมือง เมือง",
+    "distance_km": 1.54,
+    "is_open": true,
+    "latitude": 16.4238261,
+    "longitude": 102.8350558,
+    "name": "คลินิกเวชกรรมเมดิแคร์ สาขาขอนแก่น",
+    "open_now": true,
+    "phone_number": "086 465 6606",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "789 ตลาดต้นตาลขอนแก่น 8 ตำบลในเมือง อ.เมือง",
+    "distance_km": 1.53,
+    "is_open": true,
+    "latitude": 16.4194285,
+    "longitude": 102.818237,
+    "name": "พอใจคลีนิกเวชกรรม",
+    "open_now": true,
+    "phone_number": "043 306 456",
+    "rating": 3.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "ตำบลในเมือง อำเภอเมืองขอนแก่น",
+    "distance_km": 3.87,
+    "is_open": true,
+    "latitude": 16.4664979,
+    "longitude": 102.8297489,
+    "name": "SMC ศูนย์บริการทางการแพทย์ชั้นเลิศ โรงพยาบาลศรีนครินทร์",
+    "open_now": true,
+    "phone_number": "043 366 444",
+    "rating": 3.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "60 9 Si Chan Road Naimuang อำเภอเมืองขอนแก่น",
+    "distance_km": 3.04,
+    "is_open": true,
+    "latitude": 16.4289345,
+    "longitude": 102.8519354,
+    "name": "คลินิกหมอสงกรานต์",
+    "open_now": true,
+    "phone_number": "043 244 289",
+    "rating": 3.4,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "CRXM+4JV ถนนหลังศูนย์ราชการ ตำบลในเมือง อำเภอเมืองขอนแก่น",
+    "distance_km": 2.07,
+    "is_open": true,
+    "latitude": 16.4478603,
+    "longitude": 102.8340414,
+    "name": "ศูนย์แพทย์มิตรภาพโรงพยาบาลขอนแก่น",
+    "open_now": true,
+    "phone_number": "043 239 538",
+    "rating": 2.8,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "คลินิกเวชกรรมเมดิแคร์ สาขาขอนแก่น",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "พอใจคลีนิกเวชกรรม",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "SMC ศูนย์บริการทางการแพทย์ชั้นเลิศ โรงพยาบาลศรีนครินทร์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "คลินิกหมอสงกรานต์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์แพทย์มิตรภาพโรงพยาบาลขอนแก่น",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 100.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.8,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.8
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+25. 068-ปวดประจำเด-อนร-นแรง-panic | moderate | panic | ปวดประจำเดือนรุนแรง
+Selection: top_disagreement_random
+Prompt: หนูปวดท้องเมนส์บิดมาก หน้าซีดจะเป็นลม ทนไม่ไหวเลยค่ะ ทำไงดีตอนนี้!
+
+Guidance:
+สถานการณ์นี้เป็นเหตุฉุกเฉิน
+1. โทรแจ้ง 1669 ทันที
+2. นอนในท่าที่สบายที่สุด เช่น นอนตะแคงงอเข่าขึ้นมาทางอก (Fetal Position) เพื่อช่วยลดแรงตึงที่หน้าท้อง
+3. ใช้ถุงน้ำร้อนประคบบริเวณท้องน้อยเพื่อช่วยให้กล้ามเนื้อมดลูกผ่อนคลาย
+4. หลีกเลี่ยงการรับประทานยาแก้ปวดด้วยตนเองในขณะที่มีอาการรุนแรงและหน้าซีดจะเป็นลม ควรรอคำแนะนำจากแพทย์
+
+Facilities:
+[
+  {
+    "address": "12°34'03.0\"N 99°57'26., 4",
+    "distance_km": 0.11,
+    "is_open": true,
+    "latitude": 12.5675,
+    "longitude": 99.957331,
+    "name": "งานบริการโลหิต สถานีกาชาดหัวหิน เฉลิมพระเกียรติ",
+    "open_now": true,
+    "phone_number": "032 512 370",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "96, 2 ถ. เพชรเกษม ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 0.13,
+    "is_open": true,
+    "latitude": 12.5695138,
+    "longitude": 99.95722599999999,
+    "name": "Hua Hin Medical Clinic หัวหินคลินิกเวชกรรม",
+    "open_now": true,
+    "phone_number": "032 513 901",
+    "rating": 2.8,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "222 ถ. เพชรเกษม ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 0.54,
+    "is_open": true,
+    "latitude": 12.5638876,
+    "longitude": 99.9596258,
+    "name": "โรงพยาบาลซานเปาโล",
+    "open_now": true,
+    "phone_number": "032 532 576",
+    "rating": 3.6,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "51 , NAEP Khe Hat Road ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 0.73,
+    "is_open": true,
+    "latitude": 12.574881,
+    "longitude": 99.9569168,
+    "name": "โรงพยาบาลหัวหิน 4 มหาการุณย์ convenient",
+    "open_now": true,
+    "phone_number": "032 515 331",
+    "rating": 2.8,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "888 ถ. เพชรเกษม ตำบลหัวหิน อำเภอหัวหิน",
+    "distance_km": 1.62,
+    "is_open": true,
+    "latitude": 12.5541702,
+    "longitude": 99.9609052,
+    "name": "โรงพยาบาลกรุงเทพหัวหิน",
+    "open_now": true,
+    "phone_number": "032 616 800",
+    "rating": 4.1,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "งานบริการโลหิต สถานีกาชาดหัวหิน เฉลิมพระเกียรติ",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "Hua Hin Medical Clinic หัวหินคลินิกเวชกรรม",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลซานเปาโล",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลหัวหิน 4 มหาการุณย์ convenient",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "โรงพยาบาลกรุงเทพหัวหิน",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      }
+    ],
+    "total_score_percent": 75.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 9.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+26. 067-น-ำตาลในเล-อดต-ำ-calm | moderate | calm | น้ำตาลในเลือดต่ำ
+Selection: top_disagreement_random
+Prompt: อยู่ที่คลินิก มีผู้ป่วยเป็นเบาหวานมีอาการเหงื่อออก ใจสั่น หิว และหน้ามืดคล้ายจะเป็นลม สงสัยน้ำตาลต่ำ ขอคำแนะนำว่าควรให้คาร์โบไฮเดรตแบบไหนและติดตามอาการอย่างไร
+
+Guidance:
+1. ให้ผู้ป่วยรับประทานอาหารที่มีคาร์โบไฮเดรต 15 กรัม โดยเลือกอย่างใดอย่างหนึ่งจากรายการต่อไปนี้: ทอฟฟี่ 3 เม็ด, น้ำส้มคั้น 180 มิลลิลิตร, น้ำผึ้ง 3 ช้อนชา, ขนมปัง 1 แผ่น, ไอศกรีม 2 สกูป, หรือกล้วย 1 ผล อาการมักจะดีขึ้นภายใน 20 นาที
+2. ติดตามระดับกลูโคสในเลือดโดยใช้กลูโคสมิเตอร์ทุก 20 นาที หลังจากการให้คาร์โบไฮเดรตครั้งแรก
+3. หากระดับกลูโคสในเลือดยังคงน้อยกว่าหรือเท่ากับ 70 มิลลิกรัมต่อเดซิลิตร ให้ผู้ป่วยรับประทานอาหารที่มีคาร์โบไฮเดรต 15 กรัมซ้ำ
+4. เมื่อผู้ป่วยอาการดีขึ้นและผลการตรวจวัดระดับกลูโคสในเลือดมากกว่าหรือเท่ากับ 80 มิลลิกรัมต่อเดซิลิตร ให้ผู้ป่วยรับประทานอาหารมื้อหลักทันที หรือหากต้องรออาหารมื้อหลักนานเกิน 1 ชั่วโมง ให้รับประทานอาหารว่างที่มีคาร์โบไฮเดรต 15 กรัมและโปรตีน เพื่อป้องกันภาวะน้ำตาลในเลือดต่ำซ้ำ
+
+Facilities:
+[
+  {
+    "address": "479 ถ. ราชดำเนิน ตำบล ในเมือง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 1.52,
+    "is_open": true,
+    "latitude": 8.4168481,
+    "longitude": 99.96509979999999,
+    "name": "โรงพยาบาลเทศบาลนครนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "075 356 014",
+    "rating": 3.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "103 ถ. พัฒนาการคูขวาง ตำบล ท่าวัง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 1.67,
+    "is_open": true,
+    "latitude": 8.4438525,
+    "longitude": 99.9697609,
+    "name": "ศูนย์บริการสาธารณสุขคูขวาง (คลินิกหมอใกล้บ้าน) เทศบาลนครนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "",
+    "rating": 2.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "129 541 ตำบล ปากนคร เมือง",
+    "distance_km": 1.79,
+    "is_open": true,
+    "latitude": 8.428536900000001,
+    "longitude": 99.97927170000001,
+    "name": "Aura clinic by dr. Kitti",
+    "open_now": true,
+    "phone_number": "091 845 0685",
+    "rating": 5.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "61 Aomkaiwachirawut Road ตำบล ท่าวัง Thawang Muang",
+    "distance_km": 2.85,
+    "is_open": true,
+    "latitude": 8.455757199999999,
+    "longitude": 99.9671702,
+    "name": "โรงพยาบาลนครินทร์",
+    "open_now": true,
+    "phone_number": "075 312 800",
+    "rating": 3.2,
+    "selection_reason": "critical: sorted by shortest distance"
+  },
+  {
+    "address": "หมู่ ที่ 3, อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 3.94,
+    "is_open": true,
+    "latitude": 8.4478067,
+    "longitude": 99.93189300000002,
+    "name": "โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านทุ่งโหนด",
+    "open_now": true,
+    "phone_number": "083 506 3865",
+    "rating": 4.0,
+    "selection_reason": "critical: sorted by shortest distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "โรงพยาบาลเทศบาลนครนครศรีธรรมราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์บริการสาธารณสุขคูขวาง (คลินิกหมอใกล้บ้าน) เทศบาลนครนครศรีธรรมราช",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "Aura clinic by dr. Kitti",
+        "relevance_score": 0.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 10.0
+      },
+      {
+        "facility_name": "โรงพยาบาลนครินทร์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านทุ่งโหนด",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      }
+    ],
+    "total_score_percent": 90.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+27. 065-ฝ-น-ผงเข-าตา-panic | moderate | panic | ฝุ่น/ผงเข้าตา
+Selection: top_disagreement_random
+Prompt: ฝุ่นเข้าตาค่ะ แสบมาก ตาแดง น้ำตาไหล ลืมตาแทบไม่ได้ จะขยี้ก็ทรมาน ทำยังไงดี!
+
+Guidance:
+1. ห้ามขยี้ตาเด็ดขาด เพราะอาจทำให้ฝุ่นติดกระจกตาหรือตาถลอก
+2. ล้างตาด้วยน้ำสะอาดหรือน้ำเกลือ โดยเอียงศีรษะข้างหนึ่ง ใช้นิ้วเปิดเปลือกตา แล้วรินน้ำจากหัวตาให้ไหลผ่านลูกตา พร้อมกลอกตาไปมา
+3. หากล้างตาแล้วฝุ่นยังไม่ออก หรือฝุ่นติดบริเวณตาดำ (ตรงกลางตาดำ) ห้ามใช้สิ่งใดเขี่ยออกเอง
+4. หากล้างตาแล้วอาการไม่ดีขึ้น มีปวดตารุนแรง ตามัว เห็นแสงแตกกระจาย หรือมีจุดขาวที่ตาดำ ให้รีบไปพบแพทย์ทันที
+
+Facilities:
+[
+  {
+    "address": "199 6 ถนน กลางเมือง ในเมือง เมือง",
+    "distance_km": 1.54,
+    "is_open": true,
+    "latitude": 16.4238261,
+    "longitude": 102.8350558,
+    "name": "คลินิกเวชกรรมเมดิแคร์ สาขาขอนแก่น",
+    "open_now": true,
+    "phone_number": "086 465 6606",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "789 ตลาดต้นตาลขอนแก่น 8 ตำบลในเมือง อ.เมือง",
+    "distance_km": 1.53,
+    "is_open": true,
+    "latitude": 16.4194285,
+    "longitude": 102.818237,
+    "name": "พอใจคลีนิกเวชกรรม",
+    "open_now": true,
+    "phone_number": "043 306 456",
+    "rating": 3.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "ตำบลในเมือง อำเภอเมืองขอนแก่น",
+    "distance_km": 3.87,
+    "is_open": true,
+    "latitude": 16.4664979,
+    "longitude": 102.8297489,
+    "name": "SMC ศูนย์บริการทางการแพทย์ชั้นเลิศ โรงพยาบาลศรีนครินทร์",
+    "open_now": true,
+    "phone_number": "043 366 444",
+    "rating": 3.6,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "60 9 Si Chan Road Naimuang อำเภอเมืองขอนแก่น",
+    "distance_km": 3.04,
+    "is_open": true,
+    "latitude": 16.4289345,
+    "longitude": 102.8519354,
+    "name": "คลินิกหมอสงกรานต์",
+    "open_now": true,
+    "phone_number": "043 244 289",
+    "rating": 3.4,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "CRXM+4JV ถนนหลังศูนย์ราชการ ตำบลในเมือง อำเภอเมืองขอนแก่น",
+    "distance_km": 2.07,
+    "is_open": true,
+    "latitude": 16.4478603,
+    "longitude": 102.8340414,
+    "name": "ศูนย์แพทย์มิตรภาพโรงพยาบาลขอนแก่น",
+    "open_now": true,
+    "phone_number": "043 239 538",
+    "rating": 2.8,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "คลินิกเวชกรรมเมดิแคร์ สาขาขอนแก่น",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "พอใจคลีนิกเวชกรรม",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "SMC ศูนย์บริการทางการแพทย์ชั้นเลิศ โรงพยาบาลศรีนครินทร์",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      },
+      {
+        "facility_name": "คลินิกหมอสงกรานต์",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "ศูนย์แพทย์มิตรภาพโรงพยาบาลขอนแก่น",
+        "relevance_score": 0.5,
+        "open_score": 1.0,
+        "weighted_score_percent": 15.0
+      }
+    ],
+    "total_score_percent": 90.0
+  },
+  "script": {
+    "rule_scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.0
+  }
+}
+
+Claude judge:
+null
+
+========================================================================================================================
+28. 072-มดค-นไฟก-ด-calm | moderate | calm | มดคันไฟกัด
+Selection: top_disagreement_random
+Prompt: มีอาการหลังถูกมดคันไฟกัด บวมแดง คันมากและเริ่มมีตุ่มขึ้น ต้องการคำแนะนำการประคบ/ยาบรรเทาอาการ และอาการแพ้แบบไหนที่ควรไปพบแพทย์ทันที
+
+Guidance:
+1. ล้างบริเวณที่ถูกกัดด้วยน้ำสะอาดและสบู่เบาๆ เพื่อชะล้างสิ่งสกปรก 2. ประคบเย็นบริเวณที่บวมแดงเพื่อลดอาการบวมและคัน 3. ทายาแก้คัน เช่น ครีมไฮโดรคอร์ติโซน (Hydrocortisone) หรือรับประทานยาต้านฮีสตามีน (Antihistamines) ตามคำแนะนำบนฉลาก 4. หลีกเลี่ยงการเกาเพราะอาจทำให้ติดเชื้อหรืออาการลุกลาม 5. สังเกตอาการแพ้รุนแรงต่อไปนี้ หากมีให้ไปพบแพทย์ทันที: หายใจลำบาก/หอบ, ปวดหัวรุนแรง, คลื่นไส้ อาเจียน, เวียนศีรษะ, หรืออาการบวม/ผื่นลามเร็วมาก
+
+Facilities:
+[
+  {
+    "address": "7/29, อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 0.87,
+    "is_open": true,
+    "latitude": 8.436521599999999,
+    "longitude": 99.9679723,
+    "name": "PLOY CHINESE MEDICINE CLINIC หมอพลอยคลินิกการแพทย์แผนจีน",
+    "open_now": true,
+    "phone_number": "082 329 8929",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "FX97+R94 ถ. อ้อมค่ายวชิราวุธ ปากพูน อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 4.35,
+    "is_open": true,
+    "latitude": 8.4695088,
+    "longitude": 99.96345699999999,
+    "name": "คลินิกหมอสมคิด",
+    "open_now": true,
+    "phone_number": "093 775 8690",
+    "rating": 5.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "2, 99 ถ. พัฒนาการคูขวาง ตำบล ในเมือง อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 4.44,
+    "is_open": true,
+    "latitude": 8.393333,
+    "longitude": 99.97815969999999,
+    "name": "โรงพยาบาลนครพัฒน์อินเตอร์ Nakhonpat Inter Hospital",
+    "open_now": true,
+    "phone_number": "075 305 999",
+    "rating": 4.2,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "61 Aomkaiwachirawut Road ตำบล ท่าวัง Thawang Muang",
+    "distance_km": 2.85,
+    "is_open": true,
+    "latitude": 8.455757199999999,
+    "longitude": 99.9671702,
+    "name": "โรงพยาบาลนครินทร์",
+    "open_now": true,
+    "phone_number": "075 312 800",
+    "rating": 3.2,
+    "selection_reason": "moderate: sorted by rating then distance"
+  },
+  {
+    "address": "198 ถ. ราชดำเนิน ในเมือง, อำเภอเมืองนครศรีธรรมราช",
+    "distance_km": 4.58,
+    "is_open": true,
+    "latitude": 8.3900084,
+    "longitude": 99.9714187,
+    "name": "โรงพยาบาลมหาราชนครศรีธรรมราช",
+    "open_now": true,
+    "phone_number": "075 801 020",
+    "rating": 3.0,
+    "selection_reason": "moderate: sorted by rating then distance"
+  }
+]
+
+Script:
+
+
+GPT judge:
+{
+  "guidance": {
+    "compliance": 5,
+    "correctness": 5,
+    "readability": 5
+  },
+  "facilities": {
+    "facility_scores": [
+      {
+        "facility_name": "PLOY CHINESE MEDICINE CLINIC หมอพลอยคลินิกการแพทย์แผนจีน",
+        "relevance_score": 0.6,
+        "open_score": 1.0,
+        "weighted_score_percent": 16.0
+      },
+      {
+        "facility_name": "คลินิกหมอสมคิด",
+        "relevance_score": 1.0,
+        "open_score": 1.0,
+        "weighted_score_percent": 20.0
+      },
+      {
+        "facility_name": "โรงพยาบาลนครพัฒน์อินเตอร์ Nakhonpat Inter Hospital",
+        "relevance_score": 0.4,
+        "open_score": 1.0,
+        "weighted_score_percent": 14.0
+      },
+      {
+        "facility_name": "โรงพยาบาลนครินทร์",
+        "relevance_score": 0.4,
+        "open_score": 1.0,
+        "weighted_score_percent": 14.0
+      },
+      {
+        "facility_name": "โรงพยาบาลมหาราชนครศรีธรรมราช",
+        "relevance_score": 0.4,
+        "open_score": 1.0,
+        "weighted_score_percent": 14.0
+      }
+    ],
+    "total_score_percent": 78.0
+  },
+  "script": {
+    "rule_scores": [
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "total_compliance": 8.5
+  }
+}
+
+Claude judge:
+null
+
