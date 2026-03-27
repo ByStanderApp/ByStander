@@ -1,105 +1,78 @@
 # ByStander
-This is the main bystander application repository, An A.I. emergency guidance application. Below is the instructions on running the project
+
+ByStander is an AI-assisted emergency guidance application with a Flask backend
+and a Flutter frontend.
+
+Live frontend: [https://bystander-mu.vercel.app/](https://bystander-mu.vercel.app/)
+
+## Project Structure
+
+- `bystander_backend`: backend agents, API service, tests, and evaluation code
+- `bystander_frontend`: Flutter app for web/mobile experiences
+- `ml`: machine learning assets and experiments
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
-* Python 3.x
-* pip (Python package installer)
-* Dart SDK
-* Flutter SDK
-* Any other necessary packages for your Flutter project.
+Before running the project locally, install:
 
-## Running the Project
+- Python 3.10+
+- `pip`
+- Flutter SDK
+- Dart SDK
 
-Follow these steps to run the main project:
+## Run ByStander Locally
 
-1.  **Navigate to the backend directory:**
-    ```bash
-    cd bystander_backend
-    ```
+### 1. Start the backend
 
-2.  **Create a virtual environment (recommended):**
-    * On macOS and Linux:
-        ```bash
-        python3 -m venv env
-        source env/bin/activate
-        ```
-    * On Windows:
-        ```bash
-        python -m venv env
-        .\env\Scripts\activate
-        ```
+From the repository root:
 
-3.  **Install backend dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+cd bystander_backend
+python3 -m venv env
+source env/bin/activate
+pip install -r agents/requirements.txt
+python3 agents/app.py
+```
 
-4.  **Navigate to the guidance generation module:**
-    ```bash
-    cd guidance_generation
-    ```
+The backend starts on `http://127.0.0.1:5003`.
 
-5.  **Run the guidance generation script:**
-    ```bash
-    python3 main.py
-    ```
+Helpful local endpoints:
 
-6.  **Navigate back to the project root and then to the frontend directory:**
-    ```bash
-    cd ..
-    cd ..
-    cd bystander_frontend
-    ```
+- `POST /agent_workflow`
+- `POST /find_facilities`
+- `POST /call_script`
+- `POST /synthesize_speech`
+- `GET /health`
 
-7.  **Run the Flutter project:**
-    ```bash
-    flutter run
-    ```
+### 2. Start the frontend
 
-8.  **Choose Chrome as the running device** when prompted by Flutter.
+Open a new terminal from the repository root:
 
-9.  **Open Chrome and change the screen type to a phone/mobile view.** This can usually be done through the browser's developer tools (e.g., by pressing `Ctrl+Shift+I` or `Cmd+Option+I` and then toggling the device toolbar).
+```bash
+cd bystander_frontend
+flutter pub get
+flutter run --dart-define=BYSTANDER_API_BASE_URL=http://127.0.0.1:5003
+```
 
-## Running MLflow
+If Flutter asks you to choose a device, select the one you want to use.
+For browser testing, Chrome works well.
 
-Follow these steps to run the MLflow UI:
+## Deployment
 
-1.  **Navigate to the backend directory (if you are not already there):**
-    ```bash
-    cd bystander_backend
-    ```
-    *If you are in the `bystander_frontend` directory from the previous steps, you would use:*
-    ```bash
-    cd ../bystander_backend
-    ```
+- Frontend: [https://bystander-mu.vercel.app/](https://bystander-mu.vercel.app/)
+- The Flutter app defaults to the hosted backend unless
+  `BYSTANDER_API_BASE_URL` is overridden at runtime.
 
+## Run MLflow
 
-2.  **Create a virtual environment (if you haven't already or if you prefer a separate one for MLflow):**
-    * On macOS and Linux:
-        ```bash
-        python3 -m venv env_mlflow  # Or use the existing 'env'
-        source env_mlflow/bin/activate # Or source env/bin/activate
-        ```
-    * On Windows:
-        ```bash
-        python -m venv env_mlflow # Or use the existing 'env'
-        .\env_mlflow\Scripts\activate # Or .\env\Scripts\activate
-        ```
+If you want to launch the MLflow UI locally:
 
-3.  **Install dependencies (if you created a new environment or if they are not already installed):**
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+cd bystander_backend
+python3 -m venv env_mlflow
+source env_mlflow/bin/activate
+pip install -r agents/requirements.txt
+mlflow ui
+```
 
-4.  **Navigate to the MLflow directory:**
-    ```bash
-    cd mlflow
-    ```
-
-5.  **Start the MLflow UI:**
-    ```bash
-    mlflow ui
-    ```
-    This will typically start the MLflow UI on `http://localhost:5000`.
+MLflow typically starts at `http://127.0.0.1:5000`.
