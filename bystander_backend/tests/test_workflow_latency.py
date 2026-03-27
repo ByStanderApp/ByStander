@@ -135,6 +135,8 @@ class PromptInjectionTests(unittest.TestCase):
         self.assertIn("referred to as she", prompt)
         self.assertIn("Their known medical history: asthma", prompt)
         self.assertIn("include one short line about known conditions", prompt)
+        self.assertIn("Make every line specific to this scenario", prompt)
+        self.assertIn("If a detail is unknown, say it is not yet known", prompt)
 
     def test_rag_miss_triggers_search_fallback_context(self):
         agent = GuidanceAgent(_FakeLlm())

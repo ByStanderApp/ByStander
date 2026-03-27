@@ -1,0 +1,452 @@
+{
+  "models": {
+    "gpt_judge": {
+      "overall:all": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 225,
+          "mean": 58.82,
+          "median": 56.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "prompt_style:panic": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 57.2067,
+          "median": 54.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "prompt_style:calm": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 61.36,
+          "median": 74.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "prompt_style:misspelled": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 57.8933,
+          "median": 54.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "severity_group:critical": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 108,
+          "mean": 74.3333,
+          "median": 89.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "severity_group:non-critical": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 117,
+          "mean": 44.5,
+          "median": 48.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      }
+    },
+    "claude_judge": {
+      "overall:all": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 225,
+          "mean": 68.9933,
+          "median": 89.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "prompt_style:panic": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 68.4733,
+          "median": 85.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "prompt_style:calm": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 70.9533,
+          "median": 87.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "prompt_style:misspelled": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 75,
+          "mean": 67.5533,
+          "median": 90.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "severity_group:critical": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 108,
+          "mean": 86.9167,
+          "median": 97.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "severity_group:non-critical": {
+        "guidance_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_correctness": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "guidance_readability": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        },
+        "facilities_total_score_percent": {
+          "count": 117,
+          "mean": 52.4487,
+          "median": 56.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "script_total_compliance": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "max": null
+        }
+      }
+    }
+  }
+}
