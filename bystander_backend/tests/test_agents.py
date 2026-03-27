@@ -92,8 +92,9 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
-            with patch.object(
+        with (
+            patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result),
+            patch.object(
                 MapAgent,
                 "_estimate_route_eta_minutes",
                 return_value={
@@ -101,14 +102,15 @@ class MapAgentTests(unittest.TestCase):
                     "subdepartment": 3.0,
                     "full-hospital-slower": 16.0,
                 },
-            ):
-                out = agent.run(
-                    scenario="critical",
-                    severity="critical",
-                    facility_type="clinic",
-                    latitude=13.7563,
-                    longitude=100.5018,
-                )
+            ),
+        ):
+            out = agent.run(
+                scenario="critical",
+                severity="critical",
+                facility_type="clinic",
+                latitude=13.7563,
+                longitude=100.5018,
+            )
         self.assertEqual([item["name"] for item in out], ["โรงพยาบาลเอ", "โรงพยาบาลซี"])
         self.assertIn("critical", out[0]["selection_reason"])
         self.assertLess(out[0]["eta_minutes"], out[1]["eta_minutes"])
@@ -156,8 +158,9 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
-            with patch.object(
+        with (
+            patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result),
+            patch.object(
                 MapAgent,
                 "_estimate_route_eta_minutes",
                 return_value={
@@ -165,14 +168,15 @@ class MapAgentTests(unittest.TestCase):
                     "dental-clinic": 6.0,
                     "blood-room": 5.0,
                 },
-            ):
-                out = agent.run(
-                    scenario="ปวดท้องรุนแรง แต่ยังรู้สึกตัวดี",
-                    severity="moderate",
-                    facility_type="clinic",
-                    latitude=13.7563,
-                    longitude=100.5018,
-                )
+            ),
+        ):
+            out = agent.run(
+                scenario="ปวดท้องรุนแรง แต่ยังรู้สึกตัวดี",
+                severity="moderate",
+                facility_type="clinic",
+                latitude=13.7563,
+                longitude=100.5018,
+            )
         self.assertEqual([item["name"] for item in out], ["คลินิกเวชกรรมทั่วไป"])
         self.assertIn("moderate", out[0]["selection_reason"])
         self.assertGreaterEqual(out[0]["selection_score"], 0.45)
@@ -207,22 +211,24 @@ class MapAgentTests(unittest.TestCase):
                 },
             ]
         }
-        with patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result):
-            with patch.object(
+        with (
+            patch.object(MapAgent, "search_nearby_facilities", return_value=fake_result),
+            patch.object(
                 MapAgent,
                 "_estimate_route_eta_minutes",
                 return_value={
                     "general-clinic": 8.0,
                     "eye-clinic": 14.0,
                 },
-            ):
-                out = agent.run(
-                    scenario="สารเคมีเข้าตา แสบตา ตามัว",
-                    severity="moderate",
-                    facility_type="clinic",
-                    latitude=13.7563,
-                    longitude=100.5018,
-                )
+            ),
+        ):
+            out = agent.run(
+                scenario="สารเคมีเข้าตา แสบตา ตามัว",
+                severity="moderate",
+                facility_type="clinic",
+                latitude=13.7563,
+                longitude=100.5018,
+            )
         self.assertEqual(out[0]["name"], "คลินิกจักษุอโศก")
         self.assertGreater(out[0]["specialty_fit_score"], out[1]["specialty_fit_score"])
 
@@ -271,21 +277,27 @@ class MapAgentTests(unittest.TestCase):
             "unknown-place": {"phone_number": "", "website": "", "opening_hours": {}},
         }
 
-        with patch.object(MapAgent, "_build_query_plan", return_value=[{"radius": 1000, "type": "hospital", "keyword": ""}]):
-            with patch.object(MapAgent, "_nearby_search", return_value=nearby_result):
-                with patch.object(MapAgent, "_llm_validate_candidates", return_value={}):
-                    with patch.object(
-                        MapAgent,
-                        "_get_place_details",
-                        side_effect=lambda place_id: details_by_id[place_id],
-                    ):
-                        result = agent.search_nearby_facilities(
-                            latitude=13.7563,
-                            longitude=100.5018,
-                            facility_type="hospital",
-                            severity="critical",
-                            scenario="เจ็บหน้าอก",
-                        )
+        with (
+            patch.object(
+                MapAgent,
+                "_build_query_plan",
+                return_value=[{"radius": 1000, "type": "hospital", "keyword": ""}],
+            ),
+            patch.object(MapAgent, "_nearby_search", return_value=nearby_result),
+            patch.object(MapAgent, "_llm_validate_candidates", return_value={}),
+            patch.object(
+                MapAgent,
+                "_get_place_details",
+                side_effect=lambda place_id: details_by_id[place_id],
+            ),
+        ):
+            result = agent.search_nearby_facilities(
+                latitude=13.7563,
+                longitude=100.5018,
+                facility_type="hospital",
+                severity="critical",
+                scenario="เจ็บหน้าอก",
+            )
 
         self.assertEqual(result["total"], 1)
         self.assertEqual(result["facilities"][0]["place_id"], "open-place")

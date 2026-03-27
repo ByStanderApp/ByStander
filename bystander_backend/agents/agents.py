@@ -517,8 +517,12 @@ class MapAgent:
     def __init__(self) -> None:
         self.openai_validator_llm = OpenAIJSONAgent()
         self.gemini_validator_llm = GeminiJSONAgent()
-        self.validator_provider = _normalize_text(os.getenv("MAP_VALIDATOR_PROVIDER") or "openai").lower()
-        default_model = "gpt-4.1-mini" if self.validator_provider == "openai" else "gemini-2.5-flash"
+        self.validator_provider = _normalize_text(
+            os.getenv("MAP_VALIDATOR_PROVIDER") or "openai"
+        ).lower()
+        default_model = (
+            "gpt-4.1-mini" if self.validator_provider == "openai" else "gemini-2.5-flash"
+        )
         self.validator_model = _normalize_text(os.getenv("MAP_VALIDATOR_MODEL")) or default_model
         self.validator_fallback_model = (
             _normalize_text(os.getenv("MAP_VALIDATOR_FALLBACK_MODEL")) or "gemini-2.5-flash"
@@ -676,7 +680,17 @@ class MapAgent:
             "women": ("pregnan", "obgyn", "gyne", "สูติ", "นรี", "ตั้งครรภ์", "ครรภ์", "คลอด"),
             "child": ("child", "children", "infant", "baby", "เด็ก", "ทารก"),
             "ent": ("ear", "nose", "throat", "ent", "หู", "จมูก", "คอ"),
-            "ortho": ("fracture", "sprain", "bone", "joint", "ortho", "กระดูก", "ข้อ", "แพลง", "เคล็ด"),
+            "ortho": (
+                "fracture",
+                "sprain",
+                "bone",
+                "joint",
+                "ortho",
+                "กระดูก",
+                "ข้อ",
+                "แพลง",
+                "เคล็ด",
+            ),
             "skin": ("rash", "skin", "derma", "ผื่น", "ผิว", "คัน"),
             "mental": ("mental", "psy", "panic", "suicid", "จิต", "เครียด", "ฆ่าตัวตาย"),
         }
@@ -824,7 +838,7 @@ class MapAgent:
                     continue
                 rows = payload.get("rows") or []
                 elements = rows[0].get("elements", []) if rows else []
-                for item, element in zip(chunk, elements):
+                for item, element in zip(chunk, elements, strict=False):
                     if _normalize_text(element.get("status")) != "OK":
                         continue
                     duration = element.get("duration_in_traffic") or element.get("duration") or {}
@@ -894,12 +908,16 @@ class MapAgent:
         if self.validator_provider == "openai":
             chain = [
                 (self.openai_validator_llm, self.validator_model) if openai_available else None,
-                (self.gemini_validator_llm, self.validator_fallback_model) if gemini_available else None,
+                (self.gemini_validator_llm, self.validator_fallback_model)
+                if gemini_available
+                else None,
             ]
         else:
             chain = [
                 (self.gemini_validator_llm, self.validator_model) if gemini_available else None,
-                (self.openai_validator_llm, self.validator_fallback_model) if openai_available else None,
+                (self.openai_validator_llm, self.validator_fallback_model)
+                if openai_available
+                else None,
             ]
         return [item for item in chain if item is not None]
 
@@ -1066,7 +1084,9 @@ class MapAgent:
                 parts.append(f"สถานพยาบาลใกล้เคียง: {', '.join(nearby_refs)}")
         return "\n".join(parts)
 
-    def _strict_filter(self, place: dict[str, Any], requested_facility_type: str, severity: str) -> str:
+    def _strict_filter(
+        self, place: dict[str, Any], requested_facility_type: str, severity: str
+    ) -> str:
         if self._is_veterinary_place(place):
             return "reject"
         if self._is_non_treatment_business(place):
@@ -1183,9 +1203,11 @@ class MapAgent:
             f"Requested facility type: {requested_facility_type}\n"
             f"Severity: {severity}\n\n"
             "For requested type hospital, only full hospitals are valid. "
-            "Reject emergency rooms, departments, units, wards, labs, or sub-centers inside hospitals.\n"
-            "For requested type clinic, full hospitals and true clinics are valid, but reject rooms, departments, "
-            "screening centers, and narrow non-treatment units.\n"
+            "Reject emergency rooms, departments, units, wards, labs, or "
+            "sub-centers inside hospitals.\n"
+            "For requested type clinic, full hospitals and true clinics are "
+            "valid, but reject rooms, departments, screening centers, and "
+            "narrow non-treatment units.\n"
             "Return JSON schema exactly: "
             '{"items":[{"place_id":"...","is_valid":true|false,'
             '"facility_type":"hospital|clinic|other","reason":"short"}]}\n\n'
@@ -1349,8 +1371,10 @@ class MapAgent:
             return []
 
         map_severity = "critical" if severity == "critical" else "mild"
-        requested_facility_type = "hospital" if severity == "critical" else (
-            facility_type if facility_type in {"hospital", "clinic"} else "hospital"
+        requested_facility_type = (
+            "hospital"
+            if severity == "critical"
+            else (facility_type if facility_type in {"hospital", "clinic"} else "hospital")
         )
         result = self.search_nearby_facilities(
             latitude=latitude,
